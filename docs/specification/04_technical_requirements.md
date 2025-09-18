@@ -1,7 +1,5 @@
-# 【 usalingo_04_technical_requirements.md 】
-
 <aside>
-<img src="https://www.notion.so/icons/wheat_gray.svg" alt="https://www.notion.so/icons/wheat_gray.svg" width="40px" />
+<img src="/icons/wheat_gray.svg" alt="/icons/wheat_gray.svg" width="40px" />
 
 # *【 usalingo_04_technical_requirements.md 】*
 
@@ -10,6 +8,10 @@
 ---
 
 ## ***【 usalingo_04_01｜開発環境 & 技術スタック 】***
+
+*開発に使用するハードウェア、ソフトウェア、クラウドサービスから、アプリケーションの根幹を成す主要なライブラリまで、本プロジェクトを構成する全ての技術要素を定義する。*
+
+---
 
 ### **● ハードウェア環境**
 
@@ -24,7 +26,7 @@
 
 ### **● ソフトウェア環境**
 
-[https://github.com/uiui-1028/usalingo_app_flutter](https://github.com/uiui-1028/usalingo_app_flutter)
+https://github.com/uiui-1028/usalingo_app_flutter
 
 | IDE | Cursur AI Editer (VS Codeベース) |
 | --- | --- |
@@ -60,105 +62,11 @@
 
 ---
 
-## ***【 usalingo_04_02｜ディレクトリツリー 】⚠️更新***
+## ***【 usalingo_04_03｜データベース設計 】***
 
-```yaml
-# 【 最終更新：2025/08/03 】
-usalingo_app/
-├── .git/                    # Gitリポジトリの管理ファイル
-├── .dart_tool/              # Dartツールのキャッシュと設定
-├── .idea/                   # IntelliJ IDEAの設定ファイル
-├── build/                   # ビルド出力ディレクトリ
-├── lib/                     # メインのDartソースコード
-│   ├── app/                 # アプリケーションの初期化とDI設定
-│   │   ├── app.dart         # アプリケーションのメイン設定
-│   │   └── providers.dart   # 依存性注入のプロバイダー設定
-│   ├── data/                # データ層（Clean Architecture）
-│   │   ├── datasources/     # データソース（Supabase、SQLite等）
-│   │   │   ├── learning_progress_datasource.dart  # 学習進捗データソース
-│   │   │   ├── local_word_datasource.dart         # ローカル単語データソース
-│   │   │   └── sqlite_schema.dart                 # SQLiteスキーマ定義
-│   │   ├── models/          # データ転送オブジェクト（DTO）
-│   │   └── repositories/    # リポジトリの実装
-│   │       ├── learning_progress_repository_impl.dart  # 学習進捗リポジトリ実装
-│   │       ├── word_repository_impl.dart              # 単語リポジトリ実装
-│   │       ├── word_repository_selector.dart          # リポジトリ選択ロジック
-│   │       ├── word_repository_sqlite.dart            # SQLite単語リポジトリ
-│   │       └── word_repository_supabase.dart          # Supabase単語リポジトリ
-│   ├── domain/              # ドメイン層（Clean Architecture）
-│   │   ├── entities/        # ビジネスエンティティ
-│   │   │   ├── learning_progress.dart  # 学習進捗エンティティ
-│   │   │   └── word.dart               # 単語エンティティ
-│   │   ├── repositories/    # リポジトリのインターフェース
-│   │   └── usecases/       # ビジネスロジック（ユースケース）
-│   │       ├── get_due_today_cards.dart      # 今日学習すべきカード取得
-│   │       ├── get_learning_progress.dart    # 学習進捗取得
-│   │       ├── get_next_word.dart            # 次の単語取得
-│   │       └── mark_card_result.dart         # カード結果記録
-│   ├── presentation/        # プレゼンテーション層（Clean Architecture）
-│   │   ├── pages/          # 画面UIと状態管理
-│   │   │   ├── flashcard_page.dart              # フラッシュカード画面
-│   │   │   ├── learning_progress_test_page.dart # 学習進捗テスト画面
-│   │   │   ├── root_page.dart                   # ルート画面
-│   │   │   ├── supabase_test_page.dart          # Supabaseテスト画面
-│   │   │   ├── test_3d_card_screen.dart         # 3Dカードテスト画面
-│   │   │   ├── theme_selector_page.dart         # テーマ選択画面
-│   │   │   └── word_list_page.dart              # 単語リスト画面
-│   │   ├── theme/          # テーマ設定
-│   │   │   ├── app_theme.dart                   # アプリテーマ設定
-│   │   │   ├── app_theme_provider.dart          # テーマプロバイダー
-│   │   │   └── themes/                          # 各テーマの実装
-│   │   │       ├── flat_theme.dart              # フラットテーマ
-│   │   │       ├── material_theme.dart          # Materialテーマ
-│   │   │       ├── mockup_theme.dart            # モックアップテーマ
-│   │   │       ├── neumorphism_theme.dart       # ニューモーフィズムテーマ
-│   │   │       ├── pixel_art_theme.dart         # ピクセルアートテーマ
-│   │   │       └── wireframe_theme.dart         # ワイヤーフレームテーマ
-│   │   └── blocks/        # 再利用可能なブロック
-│   │       ├── flashcard_block.dart            # フラッシュカードブロック
-│   │       └── lottie_feedback_block.dart      # Lottieフィードバックブロック
-│   ├── main.dart           # アプリケーションのエントリーポイント
-│   └── secrets.dart        # 機密情報（APIキー等）
-├── docs/                     # メインのDartソースコード
-│   ├── README.md                  # ドキュメント全体の概要
-│   ├── rules/                     # 開発ルール（既存）
-│   │   ├── README.md
-│   │   ├── common-rules.md        # Cursor AI Editor用のルール
-│   │   ├── cursor-rules.md        # Claude用のルール
-│   │   └── claude-rules.md        # 共通ルール（重複部分）
-│   ├── architecture/              # アーキテクチャ設計
-│   │   └── overview.md            # システム設計概要
-│   ├── development/               # 開発ガイド
-│   │   └── setup.md               # 開発環境セットアップ
-│   ├── features/                  # 機能仕様書
-│   │   └── flashcard-system.md    # フラッシュカード機能
-│   └── troubleshooting/           # トラブルシューティング
-│       └── common-issues.md       # よくある問題と解決方法
-├── assets/                 # 静的アセット
-│   ├── audio/              # 音声ファイル
-│   └── lottie/             # Lottieアニメーションファイル
-├── android/                # Androidプラットフォーム固有のファイル
-├── ios/                    # iOSプラットフォーム固有のファイル
-├── linux/                  # Linuxプラットフォーム固有のファイル
-├── macos/                  # macOSプラットフォーム固有のファイル
-├── windows/                # Windowsプラットフォーム固有のファイル
-├── web/                    # Webプラットフォーム固有のファイル
-├── test/                   # テストコード
-├── .DS_Store               # macOSシステムファイル
-├── .flutter-plugins-dependencies # Flutterプラグイン依存関係
-├── .gitignore              # Git除外設定
-├── .metadata               # Flutterメタデータ
-├── analysis_options.yaml    # Dart解析設定
-├── devtools_options.yaml   # Flutter DevTools設定
-├── pubspec.lock            # 依存関係ロックファイル
-├── pubspec.yaml            # プロジェクト設定と依存関係
-├── README.md               # プロジェクト概要
-└── usalingo_app.iml       # IntelliJ IDEAプロジェクト設定
-```
+*命名規則やセキュリティポリシーといった設計原則から、具体的なテーブル定義、インデックス設計に至るまで、アプリケーションのデータを永続化するための論理的・物理的構造の全てを定義する。*
 
 ---
-
-## ***【 usalingo_04_03｜データベース設計 】***
 
 ### ✦ 設計原則
 
@@ -448,6 +356,10 @@ storage_positions:
       type: TEXT
       description: "国際音声記号（IPA）による発音記号。"
       constraints: "nullable"
+    - name: audio_urls
+      type: JSONB
+      description: "単語音声のURLをアクセント・性別ごとに格納する。（例: {'us_female': 'path/to/audio.mp3'}）"
+      constraints: "nullable"
 
 # -----------------------------------------------
 # Table: word_meanings
@@ -673,7 +585,41 @@ storage_positions:
 
 ---
 
+### ✦ **マイグレーション**
+
+*データベーススキーマの変更を安全かつ再現可能な形で管理・適用するための標準的な開発プロセス。全てのスキーマ変更はこのワークフローに従い、Gitでバージョン管理される。*
+
+```yaml
+--------------------------------
+WORKFROW: "データベースマイグレーション"
+name: データベースマイグレーション (Database Migration)
+description: データベースの構造変更をコードとして管理し、開発環境から本番環境へ安全に適用するための標準手順。
+tool: Supabase CLI
+workflow:
+--------------------------------
+- step: 1. 変更ファイルの作成 (Creation)
+details: 開発者のローカル環境で supabase migration new <migration_name> コマンドを実行し、スキーマ変更内容を記述するための新しいSQLファイルを作成する。
+--------------------------------
+- step: 2. スキーマ変更の記述 (Implementation)
+details: 作成されたSQLファイルに、CREATE TABLE, ALTER TABLE, CREATE INDEX などのSQL文を記述する。
+--------------------------------
+- step: 3. 開発環境でのテスト (Testing)
+details: 開発環境のデータベースに対してマイグレーションを適用 (supabase db push等) し、意図通りにスキーマが変更され、既存機能に影響がないことを確認する。
+--------------------------------
+- step: 4. バージョン管理へのコミット (Commit)
+details: テストが完了したマイグレーションファイルをGitにコミットし、チームにレビューを依頼する。
+--------------------------------
+- step: 5. 本番環境への適用 (Deployment)
+details: レビューで承認された後、CI/CDパイプラインまたは手動で supabase migration up コマンドを実行し、本番環境のデータベースに一連の変更を適用する。
+```
+
+---
+
 ## ***【 usalingo_04_04｜アルゴリズム設計 】***
+
+*忘却曲線に基づく復習スケジューリングから、ユーザーに最適なコンテンツを提示するパーソナライズ、UIテーマの動的切り替えまで、アプリケーションの知的挙動を実現する核心的なロジックを定義する。* 
+
+---
 
 ### 【 Algorithm｜01 】忘却曲線 アルゴリズム（ リートナー方式 ）
 
@@ -1048,172 +994,3 @@ storage_positions:
 ```
 
 ---
-
-## ***【 usalingo_04_05｜ワークフロー設計 】***
-
-*本セクションでは、開発や運用における重要なプロセス（ワークフロー）を定義する。これにより、作業の標準化と品質の担保を図る。*
-
----
-
-### **【 Workflow｜01 】退会処理**
-
-*ユーザーの退会リクエストを受け、関連する全データを安全かつ完全に削除するためのサーバーサイド処理フロー。データの整合性を保ち、個人情報を確実に保護するため、Supabase Edge Function を介して一連の処理をトランザクションとして実行する。*
-
-```yaml
---------------------------------
-WORKFROW: "アカウント完全削除処理"
-name: アカウント完全削除処理 (Account Deletion Process)
-description: ユーザーからの退会リクエストに基づき、関連データを物理的に完全削除するサーバーサイドワークフロー。
-trigger: ユーザーがアプリ内で本人確認（再認証）を完了し、退会を最終確定したとき。
-executor: Supabase Edge Function (delete-user-account)
-workflow:
---------------------------------
-- step: 1. リクエスト受信 (Request Reception)
-details: クライアントアプリから、削除対象のユーザーID（JWTから取得）を含むリクエストを受け取る。
---------------------------------
-- step: 2. 依存データ削除 (Dependent Data Deletion)
-details: service_role_key を用いてRLSをバイパスし、外部キー制約に違反しないよう、ユーザーIDに紐づく依存テーブルのレコードを順番に削除する。
-sequence:
-- "1. user_learning_progress"
-- "2. user_block_layouts"
-- "3. user_settings"
-- "4. user_profiles"
---------------------------------
-- step: 3. 認証ユーザー削除 (Auth User Deletion)
-details: 関連するデータベースのレコード削除が完了した後、Supabase Authシステムから対象のユーザーを完全に削除する (auth.admin.deleteUser(userId))。
---------------------------------
-- step: 4. 処理結果応答 (Response)
-details: 全ての削除処理が正常に完了したことを示すステータスコードをクライアントアプリに返し、処理を終了する。エラーが発生した場合は、エラー内容をログに記録し、クライアントには汎用的なエラーメッセージを返す。
-```
-
----
-
-### **【 Workflow｜02 】DB マイグレーション**
-
-*データベーススキーマの変更を安全かつ再現可能な形で管理・適用するための標準的な開発プロセス。全てのスキーマ変更はこのワークフローに従い、Gitでバージョン管理される。*
-
-```yaml
---------------------------------
-WORKFROW: "データベースマイグレーション"
-name: データベースマイグレーション (Database Migration)
-description: データベースの構造変更をコードとして管理し、開発環境から本番環境へ安全に適用するための標準手順。
-tool: Supabase CLI
-workflow:
---------------------------------
-- step: 1. 変更ファイルの作成 (Creation)
-details: 開発者のローカル環境で supabase migration new <migration_name> コマンドを実行し、スキーマ変更内容を記述するための新しいSQLファイルを作成する。
---------------------------------
-- step: 2. スキーマ変更の記述 (Implementation)
-details: 作成されたSQLファイルに、CREATE TABLE, ALTER TABLE, CREATE INDEX などのSQL文を記述する。
---------------------------------
-- step: 3. 開発環境でのテスト (Testing)
-details: 開発環境のデータベースに対してマイグレーションを適用 (supabase db push等) し、意図通りにスキーマが変更され、既存機能に影響がないことを確認する。
---------------------------------
-- step: 4. バージョン管理へのコミット (Commit)
-details: テストが完了したマイグレーションファイルをGitにコミットし、チームにレビューを依頼する。
---------------------------------
-- step: 5. 本番環境への適用 (Deployment)
-details: レビューで承認された後、CI/CDパイプラインまたは手動で supabase migration up コマンドを実行し、本番環境のデータベースに一連の変更を適用する。
-```
-
----
-
-### 【 **Workflow｜**03 】AIGC テキストコンテンツ生成
-
-*ユーザーに提供する単語・例文などのテキスト情報を、品質を担保しつつ効率的に生成・管理するための標準プロセス。*
-
-```yaml
---------------------------------
-WORKFROW: "AIGCテキストコンテンツ生成・登録フロー"
-name: AIGCテキストコンテンツ生成・登録フロー (AIGC Text Content Generation & Seeding)
-description: 定義されたテーマと品質ガイドラインに基づき、単語や例文のマスターデータを生成し、本番DBへ登録するまでの一連の作業手順。
-tool: Google Spreadsheet, Gemini/GPTs, Supabase CLI
-workflow:
---------------------------------
-- step: 1. マスターシート準備 (Sheet Preparation)
-  details: Google Spreadsheetで単語リストを用意し、生成したいプロパティ（日本語訳, 例文, 語源等）のカラムを作成する。
---------------------------------
-- step: 2. コンテンツ生成 (Content Generation)
-  details: 専用GPTs等を使用し、各単語・各カラムの情報をプロンプトテンプレートに基づき生成させ、シートに転記する。
---------------------------------
-- step: 3. 品質監査 (Quality Assurance)
-  details: 生成された全コンテンツを `usalingo_02_05｜AIGC ガイドライン` に基づき、自動フィルタリングと人間による目視で監査する。
---------------------------------
-- step: 4. CSVエクスポート (CSV Export)
-  details: 監査済みのデータを、各テーブル（`words`, `example_contents`等）に対応したCSV形式でエクスポートする。
---------------------------------
-- step: 5. データベースへの登録 (Seeding)
-  details: Supabase CLIの `seed.sql` を利用し、エクスポートしたCSVデータを開発環境および本番環境のデータベースに登録（シーディング）する。
-```
-
----
-
-### 【 **Workflow｜**04 】ワイヤーフレーム駆動開発
-
-*本プロジェクトのフロントエンド開発における基本方針。UIの骨格（ワイヤーフレーム）を先行して実装し、ビジネスロジックや詳細なデザインは後から統合することで、開発プロセスを効率化し、手戻りを最小限に抑えることを目的とする。*
-
----
-
-```yaml
---------------------------------
-WORKFROW: "ワイヤーフレーム駆動開発"
-name: ワイヤーフレーム駆動開発 (Wireframe-Driven Development)
-description: UIの構造とロジックを分離し、UIの骨格から開発を始めることで、手戻りを防ぎ、開発効率を最大化する開発アプローチ。
-tool: Flutter, Figma
-workflow:
---------------------------------
-- step: 1. ワイヤーフレームテーマの適用 (Theme Application)
-  details: 開発の初期段階では、`usalingo_04_04`で定義された「ワイヤーフレームテーマ」をアプリケーション全体に適用する。これにより、全ての装飾的要素が排除され、レイアウトと機能配置に集中できる環境を構築する。
---------------------------------
-- step: 2. UI骨格の実装 (UI Scaffolding)
-  details: Figmaなどで設計された画面レイアウトに基づき、具体的なブロック（ボタン、テキストフィールド、カード等）を配置し、画面全体の構造をコードとして実装する。この段階では、データの表示やボタンの動作はモックデータや空の関数を用いて仮実装する。
---------------------------------
-- step: 3. ロジックとデータの統合 (Logic & Data Integration)
-  details: UIの骨格が完成した後、実際のビジネスロジック（状態管理、API通信、データベース連携など）を実装し、UIコンポーネントと接続する。
---------------------------------
-- step: 4. デザインテーマの適用 (Final Design Application)
-  details: 機能実装が完了、または一定の目処が立った段階で、適用するテーマを「ワイヤーフレームテーマ」から「フラットデザインテーマ」などの本番用テーマに切り替える。これにより、機能はそのままに、アプリケーションの見た目を最終的なデザインへと一括で変更する。
-```
-
----
-
-## ***【 usalingo_04_06｜アセット管理規定 】***
-
-*本セクションでは、アプリケーション内で使用する主要な非構造アセット（画像、音声、アニメーション）の技術仕様、命名規則、ライセンス管理、および格納方針を網羅的に定義する。*
-
----
-
-### **✦ 画像アセット**
-
-| **項目** | **仕様** | **備考** |
-| --- | --- | --- |
-| **マスター形式** | **WebP** | 非可逆圧縮でも高い画質を維持し、ファイルサイズをPNGの約25-35%削減できるため、表示速度向上に寄与する。 |
-| **最大ファイルサイズ** | **150KB / 枚** | アプリのパフォーマンスを維持するための上限値。Supabase Edge Functionで自動圧縮を行う。例として,（700*1000px）のPNG画像（平均300KB）は（15KB）のwebP画像に圧縮できる。 |
-| **命名規則** | `{word_text}_{illustration_id}.webp` | どの単語の何番目のイラストか判別しやすくする。 |
-| **格納場所** | **Supabase Storage** | クラウドで一元管理し、動的な画像配信（Image Transformation）を活用するため。 |
-| **ライセンス管理** | `usalingo_02_04`のAIGCガイドラインに準拠する。 | AI生成コンテンツの品質と安全性を担保する。 |
-
----
-
-### **✦ 音声アセット**
-
-| **項目** | **仕様** | **備考** |
-| --- | --- | --- |
-| **形式** | **MP3** | 幅広いプラットフォームでサポートされており、圧縮率と音質のバランスが良いため。 |
-| **命名規則** | `{word_text}_{locale}_{gender}.mp3` | 例: `apple_us_female.mp3` |
-| **格納場所 (MVP)** | アプリパッケージ (`assets/audio/`) | オフライン再生とAPIコストゼロを実現するため。 |
-| **格納場所 (Ver1.x以降)** | クラウドTTSサービスから動的生成 | Proプラン向けの高音質化とアプリ容量削減のため。 |
-
----
-
-### **✦ Lottieアセット**
-
-| **項目** | **仕様** | **備考** |
-| --- | --- | --- |
-| **アセット調達方針** | MVP段階では、LottieFiles Marketplace等でライセンス購入した汎用アセットを利用する。 | 開発速度を優先するため。 |
-| **格納場所** | アプリパッケージ (`assets/lottie/`) | オフライン環境での表示を保証し、読み込み遅延を防ぐため。 |
-| **ライセンス管理** | プロジェクトルートに `LOTTIE_LICENSES.md` を作成し、購入した全アセットの情報を明記する。 | 権利関係を明確化し、ライセンス違反リスクを回避するため。 |
-
----
-
-</aside>

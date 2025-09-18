@@ -1,16 +1,85 @@
-# usalingo_app
+# Usalingo - 英語学習アプリ
 
-A new Flutter project.
+## 📱 概要
 
-## Getting Started
+Usalingoは、忘却曲線アルゴリズムを活用した効率的な英語学習アプリです。フラッシュカード形式で単語を学習し、個人の記憶パターンに基づいて最適な復習タイミングを提供します。
 
-This project is a starting point for a Flutter application.
+## 🚀 主な機能
 
-A few resources to get you started if this is your first Flutter project:
+- **フラッシュカード学習**: 直感的なスワイプ操作で単語を学習
+- **忘却曲線アルゴリズム**: 科学的根拠に基づいた復習スケジュール
+- **カスタマイズ可能なUI**: 複数のデザインテーマに対応
+- **学習進捗管理**: 詳細な学習データの可視化
+- **オフライン対応**: インターネット接続なしでも学習可能
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## 🛠️ 技術スタック
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- **フロントエンド**: Flutter (Dart)
+- **バックエンド**: Supabase
+- **データベース**: PostgreSQL
+- **認証**: Supabase Auth
+- **ストレージ**: Supabase Storage
+
+## 📚 ドキュメント
+
+詳細なドキュメントは `docs/` フォルダを参照してください。
+
+- [アーキテクチャ設計](docs/architecture/)
+- [機能仕様](docs/features/)
+- [開発ルール](docs/rules/)
+- [Supabase設定](docs/supabase/)
+
+## 🚀 セットアップ
+
+### 前提条件
+
+- Flutter SDK (最新版)
+- Dart SDK
+- Supabaseアカウント
+
+### インストール
+
+1. リポジトリをクローン
+```bash
+git clone https://github.com/uiui-1028/usalingo_app_flutter.git
+cd usalingo_app_flutter
+```
+
+2. 依存関係をインストール
+```bash
+flutter pub get
+```
+
+3. 環境設定
+```bash
+# Supabaseの設定を追加
+cp lib/secrets.dart.example lib/secrets.dart
+# secrets.dartにSupabaseの設定を記入
+```
+
+4. アプリを実行
+```bash
+flutter run
+```
+
+## 📖 開発ガイド
+
+### アーキテクチャ
+
+このプロジェクトはClean Architectureを採用しています：
+
+- `lib/domain/` - ビジネスロジック
+- `lib/data/` - データアクセス層
+- `lib/presentation/` - UI層
+
+### コーディング規約
+
+詳細は `docs/rules/` を参照してください。
+
+## 🤝 貢献
+
+プルリクエストやイシューの報告を歓迎します。
+
+## 📄 ライセンス
+
+このプロジェクトはMITライセンスの下で公開されています。
