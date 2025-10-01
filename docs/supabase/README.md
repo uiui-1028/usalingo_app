@@ -8,16 +8,27 @@
 docs/
 └── supabase/
     ├── README.md                     # このファイル
-    ├── storage_trigger_guide.md      # Storage トリガー設定ガイド
-    └── sql/                          # SQL 資材
-        ├── supabase_schema.sql       # メインデータベーススキーマ
-        ├── supabase_storage_setup.sql# ストレージバケット設定
-        └── storage_trigger_setup.sql # ストレージトリガー設定
+    └── sql/                          # SQL スクリプト
+        ├── README.md                 # スキーマ再構築手順書
+        ├── 00_cleanup.sql            # 既存テーブル削除スクリプト
+        ├── 01_schema.sql             # 新テーブル作成スクリプト
+        ├── 02_indexes.sql            # インデックス作成スクリプト
+        └── 03_rls.sql                # RLSポリシー設定スクリプト
 ```
 
 ### 主要ドキュメント
 
-- **storage_trigger_guide.md**: Storageに画像をアップロードした際に、自動的にデータベースの`example_contents`テーブルの`illustration_url`カラムを更新する機能の設定方法
+- **sql/README.md**: データベーススキーマ再構築の詳細な手順書
+- **00_cleanup.sql**: 既存のコンテンツ関連テーブルを安全に削除
+- **01_schema.sql**: 最新の要件定義書に基づく新しいテーブル作成
+- **02_indexes.sql**: クエリパフォーマンス最適化のためのインデックス作成
+- **03_rls.sql**: セキュリティ制御のためのRLSポリシー設定
+
+### 使用方法
+
+1. データベースのバックアップを取得
+2. SQLスクリプトを順番に実行（00 → 01 → 02 → 03）
+3. 実行後の確認クエリでテーブル構造を検証
 
 ### 参照
 
