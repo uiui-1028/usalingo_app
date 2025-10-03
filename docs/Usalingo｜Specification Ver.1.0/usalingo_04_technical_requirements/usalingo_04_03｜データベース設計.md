@@ -626,9 +626,9 @@ storage_positions:
     - `word_meanings`: `audio_filename`カラムの変更時
     - `example_contents`: `illustration_filename`, `audio_filename`カラムの変更時
 - **処理内容（命名規則適用）:**
-    - `word_meanings`テーブル: `audio_filename`が設定された際、自動的に`audio_asset_path`に`content-audio/word_{word_id}_{meaning_id}.mp3`を設定
-    - `example_contents`テーブル: `illustration_filename`が設定された際、自動的に`illustration_asset_path`に`content-images/example_{example_id}.webp`を設定
-    - `example_contents`テーブル: `audio_filename`が設定された際、自動的に`audio_asset_path`に`content-audio/example_{example_id}.mp3`を設定
+    - `word_meanings`テーブル: `audio_filename`が設定された際、自動的に`audio_asset_path`に`content-audio/word/{id_range}/{word_id}_{meaning_id}.mp3`を設定
+    - `example_contents`テーブル: `illustration_filename`が設定された際、自動的に`illustration_asset_path`に`content-images/{theme}/{id_range}/{example_id}.webp`を設定
+    - `example_contents`テーブル: `audio_filename`が設定された際、自動的に`audio_asset_path`に`content-audio/example/{theme}/{id_range}/{example_id}.mp3`を設定
 - **利点:** リアルタイム処理、データ整合性の自動保証、命名規則の統一
 
 #### **2.3.2. 手動処理（Edge Function）**
@@ -663,15 +663,16 @@ storage_positions:
 - **監視機能:** 処理結果の詳細レポート
 
 #### **3.3. パス形式（命名規則適用）**
-- **標準形式:** `{bucket_name}/{命名規則に基づくファイル名}`
+- **標準形式:** `{bucket_name}/{theme}/{id_range}/{file_name}`
 - **命名規則:**
-    - 単語音声: `word_{word_id}_{meaning_id}.mp3`
-    - 例文音声: `example_{example_id}.mp3`
-    - 例文イラスト: `example_{example_id}.webp`
+    - 単語音声: `content-audio/word/{id_range}/{word_id}_{meaning_id}.mp3`
+    - 例文音声: `content-audio/example/{theme}/{id_range}/{example_id}.mp3`
+    - 例文イラスト: `content-images/{theme}/{id_range}/{example_id}.webp`
+- **フォルダ分割:** 500ファイル/フォルダ（例: 0000-0499, 0500-0999）
 - **例:**
-    - 単語音声: `content-audio/word_123_456.mp3`
-    - 例文音声: `content-audio/example_789.mp3`
-    - 例文イラスト: `content-images/example_789.webp`
+    - 単語音声: `content-audio/word/0000-0499/123_456.mp3`
+    - 例文音声: `content-audio/example/シンプル/0000-0499/789.mp3`
+    - 例文イラスト: `content-images/シンプル/0000-0499/789.webp`
 
 #### **3.4. 命名規則の適用**
 - **新規ファイル:** 音声ファイル生成時に命名規則に従ったファイル名を使用

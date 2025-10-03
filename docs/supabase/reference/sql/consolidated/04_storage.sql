@@ -1,3 +1,75 @@
+-- ===============================================
+-- Usalingo Storage バケット設定
+-- ===============================================
+-- 目的: アセット紐付け機能に必要なStorageバケットを作成・設定する
+
+-- ===============================================
+-- Storage バケット作成
+-- ===============================================
+
+-- asset-inbox バケット（非公開）
+-- 紐付け処理前の元ファイルをアップロードするための待機領域
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'asset-inbox',
+    'asset-inbox',
+    false, -- 非公開
+    10485760, -- 10MB制限
+    ARRAY['image/webp', 'image/png', 'image/jpeg', 'audio/mpeg', 'audio/mp3']
+);
+
+-- public バケット（公開）
+-- 紐付け処理が完了したアセットの格納場所
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+    'public',
+    'public',
+    true, -- 公開
+    10485760, -- 10MB制限
+    ARRAY['image/webp', 'image/png', 'image/jpeg', 'audio/mpeg', 'audio/mp3']
+);
+
+-- ===============================================
+-- Storage ポリシー設定
+-- ===============================================
+
+-- asset-inbox バケットのポリシー（管理者のみアクセス可能）
+CREATE POLICY "asset-inbox-upload-policy" ON storage.objects
+    FOR INSERT WITH CHECK (
+        bucket_id = 'asset-inbox' AND
+        auth.role() = 'service_role'
+    );
+
+CREATE POLICY "asset-inbox-select-policy" ON storage.objects
+    FOR SELECT USING (
+        bucket_id = 'asset-inbox' AND
+        auth.role() = 'service_role'
+    );
+
+CREATE POLICY "asset-inbox-delete-policy" ON storage.objects
+    FOR DELETE USING (
+        bucket_id = 'asset-inbox' AND
+        auth.role() = 'service_role'
+    );
+
+-- public バケットのポリシー（全ユーザーが読み取り可能）
+CREATE POLICY "public-select-policy" ON storage.objects
+    FOR SELECT USING (bucket_id = 'public');
+
+CREATE POLICY "public-upload-policy" ON storage.objects
+    FOR INSERT WITH CHECK (
+        bucket_id = 'public' AND
+        auth.role() = 'service_role'
+    );
+
+CREATE POLICY "public-delete-policy" ON storage.objects
+    FOR DELETE USING (
+        bucket_id = 'public' AND
+        auth.role() = 'service_role'
+    );
+
+-- Storage設定完了の確認メッセージ
+SELECT 'Storage buckets and policies setup completed successfully.' as status;
 -- =============================================
 -- ストレージ階層化の実装
 -- =============================================
@@ -16,10 +88,10 @@
 -- 改善後の構造:
 -- content-images/
 --   └── {theme}/          ← テーマ（例: シンプル、ビジネス、カジュアル）
---       └── {id_range}/   ← 200件区切り（例: 0-199, 200-399）
+--       └── {id_range}/   ← 500件区切り（例: 0000-0499, 0500-0999）
 --           └── {id}.{ext}
 --
--- 例: content-images/シンプル/200-399/350.webp
+-- 例: content-images/シンプル/0000-0499/350.webp
 
 -- =============================================
 -- 2. パス生成関数の実装
@@ -28,7 +100,7 @@
 -- 2-1. ID範囲フォルダ名を生成する基本関数
 CREATE OR REPLACE FUNCTION public.get_asset_folder_path(
     asset_id INTEGER,
-    bucket_size INTEGER DEFAULT 200
+    bucket_size INTEGER DEFAULT 500
 )
 RETURNS TEXT AS $$
 DECLARE
@@ -39,14 +111,14 @@ BEGIN
     folder_start := (asset_id / bucket_size) * bucket_size;
     folder_end := folder_start + bucket_size - 1;
     
-    -- 4桁ゼロ埋めでフォルダパスを返す（例: "0000-0199", "0200-0399"）
+    -- 4桁ゼロ埋めでフォルダパスを返す（例: "0000-0499", "0500-0999"）
     RETURN LPAD(folder_start::TEXT, 4, '0') || '-' || LPAD(folder_end::TEXT, 4, '0');
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 COMMENT ON FUNCTION public.get_asset_folder_path(INTEGER, INTEGER) IS 
-'アセットIDから200件区切りのフォルダ名を生成する（4桁ゼロ埋め）。
-例: get_asset_folder_path(350) → "0200-0399"';
+'アセットIDから500件区切りのフォルダ名を生成する（4桁ゼロ埋め）。
+例: get_asset_folder_path(350) → "0000-0499"';
 
 -- 2-2. 例文イラストの完全パスを生成
 CREATE OR REPLACE FUNCTION public.get_example_illustration_path(
@@ -72,7 +144,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 COMMENT ON FUNCTION public.get_example_illustration_path(INTEGER, TEXT, TEXT) IS 
 '例文イラストの完全ストレージパスを生成する。
 例: get_example_illustration_path(350, ''シンプル'', ''webp'') 
-  → "content-images/シンプル/0200-0399/350.webp"';
+  → "content-images/シンプル/0000-0499/350.webp"';
 
 -- 2-3. 例文音声の完全パスを生成
 CREATE OR REPLACE FUNCTION public.get_example_audio_path(
@@ -98,7 +170,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 COMMENT ON FUNCTION public.get_example_audio_path(INTEGER, TEXT, TEXT) IS 
 '例文音声の完全ストレージパスを生成する。
 例: get_example_audio_path(350, ''シンプル'', ''mp3'') 
-  → "content-audio/example/シンプル/0200-0399/350.mp3"';
+  → "content-audio/example/シンプル/0000-0499/350.mp3"';
 
 -- 2-4. 単語音声の完全パスを生成（テーマなし）
 CREATE OR REPLACE FUNCTION public.get_word_audio_path(
@@ -122,7 +194,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 COMMENT ON FUNCTION public.get_word_audio_path(INTEGER, TEXT) IS 
 '単語音声の完全ストレージパスを生成する。
 例: get_word_audio_path(350, ''mp3'') 
-  → "content-audio/word/0200-0399/350.mp3"';
+  → "content-audio/word/0000-0499/350.mp3"';
 
 -- =============================================
 -- 3. スキーマ変更（拡張子カラムの追加）
@@ -291,9 +363,9 @@ COMMENT ON FUNCTION public.find_missing_assets() IS
 /*
 -- テスト1: パス生成関数の動作確認
 SELECT 
-    public.get_asset_folder_path(1) as test1,      -- 期待値: "0-199"
-    public.get_asset_folder_path(200) as test2,    -- 期待値: "200-399"
-    public.get_asset_folder_path(999) as test3;    -- 期待値: "800-999"
+    public.get_asset_folder_path(1) as test1,      -- 期待値: "0000-0499"
+    public.get_asset_folder_path(500) as test2,    -- 期待値: "0500-0999"
+    public.get_asset_folder_path(999) as test3;    -- 期待値: "0500-0999"
 
 -- テスト2: 例文イラストパス生成
 SELECT 
