@@ -215,6 +215,7 @@ class _WordListPageState extends ConsumerState<WordListPage> {
                 );
               }
               ref.invalidate(wordListProvider);
+              if (!ctx.mounted) return;
               Navigator.pop(ctx);
             },
             child: const Text('保存'),

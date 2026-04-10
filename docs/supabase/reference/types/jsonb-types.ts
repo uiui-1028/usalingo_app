@@ -1,6 +1,6 @@
 /**
  * JSONBカラムのTypeScript型定義
- * 作成日: 2025-01-30
+ * 作成日: 2025-10-03
  * 目的: JSONBカラムの型安全性を確保し、データ構造を明確化
  * 参考: usalingo_02_02｜コアコンテンツ定義.md
  */
@@ -83,27 +83,9 @@ export interface CollocationCategory {
  */
 export type Collocations = CollocationCategory[];
 
-// =============================================
-// 4. related_phrases (フレーズ/慣用句) の型定義
-// =============================================
-
-/**
- * 関連フレーズ/慣用句の個別アイテム
- */
-export interface RelatedPhraseItem {
-  /** フレーズ/慣用句そのもの (例: "take advantage of ~") */
-  phrase: string;
-  /** フレーズの日本語訳 (例: "〜をうまく利用する") */
-  translation: string;
-}
-
-/**
- * 関連フレーズ/慣用句の配列
- */
-export type RelatedPhrases = RelatedPhraseItem[];
 
 // =============================================
-// 5. tts_config (TTS設定) の型定義
+// 4. tts_config (TTS設定) の型定義
 // =============================================
 
 /**
@@ -125,7 +107,7 @@ export interface TTSConfig {
 }
 
 // =============================================
-// 6. widget_settings (ウィジェット設定) の型定義
+// 5. widget_settings (ウィジェット設定) の型定義
 // =============================================
 
 /**
@@ -165,7 +147,7 @@ export interface WidgetSettings {
 }
 
 // =============================================
-// 7. バリデーション関数の型定義
+// 6. バリデーション関数の型定義
 // =============================================
 
 /**
@@ -180,13 +162,12 @@ export interface JSONBValidators {
   inflections: JSONBValidator<Inflections>;
   derivatives: JSONBValidator<Derivatives>;
   collocations: JSONBValidator<Collocations>;
-  relatedPhrases: JSONBValidator<RelatedPhrases>;
   ttsConfig: JSONBValidator<TTSConfig>;
   widgetSettings: JSONBValidator<WidgetSettings>;
 }
 
 // =============================================
-// 8. ユーティリティ型
+// 7. ユーティリティ型
 // =============================================
 
 /**
@@ -195,7 +176,6 @@ export interface JSONBValidators {
 export type JSONBColumnType<T> = T extends 'inflections' ? Inflections
   : T extends 'derivatives' ? Derivatives
   : T extends 'collocations' ? Collocations
-  : T extends 'related_phrases' ? RelatedPhrases
   : T extends 'tts_config' ? TTSConfig
   : T extends 'settings' ? WidgetSettings
   : never;
@@ -207,12 +187,11 @@ export type JSONBColumnNames =
   | 'inflections'
   | 'derivatives' 
   | 'collocations'
-  | 'related_phrases'
   | 'tts_config'
   | 'settings';
 
 // =============================================
-// 9. デフォルト値の定義
+// 8. デフォルト値の定義
 // =============================================
 
 /**
@@ -245,26 +224,7 @@ export const DEFAULT_WIDGET_INTERACTION_SETTINGS: WidgetInteractionSettings = {
 };
 
 // =============================================
-// 10. エクスポート
+// 9. エクスポート
 // =============================================
 
-export default {
-  Inflections,
-  Derivatives,
-  DerivativeItem,
-  Collocations,
-  CollocationCategory,
-  CollocationItem,
-  RelatedPhrases,
-  RelatedPhraseItem,
-  TTSConfig,
-  WidgetSettings,
-  WidgetDisplayOptions,
-  WidgetInteractionSettings,
-  JSONBValidators,
-  JSONBColumnType,
-  JSONBColumnNames,
-  DEFAULT_TTS_CONFIG,
-  DEFAULT_WIDGET_DISPLAY_OPTIONS,
-  DEFAULT_WIDGET_INTERACTION_SETTINGS
-};
+// 型定義とデフォルト値は個別にエクスポート済み

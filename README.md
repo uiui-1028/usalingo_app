@@ -14,7 +14,8 @@ Usalingoは、忘却曲線アルゴリズムを活用した効率的な英語学
 
 ## 🛠️ 技術スタック
 
-- **フロントエンド**: Flutter (Dart)
+- **フロントエンド（モバイル）**: Flutter (Dart)
+- **フロントエンド（Web）**: Next.js (TypeScript)
 - **バックエンド**: Supabase
 - **データベース**: PostgreSQL
 - **認証**: Supabase Auth
@@ -29,6 +30,18 @@ Usalingoは、忘却曲線アルゴリズムを活用した効率的な英語学
 - [開発ルール](docs/rules/)
 - [Supabase設定](docs/supabase/)
 
+## 🌐 Web版（Next.js）
+
+Web版は `apps/web` に配置しています。  
+開発フェーズの無料運用と親和性を重視して、デプロイ先は **Vercel** を推奨しています。
+
+```bash
+cd apps/web
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
 ## 🚀 セットアップ
 
 ### 前提条件
@@ -40,26 +53,48 @@ Usalingoは、忘却曲線アルゴリズムを活用した効率的な英語学
 ### インストール
 
 1. リポジトリをクローン
+
 ```bash
 git clone https://github.com/uiui-1028/usalingo_app_flutter.git
 cd usalingo_app_flutter
 ```
 
-2. 依存関係をインストール
+1. 依存関係をインストール
+
 ```bash
 flutter pub get
 ```
 
-3. 環境設定
+1. 環境設定
+
 ```bash
 # Supabaseの設定を追加
 cp lib/secrets.dart.example lib/secrets.dart
 # secrets.dartにSupabaseの設定を記入
 ```
 
-4. アプリを実行
+1. アプリを実行
+
 ```bash
 flutter run
+```
+
+## 🌐 Web版での実行（永続運用を想定した設定注入）
+
+SupabaseのURL/Anon Keyは、Webデプロイ時に環境として注入できるように `--dart-define` を優先して参照します。
+
+```bash
+flutter run -d chrome \
+  --dart-define=SUPABASE_URL="https://xxxx.supabase.co" \
+  --dart-define=SUPABASE_ANON_KEY="xxxxx"
+```
+
+ビルド時も同様です。
+
+```bash
+flutter build web \
+  --dart-define=SUPABASE_URL="https://xxxx.supabase.co" \
+  --dart-define=SUPABASE_ANON_KEY="xxxxx"
 ```
 
 ## 📖 開発ガイド

@@ -1,13 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'word_list_page.dart';
-import '../widgets/flashcard_widget.dart';
 import '../widgets/grid_background.dart';
-import 'test_3d_card_screen.dart';
-import 'learning_progress_test_page.dart';
 import '../../presentation/theme/app_theme_provider.dart';
-import '../../presentation/theme/app_theme.dart';
-import '../../app/providers.dart';
 import 'learning_home_page.dart';
 import 'design_customize_page.dart';
 import 'profile_page.dart';

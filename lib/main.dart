@@ -6,6 +6,8 @@ import 'app/app.dart';
 void main() async {
   // Flutterエンジンの初期化
   WidgetsFlutterBinding.ensureInitialized();
+
+  await SupabaseInitializer.initialize();
   
   // アプリケーションの起動
   runApp(

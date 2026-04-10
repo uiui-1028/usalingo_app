@@ -5,6 +5,13 @@ import '../presentation/theme/app_theme_provider.dart';
 import '../presentation/pages/root_page.dart';
 import '../secrets.dart';
 
+class SupabaseEnv {
+  static const String url =
+      String.fromEnvironment('SUPABASE_URL', defaultValue: '');
+  static const String anonKey =
+      String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
+}
+
 // Supabase初期化クラス
 class SupabaseInitializer {
   static SupabaseClient? _client;
@@ -17,9 +24,16 @@ class SupabaseInitializer {
   }
   
   static Future<void> initialize() async {
+    final url = SupabaseEnv.url.isNotEmpty
+        ? SupabaseEnv.url
+        : SupabaseSecrets.supabaseUrl;
+    final anonKey = SupabaseEnv.anonKey.isNotEmpty
+        ? SupabaseEnv.anonKey
+        : SupabaseSecrets.supabaseAnonKey;
+
     await Supabase.initialize(
-      url: SupabaseSecrets.supabaseUrl,
-      anonKey: SupabaseSecrets.supabaseAnonKey,
+      url: url,
+      anonKey: anonKey,
     );
     _client = Supabase.instance.client;
   }

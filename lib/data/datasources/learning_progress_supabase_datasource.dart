@@ -21,8 +21,6 @@ class LearningProgressSupabaseDataSource implements LearningProgressDataSource {
           .eq('word_id', wordId)
           .single();
 
-      if (response == null) return null;
-
       return LearningProgress(
         wordId: response['word_id'] as int,
         srsLevel: response['srs_level'] as int? ?? 1,
