@@ -52,13 +52,13 @@ struct AuthView: View {
         isLoading = true
         message = ""
         do {
-            appState.session = try await (signUp
+            let session = try await (signUp
                 ? authService.signUp(email: email, password: password)
                 : authService.signIn(email: email, password: password))
+            appState.setSession(session)
         } catch {
             message = error.localizedDescription
         }
         isLoading = false
     }
 }
-

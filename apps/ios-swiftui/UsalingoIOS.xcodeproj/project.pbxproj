@@ -26,6 +26,12 @@
 		A10000000000000000000014 /* LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* LearningDashboardView.swift */; };
 		A10000000000000000000015 /* DesignDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* DesignDashboardView.swift */; };
 		A10000000000000000000016 /* ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ProfileDashboardView.swift */; };
+		A10000000000000000000017 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SessionStore.swift */; };
+		A10000000000000000000018 /* WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* WordListView.swift */; };
+		A10000000000000000000019 /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* SpeechService.swift */; };
+		A1000000000000000000001A /* WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* WordEditSheet.swift */; };
+		A1000000000000000000001B /* TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TagSheet.swift */; };
+		A1000000000000000000001C /* DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* DesignSettings.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +57,12 @@
 		A20000000000000000000014 /* LearningDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningDashboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000015 /* DesignDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignDashboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000016 /* ProfileDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SessionStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* WordListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListView.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SpeechService.swift; sourceTree = "<group>"; };
+		A2000000000000000000001A /* WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
+		A2000000000000000000001B /* TagSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/TagSheet.swift; sourceTree = "<group>"; };
+		A2000000000000000000001C /* DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,11 +93,14 @@
 				A20000000000000000000003 /* Deck.swift */,
 				A20000000000000000000004 /* WordCard.swift */,
 				A20000000000000000000005 /* LearningProgress.swift */,
+				A2000000000000000000001C /* DesignSettings.swift */,
 				A20000000000000000000006 /* SupabaseConfig.swift */,
 				A20000000000000000000007 /* SupabaseClient.swift */,
 				A20000000000000000000008 /* AuthService.swift */,
 				A20000000000000000000009 /* DeckService.swift */,
 				A2000000000000000000000A /* StudyService.swift */,
+				A20000000000000000000017 /* SessionStore.swift */,
+				A20000000000000000000019 /* SpeechService.swift */,
 				A2000000000000000000000B /* AppStyle.swift */,
 				A2000000000000000000000C /* AuthView.swift */,
 				A2000000000000000000000D /* DeckListView.swift */,
@@ -95,6 +110,9 @@
 				A20000000000000000000014 /* LearningDashboardView.swift */,
 				A20000000000000000000015 /* DesignDashboardView.swift */,
 				A20000000000000000000016 /* ProfileDashboardView.swift */,
+				A20000000000000000000018 /* WordListView.swift */,
+				A2000000000000000000001A /* WordEditSheet.swift */,
+				A2000000000000000000001B /* TagSheet.swift */,
 				A20000000000000000000012 /* Info.plist */,
 			);
 			path = UsalingoIOS;
@@ -184,6 +202,12 @@
 				A10000000000000000000014 /* LearningDashboardView.swift in Sources */,
 				A10000000000000000000015 /* DesignDashboardView.swift in Sources */,
 				A10000000000000000000016 /* ProfileDashboardView.swift in Sources */,
+				A10000000000000000000017 /* SessionStore.swift in Sources */,
+				A10000000000000000000018 /* WordListView.swift in Sources */,
+				A10000000000000000000019 /* SpeechService.swift in Sources */,
+				A1000000000000000000001A /* WordEditSheet.swift in Sources */,
+				A1000000000000000000001B /* TagSheet.swift in Sources */,
+				A1000000000000000000001C /* DesignSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

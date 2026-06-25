@@ -2,12 +2,13 @@ import SwiftUI
 
 struct AppShellView: View {
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var designSettings: DesignSettings
     @State private var selectedTab = 1
 
     private let tabs: [ShellTab] = [
-        .init(title: "デザイン", symbol: "paintpalette.fill", color: .blue),
-        .init(title: "学習", symbol: "graduationcap.fill", color: .orange),
-        .init(title: "プロフィール", symbol: "person.fill", color: .green)
+        .init(title: "デザイン", symbol: "paintpalette.fill", color: AppStyle.secondary),
+        .init(title: "学習", symbol: "bolt.fill", color: AppStyle.accent),
+        .init(title: "プロフィール", symbol: "person.crop.circle.fill", color: AppStyle.sun)
     ]
 
     var body: some View {
@@ -35,25 +36,45 @@ struct AppShellView: View {
 
     private var header: some View {
         HStack {
-            Text("Usalingo")
-                .font(.system(size: 24, weight: .black))
-                .foregroundStyle(AppStyle.ink)
+            HStack(spacing: 10) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 18, weight: .black))
+                    .foregroundStyle(.white)
+                    .frame(width: 34, height: 34)
+                    .background(AppStyle.accent(designSettings))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .shadow(color: AppStyle.shadow, radius: 0, y: 3)
+
+                VStack(alignment: .leading, spacing: 0) {
+                    Text("Usalingo")
+                        .font(.system(size: 24, weight: .black))
+                        .foregroundStyle(AppStyle.ink)
+                    Text("今日も1セット進めよう")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(AppStyle.muted)
+                }
+            }
 
             Spacer()
 
-            Button("Sign Out") {
-                appState.session = nil
+            Button {
+                appState.signOut()
+            } label: {
+                Image(systemName: "rectangle.portrait.and.arrow.right")
+                    .font(.headline)
+                    .foregroundStyle(AppStyle.muted)
+                    .frame(width: 44, height: 44)
+                    .background(AppStyle.surface)
+                    .clipShape(Circle())
+                    .overlay {
+                        Circle().stroke(AppStyle.line, lineWidth: 1)
+                    }
             }
-            .font(.headline)
-            .padding(.horizontal, 18)
-            .padding(.vertical, 12)
-            .background(.white.opacity(0.9))
-            .clipShape(Capsule())
-            .shadow(color: .black.opacity(0.08), radius: 14, y: 8)
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
         .padding(.top, 14)
-        .padding(.bottom, 8)
+        .padding(.bottom, 10)
     }
 
     private var floatingTabBar: some View {
@@ -70,26 +91,27 @@ struct AppShellView: View {
                             .font(.system(size: 19, weight: .semibold))
                         if selectedTab == index {
                             Text(tab.title)
-                                .font(.subheadline.weight(.semibold))
+                                .font(.subheadline.weight(.black))
                         }
                     }
-                    .foregroundStyle(selectedTab == index ? tab.color : AppStyle.muted)
-                    .frame(height: 44)
-                    .padding(.horizontal, selectedTab == index ? 14 : 12)
-                    .background(selectedTab == index ? tab.color.opacity(0.16) : Color.clear)
-                    .clipShape(Capsule())
+                    .foregroundStyle(selectedTab == index ? .white : AppStyle.muted)
+                    .frame(height: 48)
+                    .padding(.horizontal, selectedTab == index ? 16 : 12)
+                    .background(selectedTab == index ? tab.color : Color.clear)
+                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .shadow(color: selectedTab == index ? tab.color.opacity(0.28) : .clear, radius: 0, y: 4)
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(12)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+        .background(AppStyle.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 25, style: .continuous)
-                .stroke(AppStyle.line)
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(AppStyle.line, lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.16), radius: 18, y: 8)
+        .shadow(color: AppStyle.shadow, radius: 18, y: 8)
         .padding(.horizontal, 16)
         .padding(.bottom, 20)
     }

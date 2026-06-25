@@ -3,7 +3,9 @@ import SwiftUI
 struct StudySessionView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var appState: AppState
+    @EnvironmentObject private var designSettings: DesignSettings
     let deck: Deck
+    let studyMode: StudyMode
 
     @State private var cards: [WordCard] = []
     @State private var index = 0
@@ -11,8 +13,19 @@ struct StudySessionView: View {
     @State private var isLoading = false
     @State private var dragOffset = CGSize.zero
     @State private var showAnswer = false
+    @State private var isSavingAnswer = false
+    @State private var editingWord: WordCard?
+    @State private var taggingWord: WordCard?
+    @State private var sessionAnswers: [Bool] = []
+    @State private var sessionProgresses: [LearningProgress] = []
+    @StateObject private var speechService = SpeechService()
 
     private let studyService = StudyService()
+
+    init(deck: Deck, studyMode: StudyMode = .all) {
+        self.deck = deck
+        self.studyMode = studyMode
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -24,24 +37,42 @@ struct StudySessionView: View {
                 } else if index < cards.count {
                     cardStack
                 } else {
-                    VStack(spacing: 14) {
-                        Text("学習完了！")
-                            .font(.title.bold())
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 42))
-                            .foregroundStyle(AppStyle.accent)
-                        Text(message.isEmpty ? "今日の学習はここまで。" : message)
-                            .foregroundStyle(AppStyle.muted)
-                    }
+                    StudyCompletionView(
+                        correctCount: sessionAnswers.filter { $0 }.count,
+                        incorrectCount: sessionAnswers.filter { !$0 }.count,
+                        studiedCount: sessionAnswers.count,
+                        accuracyText: accuracyText,
+                        weakCount: weakCount,
+                        nextReviewSummary: nextReviewSummary,
+                        nextReviewBreakdown: nextReviewBreakdown,
+                        message: message.isEmpty ? "今日の学習はここまで。" : message
+                    )
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
+            answerControls
             toolbar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.white)
+        .background(GridBackground())
         .navigationBarBackButtonHidden(true)
+        .sheet(item: $editingWord) { word in
+            WordEditSheet(word: word) { savedWord in
+                if let currentIndex = cards.firstIndex(where: { $0.id == savedWord.id }) {
+                    cards[currentIndex] = savedWord
+                }
+            }
+                .presentationDetents([.large])
+        }
+        .sheet(item: $taggingWord) { word in
+            TagSheet(word: word) { savedWord in
+                if let currentIndex = cards.firstIndex(where: { $0.id == savedWord.id }) {
+                    cards[currentIndex] = savedWord
+                }
+            }
+                .presentationDetents([.medium])
+        }
         .task { await load() }
     }
 
@@ -52,21 +83,29 @@ struct StudySessionView: View {
             } label: {
                 Image(systemName: "xmark")
                     .font(.headline)
-                    .foregroundStyle(AppStyle.muted)
-                    .frame(width: 36, height: 36)
+                    .foregroundStyle(AppStyle.ink)
+                    .frame(width: 42, height: 42)
+                    .background(AppStyle.surface)
+                    .clipShape(Circle())
+                    .overlay {
+                        Circle().stroke(AppStyle.line, lineWidth: 1)
+                    }
             }
             .buttonStyle(.plain)
 
             VStack(alignment: .leading, spacing: 9) {
-                Text(cards.isEmpty ? "0 / 0" : "\(min(index + 1, cards.count)) / \(cards.count)")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(AppStyle.muted)
+                HStack {
+                    Text(cards.isEmpty ? "0 / 0" : "\(min(index + 1, cards.count)) / \(cards.count)")
+                    Text(studyMode.title)
+                }
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(AppStyle.muted)
                 GeometryReader { proxy in
                     ZStack(alignment: .leading) {
                         Capsule()
-                            .fill(Color.black.opacity(0.82))
+                            .fill(AppStyle.line)
                         Capsule()
-                            .fill(AppStyle.accent)
+                            .fill(AppStyle.accent(designSettings))
                             .frame(width: proxy.size.width * progress)
                     }
                 }
@@ -75,7 +114,7 @@ struct StudySessionView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 14)
-        .padding(.bottom, 8)
+        .padding(.bottom, 12)
     }
 
     private var cardStack: some View {
@@ -120,28 +159,63 @@ struct StudySessionView: View {
 
     private var toolbar: some View {
         HStack(spacing: 22) {
-            toolbarButton("tag", action: {})
-            toolbarButton("speaker.wave.2", action: {})
+            toolbarButton("tag", action: tagCurrentCard)
+            toolbarButton(speechService.isSpeaking ? "speaker.slash.fill" : "speaker.wave.2", action: speakCurrentCard)
             toolbarButton("arrow.uturn.backward", action: undo)
-            toolbarButton("square.and.pencil", action: {})
+            toolbarButton("square.and.pencil", action: editCurrentCard)
         }
         .padding(.horizontal, 24)
         .padding(.vertical, 16)
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .background(AppStyle.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(AppStyle.line)
+            RoundedRectangle(cornerRadius: 24, style: .continuous)
+                .stroke(AppStyle.line, lineWidth: 1)
         }
-        .shadow(color: .black.opacity(0.10), radius: 10, y: 4)
+        .shadow(color: AppStyle.shadow, radius: 0, y: 5)
         .padding(16)
+    }
+
+    @ViewBuilder
+    private var answerControls: some View {
+        if !isLoading, index < cards.count {
+            HStack(spacing: 12) {
+                answerButton(title: "不正解", symbol: "xmark", color: AppStyle.coral) {
+                    submitAnswer(isCorrect: false)
+                }
+                answerButton(title: "正解", symbol: "checkmark", color: AppStyle.accent) {
+                    submitAnswer(isCorrect: true)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+        }
+    }
+
+    private func answerButton(title: String, symbol: String, color: Color, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: symbol)
+                .font(.headline.weight(.black))
+                .foregroundStyle(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+                .background(color)
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(color.opacity(0.18), lineWidth: 1)
+                }
+                .shadow(color: color.opacity(0.30), radius: 0, y: 5)
+        }
+        .buttonStyle(.plain)
+        .disabled(isSavingAnswer)
     }
 
     private func toolbarButton(_ symbol: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 21, weight: .semibold))
-                .foregroundStyle(AppStyle.accent)
+                .foregroundStyle(AppStyle.accent(designSettings))
                 .frame(width: 48, height: 48)
                 .background(AppStyle.background)
                 .clipShape(Circle())
@@ -161,18 +235,40 @@ struct StudySessionView: View {
         guard let session = appState.session else { return }
         isLoading = true
         do {
-            cards = try await studyService.fetchStudyQueue(deckId: deck.id, session: session)
-            message = cards.isEmpty ? "このデッキにはカードがありません。" : ""
+            cards = try await studyService.fetchStudyQueue(deckId: deck.id, mode: studyMode, session: session)
+            index = 0
+            sessionAnswers = []
+            sessionProgresses = []
+            message = cards.isEmpty ? emptyMessage : ""
         } catch {
             message = error.localizedDescription
         }
         isLoading = false
     }
 
+    private var emptyMessage: String {
+        switch studyMode {
+        case .newOnly:
+            return "新規カードはありません。"
+        case .reviewOnly:
+            return "復習期限のカードはありません。"
+        case .all:
+            return "このデッキにはカードがありません。"
+        case .weakOnly:
+            return "苦手カードはまだありません。"
+        }
+    }
+
     private func answer(_ isCorrect: Bool) async {
-        guard let session = appState.session, index < cards.count else { return }
+        guard let session = appState.session, index < cards.count, !isSavingAnswer else { return }
+        isSavingAnswer = true
+        defer { isSavingAnswer = false }
         do {
-            try await studyService.saveAnswer(card: cards[index], isCorrect: isCorrect, session: session)
+            let progress = try await studyService.saveAnswer(card: cards[index], isCorrect: isCorrect, session: session)
+            cards[index] = cards[index].withLearningProgress(progress)
+            sessionAnswers.append(isCorrect)
+            sessionProgresses.append(progress)
+            appState.markStudyDataChanged()
             index += 1
             showAnswer = false
             dragOffset = .zero
@@ -181,7 +277,7 @@ struct StudySessionView: View {
         }
     }
 
-    private func swipe(isCorrect: Bool) {
+    private func submitAnswer(isCorrect: Bool) {
         let target: CGFloat = isCorrect ? 700 : -700
         withAnimation(.easeIn(duration: 0.18)) {
             dragOffset = CGSize(width: target, height: 0)
@@ -192,12 +288,185 @@ struct StudySessionView: View {
         }
     }
 
+    private func swipe(isCorrect: Bool) {
+        submitAnswer(isCorrect: isCorrect)
+    }
+
     private func undo() {
         guard index > 0 else { return }
         withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
             index -= 1
+            if !sessionAnswers.isEmpty {
+                sessionAnswers.removeLast()
+            }
+            if !sessionProgresses.isEmpty {
+                sessionProgresses.removeLast()
+            }
             showAnswer = false
             dragOffset = .zero
         }
+    }
+
+    private func speakCurrentCard() {
+        guard index < cards.count else { return }
+        guard designSettings.isTTSEnabled else {
+            message = "TTSはデザイン設定でOFFです。"
+            return
+        }
+        speechService.speak(card: cards[index])
+    }
+
+    private func editCurrentCard() {
+        guard index < cards.count else { return }
+        editingWord = cards[index]
+    }
+
+    private func tagCurrentCard() {
+        guard index < cards.count else { return }
+        taggingWord = cards[index]
+    }
+
+    private var accuracyText: String {
+        guard !sessionAnswers.isEmpty else { return "0%" }
+        let correctCount = sessionAnswers.filter { $0 }.count
+        let accuracy = Double(correctCount) / Double(sessionAnswers.count) * 100
+        return "\(Int(accuracy.rounded()))%"
+    }
+
+    private var weakCount: Int {
+        sessionProgresses.filter(\.isWeak).count
+    }
+
+    private var nextReviewSummary: String {
+        let dates = nextReviewDates
+        guard let nextDate = dates.min() else {
+            return "次回復習予定はまだありません。"
+        }
+
+        let dayCount = nextReviewDayCount
+        let scheduledCount = dayCount.values.reduce(0) { $0 + $1.count }
+        let sameDayCount = dates.filter {
+            Calendar.current.isDate($0, inSameDayAs: nextDate)
+        }.count
+        return "次回: \(Self.reviewDateFormatter.string(from: nextDate)) に \(sameDayCount)語 / 予定合計 \(scheduledCount)語"
+    }
+
+    private var nextReviewBreakdown: [String] {
+        nextReviewDayCount
+            .map { day, dates in
+                "\(Self.reviewDateFormatter.string(from: day)): \(dates.count)語"
+            }
+            .sorted()
+    }
+
+    private var nextReviewDayCount: [Date: [Date]] {
+        Dictionary(grouping: nextReviewDates) {
+            Calendar.current.startOfDay(for: $0)
+        }
+    }
+
+    private var nextReviewDates: [Date] {
+        sessionProgresses.compactMap { progress in
+            Self.parseDate(progress.nextReviewDate)
+        }
+    }
+
+    private static let reviewDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }()
+
+    private static func parseDate(_ value: String) -> Date? {
+        let formatter = ISO8601DateFormatter()
+        if let date = formatter.date(from: value) {
+            return date
+        }
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return formatter.date(from: value)
+    }
+}
+
+private struct StudyCompletionView: View {
+    let correctCount: Int
+    let incorrectCount: Int
+    let studiedCount: Int
+    let accuracyText: String
+    let weakCount: Int
+    let nextReviewSummary: String
+    let nextReviewBreakdown: [String]
+    let message: String
+
+    var body: some View {
+        VStack(spacing: 18) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 42))
+                .foregroundStyle(AppStyle.accent)
+
+            VStack(spacing: 6) {
+                Text("学習完了")
+                    .font(.title.bold())
+                    .foregroundStyle(AppStyle.ink)
+                Text(message)
+                    .font(.subheadline)
+                    .foregroundStyle(AppStyle.muted)
+            }
+
+            VStack(spacing: 10) {
+                HStack(spacing: 10) {
+                    CompletionMetric(title: "正解", value: "\(correctCount)", color: AppStyle.accent)
+                    CompletionMetric(title: "不正解", value: "\(incorrectCount)", color: AppStyle.coral)
+                }
+                HStack(spacing: 10) {
+                    CompletionMetric(title: "今回学習", value: "\(studiedCount)", color: AppStyle.accent)
+                    CompletionMetric(title: "正答率", value: accuracyText, color: AppStyle.secondary)
+                }
+                CompletionMetric(title: "苦手", value: "\(weakCount)", color: AppStyle.sun)
+            }
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text(nextReviewSummary)
+                    .font(.footnote.weight(.semibold))
+                ForEach(nextReviewBreakdown.prefix(3), id: \.self) { item in
+                    Text(item)
+                        .font(.caption)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .foregroundStyle(AppStyle.muted)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(AppStyle.background)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        }
+        .padding(24)
+    }
+}
+
+private struct CompletionMetric: View {
+    let title: String
+    let value: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.caption.weight(.bold))
+                .foregroundStyle(AppStyle.muted)
+            Text(value)
+                .font(.title2.bold())
+                .foregroundStyle(color)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(14)
+        .background(AppStyle.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 18, style: .continuous)
+                .stroke(color.opacity(0.22), lineWidth: 1)
+        }
+        .shadow(color: color.opacity(0.16), radius: 0, y: 4)
     }
 }

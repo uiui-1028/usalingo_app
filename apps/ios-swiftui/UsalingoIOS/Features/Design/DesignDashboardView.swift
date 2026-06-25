@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct DesignDashboardView: View {
+    @EnvironmentObject private var designSettings: DesignSettings
     @State private var activeSheet: DesignSheet?
 
     var body: some View {
@@ -23,6 +24,7 @@ struct DesignDashboardView: View {
         }
         .sheet(item: $activeSheet) { sheet in
             DesignOptionSheet(sheet: sheet)
+                .environmentObject(designSettings)
                 .presentationDetents([.medium, .large])
         }
     }
@@ -79,33 +81,123 @@ private struct DesignSettingRow: View {
 }
 
 private struct DesignOptionSheet: View {
+    @EnvironmentObject private var designSettings: DesignSettings
     let sheet: DesignSheet
 
     var body: some View {
         VStack(alignment: .leading, spacing: 18) {
             Text(title)
                 .font(.title2.bold())
-            ForEach(options, id: \.0) { option in
-                HStack {
-                    Image(systemName: option.1)
-                        .frame(width: 32)
-                        .foregroundStyle(AppStyle.accent)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(option.0)
-                            .font(.headline)
-                        Text(option.2)
-                            .font(.footnote)
-                            .foregroundStyle(AppStyle.muted)
-                    }
-                    Spacer()
-                }
-                .padding(14)
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+
+            switch sheet {
+            case .theme:
+                accentOptions
+            case .card:
+                cardOptions
+            case .behavior:
+                behaviorOptions
+            case .algorithm:
+                staticOptions
             }
+
             Spacer()
         }
         .padding(20)
+    }
+
+    private var accentOptions: some View {
+        VStack(spacing: 12) {
+            settingButton("ピンク", "paintpalette.fill", "標準カラー", id: "pink", current: designSettings.accentName) {
+                designSettings.accentName = "pink"
+            }
+            settingButton("ブルー", "circle.fill", "落ち着いた学習向け", id: "blue", current: designSettings.accentName) {
+                designSettings.accentName = "blue"
+            }
+            settingButton("グリーン", "circle.fill", "達成感を強める", id: "green", current: designSettings.accentName) {
+                designSettings.accentName = "green"
+            }
+            settingButton("オレンジ", "circle.fill", "Flutter版の学習タブ寄り", id: "orange", current: designSettings.accentName) {
+                designSettings.accentName = "orange"
+            }
+        }
+    }
+
+    private var cardOptions: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Text("カード角丸")
+                .font(.headline)
+            Slider(value: $designSettings.cardCornerRadius, in: 8...30, step: 1)
+                .tint(AppStyle.accent(designSettings))
+            Text("\(Int(designSettings.cardCornerRadius)) px")
+                .font(.footnote)
+                .foregroundStyle(AppStyle.muted)
+        }
+        .padding(14)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var behaviorOptions: some View {
+        Toggle(isOn: $designSettings.isTTSEnabled) {
+            Label("TTS", systemImage: "speaker.wave.2.fill")
+        }
+        .tint(AppStyle.accent(designSettings))
+        .padding(14)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var staticOptions: some View {
+        VStack(spacing: 12) {
+            ForEach(options, id: \.0) { option in
+                optionRow(option)
+            }
+        }
+    }
+
+    private func settingButton(_ title: String, _ symbol: String, _ subtitle: String, id: String, current: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: symbol)
+                    .frame(width: 32)
+                    .foregroundStyle(AppStyle.accent(designSettings))
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(title)
+                        .font(.headline)
+                    Text(subtitle)
+                        .font(.footnote)
+                        .foregroundStyle(AppStyle.muted)
+                }
+                Spacer()
+                if id == current {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(AppStyle.accent(designSettings))
+                }
+            }
+            .padding(14)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func optionRow(_ option: (String, String, String)) -> some View {
+        HStack {
+            Image(systemName: option.1)
+                .frame(width: 32)
+                .foregroundStyle(AppStyle.accent(designSettings))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(option.0)
+                    .font(.headline)
+                Text(option.2)
+                    .font(.footnote)
+                    .foregroundStyle(AppStyle.muted)
+            }
+            Spacer()
+        }
+        .padding(14)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
     private var title: String {

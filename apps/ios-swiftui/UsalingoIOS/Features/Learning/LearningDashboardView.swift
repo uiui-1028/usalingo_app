@@ -3,8 +3,9 @@ import SwiftUI
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
     @State private var decks: [Deck] = []
-    @State private var stats = StudyStats(studiedCount: 0, dueCount: 0, masteredCount: 0, currentStreak: 0)
+    @State private var stats = StudyStats.empty
     @State private var selectedDeck: Deck?
+    @State private var showWordList = false
     @State private var isLoading = false
     @State private var showGallery = false
 
@@ -20,7 +21,7 @@ struct LearningDashboardView: View {
                         title: "復習リマインダー",
                         subtitle: "\(stats.dueCount)枚が復習待ち",
                         symbol: "bell.fill",
-                        color: .orange
+                        color: AppStyle.sun
                     ) {
                         startStudy()
                     }
@@ -28,15 +29,15 @@ struct LearningDashboardView: View {
                         title: "単語カウンター",
                         subtitle: "\(stats.studiedCount)語を学習中",
                         symbol: "number.circle.fill",
-                        color: .green
+                        color: AppStyle.accent
                     ) {
-                        showGallery = true
+                        showWordList = true
                     }
                     DashboardTile(
                         title: "学習統計",
                         subtitle: "\(stats.masteredCount)語マスター",
                         symbol: "chart.pie.fill",
-                        color: .purple
+                        color: AppStyle.secondary
                     ) {
                         showGallery = true
                     }
@@ -48,8 +49,12 @@ struct LearningDashboardView: View {
             .navigationDestination(item: $selectedDeck) { deck in
                 StudySessionView(deck: deck)
             }
+            .navigationDestination(isPresented: $showWordList) {
+                WordListView()
+            }
         }
-        .task { await loadDecks() }
+        .task { await loadDashboard() }
+        .task(id: appState.studyDataVersion) { await refreshStats() }
         .sheet(isPresented: $showGallery) {
             WidgetGallerySheet(startStudy: startStudy)
                 .presentationDetents([.large])
@@ -61,7 +66,7 @@ struct LearningDashboardView: View {
             title: "学習デッキ",
             subtitle: "フラッシュカードで学習",
             symbol: "rectangle.stack.fill",
-            color: .orange
+            color: AppStyle.accent
         ) {
             startStudy()
         }
@@ -91,7 +96,7 @@ struct LearningDashboardView: View {
         .opacity(0.58)
     }
 
-    private func loadDecks() async {
+    private func loadDashboard() async {
         guard let session = appState.session else { return }
         isLoading = true
         defer { isLoading = false }
@@ -100,6 +105,15 @@ struct LearningDashboardView: View {
             stats = try await studyService.fetchStudyStats(session: session)
         } catch {
             decks = []
+        }
+    }
+
+    private func refreshStats() async {
+        guard let session = appState.session else { return }
+        do {
+            stats = try await studyService.fetchStudyStats(session: session)
+        } catch {
+            stats = .empty
         }
     }
 
@@ -119,10 +133,14 @@ struct DashboardTile: View {
         Button(action: action) {
             VStack(spacing: 12) {
                 Image(systemName: symbol)
-                    .font(.system(size: 34, weight: .semibold))
-                    .foregroundStyle(color)
+                    .font(.system(size: 30, weight: .black))
+                    .foregroundStyle(.white)
+                    .frame(width: 58, height: 58)
+                    .background(color)
+                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    .shadow(color: color.opacity(0.28), radius: 0, y: 5)
                 Text(title)
-                    .font(.headline)
+                    .font(.headline.weight(.black))
                     .foregroundStyle(AppStyle.ink)
                     .multilineTextAlignment(.center)
                 Text(subtitle)
@@ -133,12 +151,13 @@ struct DashboardTile: View {
             .frame(maxWidth: .infinity)
             .aspectRatio(1, contentMode: .fit)
             .padding(14)
-            .background(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .background(AppStyle.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(AppStyle.line)
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(AppStyle.line, lineWidth: 1)
             }
+            .shadow(color: AppStyle.shadow, radius: 0, y: 6)
         }
         .buttonStyle(.plain)
     }
@@ -277,12 +296,13 @@ private struct WidgetBlockRow: View {
                     .foregroundStyle(block.color)
             }
             .padding(14)
-            .background(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .background(AppStyle.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .stroke(AppStyle.line)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(AppStyle.line, lineWidth: 1)
             }
+            .shadow(color: AppStyle.shadow, radius: 0, y: 4)
         }
         .buttonStyle(.plain)
     }

@@ -8,11 +8,111 @@ struct WordCard: Identifiable, Decodable, Hashable {
     let sentenceEnglish: String?
     let sentenceJapanese: String?
     let imageAssetPath: String?
+    let tags: [String]
+    let learningStatus: String?
+    let learning: WordLearningSnapshot?
 
     var illustrationURL: URL? {
         guard let path = imageAssetPath, !path.isEmpty else { return nil }
         if let url = URL(string: path), url.scheme != nil { return url }
         return SupabaseConfig.publicStorageURL(for: path)
+    }
+
+    func applying(_ override: UserWordOverride) -> WordCard {
+        WordCard(
+            id: id,
+            text: override.wordText.requiredOverride(fallback: text),
+            meaning: override.definitionJapanese.requiredOverride(fallback: meaning),
+            partOfSpeech: partOfSpeech,
+            sentenceEnglish: override.sentenceEnglish.optionalOverride(fallback: sentenceEnglish),
+            sentenceJapanese: override.sentenceJapanese.optionalOverride(fallback: sentenceJapanese),
+            imageAssetPath: override.imageAssetPath.optionalOverride(fallback: imageAssetPath),
+            tags: tags,
+            learningStatus: learningStatus,
+            learning: learning
+        )
+    }
+
+    func withTags(_ tags: [String]) -> WordCard {
+        WordCard(
+            id: id,
+            text: text,
+            meaning: meaning,
+            partOfSpeech: partOfSpeech,
+            sentenceEnglish: sentenceEnglish,
+            sentenceJapanese: sentenceJapanese,
+            imageAssetPath: imageAssetPath,
+            tags: tags,
+            learningStatus: learningStatus,
+            learning: learning
+        )
+    }
+
+    func withLearningStatus(_ status: String?) -> WordCard {
+        WordCard(
+            id: id,
+            text: text,
+            meaning: meaning,
+            partOfSpeech: partOfSpeech,
+            sentenceEnglish: sentenceEnglish,
+            sentenceJapanese: sentenceJapanese,
+            imageAssetPath: imageAssetPath,
+            tags: tags,
+            learningStatus: status,
+            learning: learning
+        )
+    }
+
+    func withLearningProgress(_ progress: LearningProgress?) -> WordCard {
+        WordCard(
+            id: id,
+            text: text,
+            meaning: meaning,
+            partOfSpeech: partOfSpeech,
+            sentenceEnglish: sentenceEnglish,
+            sentenceJapanese: sentenceJapanese,
+            imageAssetPath: imageAssetPath,
+            tags: tags,
+            learningStatus: progress?.status,
+            learning: progress.map(WordLearningSnapshot.init(progress:))
+        )
+    }
+}
+
+struct WordLearningSnapshot: Decodable, Hashable {
+    let status: String
+    let nextReviewDate: String
+    let srsLevel: Int
+    let repetitions: Int
+    let incorrectCount: Int
+    let intervalDays: Int
+
+    var isWeak: Bool {
+        incorrectCount >= LearningProgress.weakIncorrectCountThreshold
+    }
+
+    init(progress: LearningProgress) {
+        status = progress.status
+        nextReviewDate = progress.nextReviewDate
+        srsLevel = progress.srsLevel
+        repetitions = progress.repetitions
+        incorrectCount = progress.incorrectCount
+        intervalDays = progress.intervalDays
+    }
+}
+
+private extension Optional where Wrapped == String {
+    func requiredOverride(fallback: String) -> String {
+        guard let value = self?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty else {
+            return fallback
+        }
+        return value
+    }
+
+    func optionalOverride(fallback: String?) -> String? {
+        guard let value = self else { return fallback }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }
 
@@ -40,7 +140,10 @@ struct WordRecord: Decodable {
             partOfSpeech: meaning.partOfSpeechEnglish,
             sentenceEnglish: example?.sentenceEnglish,
             sentenceJapanese: example?.sentenceJapanese,
-            imageAssetPath: example?.imageAssetPath
+            imageAssetPath: example?.imageAssetPath,
+            tags: [],
+            learningStatus: nil,
+            learning: nil
         )
     }
 }
