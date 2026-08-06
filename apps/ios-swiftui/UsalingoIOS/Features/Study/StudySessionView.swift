@@ -42,10 +42,7 @@ struct StudySessionView: View {
                         incorrectCount: sessionAnswers.filter { !$0 }.count,
                         studiedCount: sessionAnswers.count,
                         accuracyText: accuracyText,
-                        weakCount: weakCount,
-                        nextReviewSummary: nextReviewSummary,
-                        nextReviewBreakdown: nextReviewBreakdown,
-                        message: message.isEmpty ? "今日の学習はここまで。" : message
+                        weakCount: weakCount
                     )
                 }
             }
@@ -57,6 +54,13 @@ struct StudySessionView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(GridBackground())
         .navigationBarBackButtonHidden(true)
+        .toolbar(.hidden, for: .navigationBar)
+        .onAppear {
+            appState.isShellChromeHidden = true
+        }
+        .onDisappear {
+            appState.isShellChromeHidden = false
+        }
         .sheet(item: $editingWord) { word in
             WordEditSheet(word: word) { savedWord in
                 if let currentIndex = cards.firstIndex(where: { $0.id == savedWord.id }) {
@@ -337,56 +341,6 @@ struct StudySessionView: View {
         sessionProgresses.filter(\.isWeak).count
     }
 
-    private var nextReviewSummary: String {
-        let dates = nextReviewDates
-        guard let nextDate = dates.min() else {
-            return "次回復習予定はまだありません。"
-        }
-
-        let dayCount = nextReviewDayCount
-        let scheduledCount = dayCount.values.reduce(0) { $0 + $1.count }
-        let sameDayCount = dates.filter {
-            Calendar.current.isDate($0, inSameDayAs: nextDate)
-        }.count
-        return "次回: \(Self.reviewDateFormatter.string(from: nextDate)) に \(sameDayCount)語 / 予定合計 \(scheduledCount)語"
-    }
-
-    private var nextReviewBreakdown: [String] {
-        nextReviewDayCount
-            .map { day, dates in
-                "\(Self.reviewDateFormatter.string(from: day)): \(dates.count)語"
-            }
-            .sorted()
-    }
-
-    private var nextReviewDayCount: [Date: [Date]] {
-        Dictionary(grouping: nextReviewDates) {
-            Calendar.current.startOfDay(for: $0)
-        }
-    }
-
-    private var nextReviewDates: [Date] {
-        sessionProgresses.compactMap { progress in
-            Self.parseDate(progress.nextReviewDate)
-        }
-    }
-
-    private static let reviewDateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ja_JP")
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        return formatter
-    }()
-
-    private static func parseDate(_ value: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: value) {
-            return date
-        }
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.date(from: value)
-    }
 }
 
 private struct StudyCompletionView: View {
@@ -395,9 +349,6 @@ private struct StudyCompletionView: View {
     let studiedCount: Int
     let accuracyText: String
     let weakCount: Int
-    let nextReviewSummary: String
-    let nextReviewBreakdown: [String]
-    let message: String
 
     var body: some View {
         VStack(spacing: 18) {
@@ -409,7 +360,7 @@ private struct StudyCompletionView: View {
                 Text("学習完了")
                     .font(.title.bold())
                     .foregroundStyle(AppStyle.ink)
-                Text(message)
+                Text("今日の学習はここまで。")
                     .font(.subheadline)
                     .foregroundStyle(AppStyle.muted)
             }
@@ -425,21 +376,6 @@ private struct StudyCompletionView: View {
                 }
                 CompletionMetric(title: "苦手", value: "\(weakCount)", color: AppStyle.sun)
             }
-
-            VStack(alignment: .leading, spacing: 6) {
-                Text(nextReviewSummary)
-                    .font(.footnote.weight(.semibold))
-                ForEach(nextReviewBreakdown.prefix(3), id: \.self) { item in
-                    Text(item)
-                        .font(.caption)
-                }
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .foregroundStyle(AppStyle.muted)
-            .padding(.horizontal, 14)
-            .padding(.vertical, 10)
-            .background(AppStyle.background)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
         .padding(24)
     }

@@ -12,22 +12,22 @@ struct ProfileDashboardView: View {
     var body: some View {
         ScrollView {
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ProfileTile(title: "\(stats.currentStreak)", subtitle: "日連続学習", symbol: "flame.fill", color: .orange)
+                ProfileTile(title: "\(stats.currentStreak)", symbol: "flame.fill", color: .orange)
                 HeatmapTile(reviewedDays: stats.reviewedDays)
-                ProfileTile(title: "実績サマリー", subtitle: "\(stats.masteredCount)語マスター", symbol: "trophy.fill", color: .yellow)
+                ProfileTile(title: "実績サマリー", symbol: "trophy.fill", color: .yellow)
                 Button {
                     isEditingProfile = true
                 } label: {
                     ProfileTile(
                         title: displayName,
-                        subtitle: profile.plan == "free" ? "Free Plan" : (profile.plan ?? "Profile"),
                         symbol: "person.crop.circle.fill",
                         color: AppStyle.accent
                     )
+                    .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.plain)
-                ProfileTile(title: "\(stats.studiedCount)", subtitle: "学習中の単語", symbol: "sparkles", color: .purple)
-                ProfileTile(title: "\(stats.totalReviews)", subtitle: "累計レビュー", symbol: "checkmark.circle.fill", color: .green)
+                ProfileTile(title: "\(stats.studiedCount)", symbol: "sparkles", color: .purple)
+                ProfileTile(title: "\(stats.totalReviews)", symbol: "checkmark.circle.fill", color: .green)
             }
             .padding(16)
 
@@ -41,7 +41,10 @@ struct ProfileDashboardView: View {
         .task { await load() }
         .task(id: appState.studyDataVersion) { await refreshStats() }
         .sheet(isPresented: $isEditingProfile) {
-            ProfileEditSheet(nickname: profile.nickname ?? "") { nickname in
+            ProfileEditSheet(
+                nickname: profile.nickname ?? "",
+                signOut: appState.signOut
+            ) { nickname in
                 await saveNickname(nickname)
             }
             .presentationDetents([.medium])
@@ -91,7 +94,6 @@ struct ProfileDashboardView: View {
 
 private struct ProfileTile: View {
     let title: String
-    let subtitle: String
     let symbol: String
     let color: Color
 
@@ -106,21 +108,15 @@ private struct ProfileTile: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.72)
-            Text(subtitle)
-                .font(.caption)
-                .foregroundStyle(AppStyle.muted)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .minimumScaleFactor(0.78)
         }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1, contentMode: .fit)
-        .padding(14)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(AppStyle.line)
+        .modifier(ProfileWidgetTileStyle())
+    }
+}
+
+private struct ProfileWidgetTileStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        AppStyle.profileWidgetTile {
+            content
         }
     }
 }
@@ -145,15 +141,7 @@ private struct HeatmapTile: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity)
-        .aspectRatio(1, contentMode: .fit)
-        .padding(14)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(AppStyle.line)
-        }
+        .modifier(ProfileWidgetTileStyle())
     }
 
     private var reviewedDaySet: Set<Date> {
@@ -172,10 +160,12 @@ private struct HeatmapTile: View {
 private struct ProfileEditSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var nickname: String
+    let signOut: () -> Void
     let save: (String) async -> Void
 
-    init(nickname: String, save: @escaping (String) async -> Void) {
+    init(nickname: String, signOut: @escaping () -> Void, save: @escaping (String) async -> Void) {
         _nickname = State(initialValue: nickname)
+        self.signOut = signOut
         self.save = save
     }
 
@@ -185,6 +175,14 @@ private struct ProfileEditSheet: View {
                 Section("ユーザー名") {
                     TextField("ユーザー名", text: $nickname)
                         .textInputAutocapitalization(.never)
+                }
+                Section {
+                    Button(role: .destructive) {
+                        signOut()
+                        dismiss()
+                    } label: {
+                        Label("サインアウト", systemImage: "rectangle.portrait.and.arrow.right")
+                    }
                 }
             }
             .navigationTitle("プロフィール編集")
@@ -207,3 +205,14 @@ private struct ProfileEditSheet: View {
         }
     }
 }
+
+#if DEBUG
+#Preview("Profile Dashboard") {
+    ZStack {
+        GridBackground()
+        ProfileDashboardView()
+    }
+    .environmentObject(AppState.preview)
+    .environmentObject(DesignSettings())
+}
+#endif

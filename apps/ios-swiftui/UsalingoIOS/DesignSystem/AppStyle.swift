@@ -47,6 +47,47 @@ enum AppStyle {
             }
             .shadow(color: shadow, radius: 0, y: 5)
     }
+
+    static func widgetTile<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity)
+            .aspectRatio(1, contentMode: .fit)
+            .padding(14)
+            .background(surface)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(line, lineWidth: 1)
+            }
+            .background(alignment: .bottom) {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(shadow)
+                    .frame(height: 12)
+                    .padding(.horizontal, 12)
+                    .offset(y: 7)
+            }
+    }
+
+    static func profileWidgetTile<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(14)
+            .frame(maxWidth: .infinity)
+            .aspectRatio(1, contentMode: .fill)
+            .background(surface)
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
+                    .stroke(line, lineWidth: 1)
+            }
+            .background(alignment: .bottom) {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(shadow)
+                    .frame(height: 12)
+                    .padding(.horizontal, 12)
+                    .offset(y: 7)
+            }
+    }
 }
 
 struct GridBackground: View {

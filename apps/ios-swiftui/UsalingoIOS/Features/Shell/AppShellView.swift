@@ -16,7 +16,10 @@ struct AppShellView: View {
             GridBackground()
 
             VStack(spacing: 0) {
-                header
+                if !appState.isShellChromeHidden {
+                    header
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                }
                 Group {
                     switch selectedTab {
                     case 0:
@@ -27,11 +30,15 @@ struct AppShellView: View {
                         LearningDashboardView()
                     }
                 }
-                .padding(.bottom, 96)
+                .padding(.bottom, appState.isShellChromeHidden ? 0 : 96)
             }
 
-            floatingTabBar
+            if !appState.isShellChromeHidden {
+                floatingTabBar
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
         }
+        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: appState.isShellChromeHidden)
     }
 
     private var header: some View {
@@ -56,21 +63,6 @@ struct AppShellView: View {
             }
 
             Spacer()
-
-            Button {
-                appState.signOut()
-            } label: {
-                Image(systemName: "rectangle.portrait.and.arrow.right")
-                    .font(.headline)
-                    .foregroundStyle(AppStyle.muted)
-                    .frame(width: 44, height: 44)
-                    .background(AppStyle.surface)
-                    .clipShape(Circle())
-                    .overlay {
-                        Circle().stroke(AppStyle.line, lineWidth: 1)
-                    }
-            }
-            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
         .padding(.top, 14)
@@ -86,22 +78,16 @@ struct AppShellView: View {
                         selectedTab = index
                     }
                 } label: {
-                    HStack(spacing: 8) {
-                        Image(systemName: tab.symbol)
-                            .font(.system(size: 19, weight: .semibold))
-                        if selectedTab == index {
-                            Text(tab.title)
-                                .font(.subheadline.weight(.black))
-                        }
-                    }
+                    Image(systemName: tab.symbol)
+                        .font(.system(size: 19, weight: .semibold))
                     .foregroundStyle(selectedTab == index ? .white : AppStyle.muted)
-                    .frame(height: 48)
-                    .padding(.horizontal, selectedTab == index ? 16 : 12)
+                    .frame(width: 48, height: 48)
                     .background(selectedTab == index ? tab.color : Color.clear)
                     .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                     .shadow(color: selectedTab == index ? tab.color.opacity(0.28) : .clear, radius: 0, y: 4)
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(tab.title)
             }
         }
         .padding(12)
@@ -122,3 +108,11 @@ private struct ShellTab {
     let symbol: String
     let color: Color
 }
+
+#if DEBUG
+#Preview("App Shell") {
+    AppShellView()
+        .environmentObject(AppState.preview)
+        .environmentObject(DesignSettings())
+}
+#endif

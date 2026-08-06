@@ -8,41 +8,28 @@ struct LearningDashboardView: View {
     @State private var showWordList = false
     @State private var isLoading = false
     @State private var showGallery = false
+    @State private var showUnavailableWidgetAlert = false
+    @State private var unavailableWidgetName = ""
+    @State private var dashboardWidgets: [LearningDashboardWidget] = [.deck, .reviewReminder, .wordCounter, .studyStats]
+    @State private var isEditingWidgets = false
 
     private let deckService = DeckService()
     private let studyService = StudyService()
+    private let maxWidgetCount = 30
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                    learningDeckTile
-                    DashboardTile(
-                        title: "復習リマインダー",
-                        subtitle: "\(stats.dueCount)枚が復習待ち",
-                        symbol: "bell.fill",
-                        color: AppStyle.sun
-                    ) {
-                        startStudy()
+                    ForEach(Array(dashboardWidgets.enumerated()), id: \.offset) { index, widget in
+                        widgetTile(widget) {
+                            removeWidget(at: index)
+                        }
                     }
-                    DashboardTile(
-                        title: "単語カウンター",
-                        subtitle: "\(stats.studiedCount)語を学習中",
-                        symbol: "number.circle.fill",
-                        color: AppStyle.accent
-                    ) {
-                        showWordList = true
+
+                    if dashboardWidgets.count < maxWidgetCount {
+                        addWidgetTile
                     }
-                    DashboardTile(
-                        title: "学習統計",
-                        subtitle: "\(stats.masteredCount)語マスター",
-                        symbol: "chart.pie.fill",
-                        color: AppStyle.secondary
-                    ) {
-                        showGallery = true
-                    }
-                    addWidgetTile
-                    emptyTile
                 }
                 .padding(16)
             }
@@ -56,44 +43,48 @@ struct LearningDashboardView: View {
         .task { await loadDashboard() }
         .task(id: appState.studyDataVersion) { await refreshStats() }
         .sheet(isPresented: $showGallery) {
-            WidgetGallerySheet(startStudy: startStudy)
+            WidgetGallerySheet(
+                canAddWidget: dashboardWidgets.count < maxWidgetCount,
+                addWidget: addWidget
+            )
                 .presentationDetents([.large])
+        }
+        .alert("まだできていません", isPresented: $showUnavailableWidgetAlert) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text("「\(unavailableWidgetName)」はまだ実装されていません。")
         }
     }
 
-    private var learningDeckTile: some View {
+    private func widgetTile(_ widget: LearningDashboardWidget, onDelete: @escaping () -> Void) -> some View {
         DashboardTile(
-            title: "学習デッキ",
-            subtitle: "フラッシュカードで学習",
-            symbol: "rectangle.stack.fill",
-            color: AppStyle.accent
+            title: widget.title(stats: stats),
+            symbol: widget.symbol,
+            color: widget.color,
+            isEditing: isEditingWidgets,
+            onDelete: onDelete,
+            onLongPress: {
+                isEditingWidgets = true
+            }
         ) {
-            startStudy()
+            guard !isEditingWidgets else {
+                isEditingWidgets = false
+                return
+            }
+            performWidgetAction(widget)
         }
     }
 
     private var addWidgetTile: some View {
         DashboardTile(
             title: "ウィジェットの追加",
-            subtitle: "学習ブロックを選択",
             symbol: "plus",
             color: .secondary
         ) {
+            isEditingWidgets = false
             showGallery = true
         }
         .opacity(0.78)
-    }
-
-    private var emptyTile: some View {
-        DashboardTile(
-            title: "ウィジェットの追加",
-            subtitle: "空きスロット",
-            symbol: "plus",
-            color: .secondary
-        ) {
-            showGallery = true
-        }
-        .opacity(0.58)
     }
 
     private func loadDashboard() async {
@@ -118,55 +109,110 @@ struct LearningDashboardView: View {
     }
 
     private func startStudy() {
+        appState.isShellChromeHidden = true
         selectedDeck = decks.first ?? Deck(id: -1, deckName: "学習デッキ", description: "フラッシュカードで学習")
+    }
+
+    private func addWidget(_ widget: LearningDashboardWidget) {
+        guard dashboardWidgets.count < maxWidgetCount else { return }
+        isEditingWidgets = false
+        dashboardWidgets.append(widget)
+    }
+
+    private func removeWidget(at index: Int) {
+        guard dashboardWidgets.indices.contains(index) else { return }
+        dashboardWidgets.remove(at: index)
+        if dashboardWidgets.isEmpty {
+            isEditingWidgets = false
+        }
+    }
+
+    private func performWidgetAction(_ widget: LearningDashboardWidget) {
+        switch widget.action {
+        case .startStudy:
+            startStudy()
+        case .showWordList:
+            showWordList = true
+        case .showGallery:
+            showGallery = true
+        case .showUnavailableMessage:
+            unavailableWidgetName = widget.title(stats: stats)
+            showUnavailableWidgetAlert = true
+        }
     }
 }
 
 struct DashboardTile: View {
     let title: String
-    let subtitle: String
     let symbol: String
     let color: Color
+    var isEditing = false
+    var onDelete: (() -> Void)?
+    var onLongPress: (() -> Void)?
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
-                Image(systemName: symbol)
-                    .font(.system(size: 30, weight: .black))
-                    .foregroundStyle(.white)
-                    .frame(width: 58, height: 58)
-                    .background(color)
-                    .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .shadow(color: color.opacity(0.28), radius: 0, y: 5)
-                Text(title)
-                    .font(.headline.weight(.black))
-                    .foregroundStyle(AppStyle.ink)
-                    .multilineTextAlignment(.center)
-                Text(subtitle)
-                    .font(.caption)
-                    .foregroundStyle(AppStyle.muted)
-                    .multilineTextAlignment(.center)
+        ZStack(alignment: .topTrailing) {
+            Button(action: action) {
+                VStack(spacing: 12) {
+                    Image(systemName: symbol)
+                        .font(.system(size: 30, weight: .black))
+                        .foregroundStyle(.white)
+                        .frame(width: 58, height: 58)
+                        .background(color)
+                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                    Text(title)
+                        .font(.headline.weight(.black))
+                        .foregroundStyle(AppStyle.ink)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .minimumScaleFactor(0.72)
+                }
+                .modifier(WidgetTileStyle())
             }
-            .frame(maxWidth: .infinity)
-            .aspectRatio(1, contentMode: .fit)
-            .padding(14)
-            .background(AppStyle.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 24, style: .continuous)
-                    .stroke(AppStyle.line, lineWidth: 1)
+            .buttonStyle(.plain)
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.45)
+                    .onEnded { _ in
+                        onLongPress?()
+                    }
+            )
+
+            if isEditing, let onDelete {
+                Button(action: onDelete) {
+                    Image(systemName: "xmark")
+                        .font(.caption.weight(.black))
+                        .foregroundStyle(AppStyle.muted)
+                        .frame(width: 30, height: 30)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(Circle())
+                        .overlay {
+                            Circle()
+                                .stroke(AppStyle.line, lineWidth: 1)
+                        }
+                }
+                .buttonStyle(.plain)
+                .padding(8)
+                .transition(.scale.combined(with: .opacity))
             }
-            .shadow(color: AppStyle.shadow, radius: 0, y: 6)
         }
-        .buttonStyle(.plain)
+        .animation(.spring(response: 0.22, dampingFraction: 0.84), value: isEditing)
+    }
+}
+
+private struct WidgetTileStyle: ViewModifier {
+    func body(content: Content) -> some View {
+        AppStyle.profileWidgetTile {
+            content
+        }
     }
 }
 
 private struct WidgetGallerySheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var selectedTab = 0
-    let startStudy: () -> Void
+    let canAddWidget: Bool
+    let addWidget: (LearningDashboardWidget) -> Void
 
     private let tabs = ["学習", "TOEIC", "日常会話", "カスタム"]
 
@@ -204,13 +250,12 @@ private struct WidgetGallerySheet: View {
                 VStack(spacing: 12) {
                     ForEach(blocks, id: \.title) { block in
                         WidgetBlockRow(block: block) {
-                            if block.title == "フラッシュカード学習" {
-                                dismiss()
-                                startStudy()
-                            } else {
-                                dismiss()
+                            if canAddWidget {
+                                addWidget(block.widget)
                             }
+                            dismiss()
                         }
+                        .disabled(!canAddWidget)
                     }
                 }
             }
@@ -222,48 +267,47 @@ private struct WidgetGallerySheet: View {
         switch selectedTab {
         case 1:
             return [
-                .init("TOEICスコア予測", "現在の学習状況からスコアを予測", "chart.line.uptrend.xyaxis", .red),
-                .init("TOEIC頻出単語", "TOEICでよく出る単語を表示", "star.fill", .yellow),
-                .init("TOEIC模擬テスト", "本番形式の模擬テストを実行", "checklist", .indigo),
-                .init("TOEIC学習計画", "目標スコア達成のための学習計画", "doc.text.fill", .teal)
+                .init(.toeicScore),
+                .init(.toeicWords),
+                .init(.toeicTest),
+                .init(.toeicPlan)
             ]
         case 2:
             return [
-                .init("日常会話フレーズ", "よく使う日常会話のフレーズ", "bubble.left.and.bubble.right.fill", .cyan),
-                .init("シチュエーション別単語", "場面に応じた単語集", "mappin.and.ellipse", .green),
-                .init("発音練習", "音声付きの発音練習", "waveform", .pink),
-                .init("会話練習", "AIとの会話練習", "sparkles", .blue)
+                .init(.dailyPhrase),
+                .init(.situationWords),
+                .init(.pronunciation),
+                .init(.conversation)
             ]
         case 3:
             return [
-                .init("カスタム単語集", "自分で作成した単語集", "square.and.pencil", .brown),
-                .init("お気に入り単語", "お気に入りに登録した単語", "heart.fill", .orange),
-                .init("学習メモ", "学習中のメモやノート", "note.text", .gray),
-                .init("学習履歴", "過去の学習記録", "clock.arrow.circlepath", .secondary)
+                .init(.customWords),
+                .init(.favoriteWords),
+                .init(.studyMemo),
+                .init(.studyHistory)
             ]
         default:
             return [
-                .init("フラッシュカード学習", "スワイプジェスチャーで直感的に学習", "rectangle.stack.fill", .indigo),
-                .init("学習進捗トラッカー", "今日の学習目標と進捗を可視化", "chart.bar.fill", .blue),
-                .init("単語カウンター", "学習した単語数を表示", "number.circle.fill", .green),
-                .init("復習リマインダー", "次回復習予定の単語を表示", "bell.fill", .orange),
-                .init("学習統計", "週間・月間の学習データ", "chart.pie.fill", .purple)
+                .init(.deck),
+                .init(.progressTracker),
+                .init(.wordCounter),
+                .init(.reviewReminder),
+                .init(.studyStats)
             ]
         }
     }
 }
 
 private struct WidgetBlock {
-    let title: String
-    let subtitle: String
-    let symbol: String
-    let color: Color
+    let widget: LearningDashboardWidget
 
-    init(_ title: String, _ subtitle: String, _ symbol: String, _ color: Color) {
-        self.title = title
-        self.subtitle = subtitle
-        self.symbol = symbol
-        self.color = color
+    var title: String { widget.title(stats: .empty) }
+    var subtitle: String { widget.gallerySubtitle }
+    var symbol: String { widget.symbol }
+    var color: Color { widget.color }
+
+    init(_ widget: LearningDashboardWidget) {
+        self.widget = widget
     }
 }
 
@@ -307,3 +351,209 @@ private struct WidgetBlockRow: View {
         .buttonStyle(.plain)
     }
 }
+
+private enum LearningDashboardWidget {
+    case deck
+    case reviewReminder
+    case wordCounter
+    case studyStats
+    case progressTracker
+    case toeicScore
+    case toeicWords
+    case toeicTest
+    case toeicPlan
+    case dailyPhrase
+    case situationWords
+    case pronunciation
+    case conversation
+    case customWords
+    case favoriteWords
+    case studyMemo
+    case studyHistory
+
+    var symbol: String {
+        switch self {
+        case .deck:
+            return "rectangle.stack.fill"
+        case .reviewReminder:
+            return "bell.fill"
+        case .wordCounter:
+            return "number.circle.fill"
+        case .studyStats:
+            return "chart.pie.fill"
+        case .progressTracker:
+            return "chart.bar.fill"
+        case .toeicScore:
+            return "chart.line.uptrend.xyaxis"
+        case .toeicWords:
+            return "star.fill"
+        case .toeicTest:
+            return "checklist"
+        case .toeicPlan:
+            return "doc.text.fill"
+        case .dailyPhrase:
+            return "bubble.left.and.bubble.right.fill"
+        case .situationWords:
+            return "mappin.and.ellipse"
+        case .pronunciation:
+            return "waveform"
+        case .conversation:
+            return "sparkles"
+        case .customWords:
+            return "square.and.pencil"
+        case .favoriteWords:
+            return "heart.fill"
+        case .studyMemo:
+            return "note.text"
+        case .studyHistory:
+            return "clock.arrow.circlepath"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .deck:
+            return AppStyle.accent
+        case .reviewReminder:
+            return AppStyle.sun
+        case .wordCounter:
+            return AppStyle.accent
+        case .studyStats:
+            return AppStyle.secondary
+        case .progressTracker:
+            return .blue
+        case .toeicScore:
+            return .red
+        case .toeicWords:
+            return .yellow
+        case .toeicTest:
+            return .indigo
+        case .toeicPlan:
+            return .teal
+        case .dailyPhrase:
+            return .cyan
+        case .situationWords:
+            return .green
+        case .pronunciation:
+            return .pink
+        case .conversation:
+            return .blue
+        case .customWords:
+            return .brown
+        case .favoriteWords:
+            return .orange
+        case .studyMemo:
+            return .gray
+        case .studyHistory:
+            return .secondary
+        }
+    }
+
+    var gallerySubtitle: String {
+        switch self {
+        case .deck:
+            return "スワイプジェスチャーで直感的に学習"
+        case .reviewReminder:
+            return "次回復習予定の単語を表示"
+        case .wordCounter:
+            return "学習した単語数を表示"
+        case .studyStats:
+            return "週間・月間の学習データ"
+        case .progressTracker:
+            return "今日の学習目標と進捗を可視化"
+        case .toeicScore:
+            return "現在の学習状況からスコアを予測"
+        case .toeicWords:
+            return "TOEICでよく出る単語を表示"
+        case .toeicTest:
+            return "本番形式の模擬テストを実行"
+        case .toeicPlan:
+            return "目標スコア達成のための学習計画"
+        case .dailyPhrase:
+            return "よく使う日常会話のフレーズ"
+        case .situationWords:
+            return "場面に応じた単語集"
+        case .pronunciation:
+            return "音声付きの発音練習"
+        case .conversation:
+            return "AIとの会話練習"
+        case .customWords:
+            return "自分で作成した単語集"
+        case .favoriteWords:
+            return "お気に入りに登録した単語"
+        case .studyMemo:
+            return "学習中のメモやノート"
+        case .studyHistory:
+            return "過去の学習記録"
+        }
+    }
+
+    var action: WidgetAction {
+        switch self {
+        case .deck, .reviewReminder:
+            return .startStudy
+        case .wordCounter, .customWords, .favoriteWords:
+            return .showWordList
+        default:
+            return .showUnavailableMessage
+        }
+    }
+
+    func title(stats: StudyStats) -> String {
+        switch self {
+        case .deck:
+            return "学習デッキ"
+        case .reviewReminder:
+            return "復習リマインダー"
+        case .wordCounter:
+            return "単語カウンター"
+        case .studyStats:
+            return "学習統計"
+        case .progressTracker:
+            return "進捗トラッカー"
+        case .toeicScore:
+            return "TOEICスコア予測"
+        case .toeicWords:
+            return "TOEIC頻出単語"
+        case .toeicTest:
+            return "TOEIC模擬テスト"
+        case .toeicPlan:
+            return "TOEIC学習計画"
+        case .dailyPhrase:
+            return "日常会話フレーズ"
+        case .situationWords:
+            return "シチュエーション別単語"
+        case .pronunciation:
+            return "発音練習"
+        case .conversation:
+            return "会話練習"
+        case .customWords:
+            return "カスタム単語集"
+        case .favoriteWords:
+            return "お気に入り単語"
+        case .studyMemo:
+            return "学習メモ"
+        case .studyHistory:
+            return "学習履歴"
+        }
+    }
+
+}
+
+private enum WidgetAction {
+    case startStudy
+    case showWordList
+    case showGallery
+    case showUnavailableMessage
+}
+
+#if DEBUG
+#Preview("Learning Dashboard") {
+    ZStack {
+        GridBackground()
+        LearningDashboardView()
+    }
+    .environmentObject(AppState.preview)
+    .environmentObject(DesignSettings())
+}
+#endif

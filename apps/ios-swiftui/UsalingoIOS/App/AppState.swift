@@ -4,13 +4,18 @@ import Foundation
 final class AppState: ObservableObject {
     @Published var session: AuthSession?
     @Published var isRestoringSession = true
+    @Published var isShellChromeHidden = false
     @Published private(set) var studyDataVersion = 0
 
     let designSettings = DesignSettings()
 
     private let authService = AuthService()
 
-    init() {
+    init(restoresSession: Bool = true) {
+        guard restoresSession else {
+            isRestoringSession = false
+            return
+        }
         Task { await restoreSession() }
     }
 
@@ -36,3 +41,11 @@ final class AppState: ObservableObject {
         }
     }
 }
+
+#if DEBUG
+extension AppState {
+    static var preview: AppState {
+        AppState(restoresSession: false)
+    }
+}
+#endif

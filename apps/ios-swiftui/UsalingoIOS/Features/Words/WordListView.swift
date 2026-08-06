@@ -27,6 +27,12 @@ struct WordListView: View {
                     ProgressView()
                     Spacer()
                 }
+            } else if !message.isEmpty && words.isEmpty {
+                WordListErrorBox(info: WordListErrorInfo(rawMessage: message)) {
+                    Task { await load() }
+                }
+                .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: 24, leading: 20, bottom: 24, trailing: 20))
             } else {
                 if !availableTags.isEmpty {
                     Section {
@@ -71,11 +77,6 @@ struct WordListView: View {
             }
         }
         .searchable(text: $searchText, prompt: "英単語・意味・例文を検索")
-        .overlay {
-            if !message.isEmpty && words.isEmpty && !isLoading {
-                ContentUnavailableView("読み込みできません", systemImage: "exclamationmark.triangle", description: Text(message))
-            }
-        }
         .sheet(item: $selectedWord) { word in
             WordDetailSheet(word: word) { savedWord in
                 replaceWord(savedWord)
@@ -214,6 +215,108 @@ struct WordListView: View {
         if let selectedTagFilter, !availableTags.contains(selectedTagFilter) {
             self.selectedTagFilter = nil
         }
+    }
+}
+
+private struct WordListErrorInfo {
+    let number: String
+    let action: String
+
+    init(rawMessage: String) {
+        let parsedCode = Self.databaseCode(from: rawMessage)
+        number = parsedCode ?? Self.fallbackNumber(for: rawMessage)
+        action = Self.recoveryAction(for: rawMessage, parsedCode: parsedCode)
+    }
+
+    private static func databaseCode(from rawMessage: String) -> String? {
+        guard let data = rawMessage.data(using: .utf8),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let code = json["code"] as? String,
+              !code.isEmpty else {
+            return nil
+        }
+        return code
+    }
+
+    private static func fallbackNumber(for rawMessage: String) -> String {
+        let lowercased = rawMessage.lowercased()
+        if lowercased.contains("timed out") || lowercased.contains("offline") || lowercased.contains("network") {
+            return "WL-001"
+        }
+        if lowercased.contains("unauthorized") || lowercased.contains("jwt") || lowercased.contains("session") {
+            return "WL-002"
+        }
+        return "WL-000"
+    }
+
+    private static func recoveryAction(for rawMessage: String, parsedCode: String?) -> String {
+        let lowercased = rawMessage.lowercased()
+        if lowercased.contains("relation") || parsedCode == "42P01" {
+            return "データベースの単語テーブル設定を確認してください。"
+        }
+        if lowercased.contains("permission") || lowercased.contains("rls") || parsedCode == "42501" {
+            return "ログイン状態またはデータベース権限を確認してください。"
+        }
+        if lowercased.contains("unauthorized") || lowercased.contains("jwt") || lowercased.contains("session") {
+            return "一度サインアウトしてから、再度サインインしてください。"
+        }
+        if lowercased.contains("timed out") || lowercased.contains("offline") || lowercased.contains("network") {
+            return "通信状態を確認してから、もう一度読み込んでください。"
+        }
+        return "時間をおいて再読み込みしてください。改善しない場合はエラー番号を控えてください。"
+    }
+}
+
+private struct WordListErrorBox: View {
+    let info: WordListErrorInfo
+    let retry: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title3)
+                    .foregroundStyle(AppStyle.coral)
+                    .frame(width: 42, height: 42)
+                    .background(AppStyle.coral.opacity(0.12))
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("読み込みできません")
+                        .font(.headline.weight(.black))
+                        .foregroundStyle(AppStyle.ink)
+                    Text("エラー番号: \(info.number)")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(AppStyle.muted)
+                }
+            }
+
+            Text("対処方法: \(info.action)")
+                .font(.subheadline)
+                .foregroundStyle(AppStyle.ink)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                retry()
+            } label: {
+                Label("再読み込み", systemImage: "arrow.clockwise")
+                    .font(.subheadline.weight(.bold))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 11)
+                    .background(AppStyle.accent)
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(18)
+        .background(AppStyle.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(AppStyle.line, lineWidth: 1)
+        }
+        .shadow(color: AppStyle.shadow, radius: 12, y: 7)
     }
 }
 
