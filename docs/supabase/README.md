@@ -1,93 +1,30 @@
-# 🗄️ Supabase ドキュメント
+# Supabase
 
-Usalingo プロジェクトにおける Supabase 関連のドキュメントを集約したディレクトリです。
+Supabase関連は、用途ごとに次の2か所だけを正本とします。
 
-## 📂 ディレクトリ構成
+| 場所 | 役割 |
+| --- | --- |
+| `supabase/migrations/` | データベース変更の実行可能な履歴（SQLの正本） |
+| `docs/supabase/README.md` | 運用方針と参照先（このファイル） |
 
-```
-docs/supabase/
-├── README.md                     # このファイル
-├── archive/                      # アーカイブ
-│   ├── completed-tasks/          # 完了済みタスク（01-07）
-│   ├── migration-history/        # 移行履歴
-│   └── やりたいこと/             # タスク管理（アーカイブ済み）
-└── reference/                    # リファレンス
-    ├── sql/                      # SQLファイル（統合済み）
-    │   └── consolidated/         # 統合SQLファイル
-    ├── execution-guides/         # 実行手順書
-    ├── functions/                # Edge Functions
-    └── types/                    # TypeScript型定義
-```
+## 運用ルール
 
-## 🚀 クイックスタート
+- スキーマ、関数、RLS、インデックスの変更は `supabase/migrations/` に追加する。
+- 同じSQLを `docs/` にコピーしない。説明が必要な場合は対象マイグレーションへリンクする。
+- 新しいマイグレーション名やCLIオプションは推測せず、`supabase migration new --help` など現在のCLIヘルプで確認する。
+- 適用前に変更内容と対象環境を確認し、適用後はテストクエリとアプリの該当フローで検証する。
+- `public` などData APIへ公開されるスキーマでは、RLSと必要な権限を明示的に確認する。
+- Edge Functionsを運用する場合は、ドキュメント配下ではなく `supabase/functions/<function-name>/` に置く。
 
-### 新規環境でのセットアップ
-1. `reference/sql/consolidated/00_setup.sql` - データベース初期化
-2. `reference/sql/consolidated/01_core_schema.sql` - コアスキーマ
-3. `reference/sql/consolidated/02_features.sql` - 基本機能
-4. `reference/sql/consolidated/03_performance.sql` - パフォーマンス最適化
-5. `reference/sql/consolidated/04_storage.sql` - ストレージ機能
-6. `reference/sql/consolidated/05_documentation.sql` - ドキュメント
+Supabase公式の基本フローも、バージョン管理するSQLを `supabase/migrations/` に置く構成です。
 
-### 既存環境での機能追加
-1. `reference/execution-guides/` - 実行手順書を確認
-2. 対象機能のSQLファイルを実行
-3. 動作確認
+- [Local development with schema migrations](https://supabase.com/docs/guides/local-development/overview)
+- [Database migrations](https://supabase.com/docs/guides/local-development/database-migrations)
 
-## 📋 主要ドキュメント
+## 現在のマイグレーション
 
-### 🗄️ SQL リファレンス
-- **統合SQLファイル**: `reference/sql/consolidated/`
-  - 実行順序に従って統合されたSQLファイル
-  - 6つのファイルで全機能をカバー
+手書きの一覧は持たず、[`supabase/migrations/`](../../supabase/migrations/) を直接参照してください。
 
-### 📚 実行手順書
-- `reference/execution-guides/` - 各機能のデプロイ手順
-- トラブルシューティングガイド
+## 旧資料について
 
-### 🔄 Edge Functions
-- `reference/functions/` - アセットリンカー、移行スクリプト
-
-### 📝 TypeScript型定義
-- `reference/types/` - JSONB構造、データベーススキーマの型定義
-
-## 📊 タスク管理
-
-### 完了済みタスク（アーカイブ済み）
-- ✅ 01: トリガー関数の実装修正
-- ✅ 02: タイムスタンプカラムの追加
-- ✅ 03: JSONBカラムの構造定義
-- ✅ 04: 複合インデックスの追加
-- ✅ 06: 全文検索インデックスの追加
-- ✅ 07: ストレージ階層化の実装
-
-### 現在の状況
-- 📁 全タスク完了（2025年10月3日）
-- 🗂️ ファイル整理完了（2025年10月3日）
-- 📚 ドキュメント構造化完了
-- 🔄 シンプル化完了（2025年10月3日）
-
-## ⚠️ 重要な注意事項
-
-### バックアップ
-- **全てのSQL実行前に必ずデータベースのバックアップを取得**
-- Supabaseダッシュボードから手動バックアップを作成
-
-### テスト環境
-- 可能な限り開発環境で先にテスト
-- 本番環境への適用は慎重に
-
-### ロールバック計画
-- 各機能のロールバック手順を事前に準備
-- 段階的な実装と動作確認
-
-## 🔗 関連ドキュメント
-
-- [プロジェクト全体のドキュメント構成](../README.md)
-- [Supabase ドキュメント規則](../rules/supabase-docs-rules.md)
-- [データベース設計書](../Usalingo｜Specification Ver.1.0/usalingo_04_technical_requirements/usalingo_04_03｜データベース設計.md)
-
----
-
-**最終更新**: 2025年10月3日（シンプル化完了）  
-**作成者**: Usalingo開発チーム
+2025年に作成された統合SQL、移行スクリプト、完了報告、Edge Functionの参考実装は、現行コードから参照されず、存在しないパスや旧命名規則も含んでいたため作業ツリーから除外しました。必要な場合はGit履歴のコミット `4b52c7f`（`Supabase Structure mvp`）から参照できます。旧SQLや旧Functionをそのまま本番実行しないでください。

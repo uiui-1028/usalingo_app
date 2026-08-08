@@ -10,7 +10,7 @@
 - **cursor-rules.md** - Cursor AI Editor用のルール
 - **claude-rules.md** - Claude用のルール
 - **common-rules.md** - 共通ルール（重複部分）
-- **supabase-docs-rules.md** - Supabase ドキュメントの配置/命名/更新ルール
+- **SQL_Query_Rules.md** - SQLとSupabase関連ファイルの管理ルール
 
 ## 使用方法
 
@@ -30,4 +30,4 @@
 ## 注意事項
 - ルールの変更は慎重に行い、既存の開発フローに影響がないか確認する
 - 新しいルール追加時は、適切なファイルに配置する
-- 定期的にルールの有効性を評価し、必要に応じて更新する 
+- 定期的にルールの有効性を評価し、必要に応じて更新する

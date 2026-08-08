@@ -310,10 +310,10 @@ CREATE TABLE user_learning_progress (
 ```
 
 ### ドキュメント配置ポリシー
-- すべてのSupabase関連ドキュメントは `docs/supabase/` に格納
-- マイグレーション関連: `docs/supabase/migrations/`
-- セットアップ系: `docs/supabase/setup_guide.md`
-- ストレージ系: `docs/supabase/storage_setup.md`
+- 実行可能なSQLの正本は `supabase/migrations/` に格納
+- Edge Functionsの正本は `supabase/functions/` に格納（使用する場合）
+- `docs/supabase/README.md` には運用方針と正本へのリンクだけを記載
+- SQLやFunctionコードを `docs/` に複製しない
 
 ### ドキュメント更新タイミング
 - マイグレーション適用後、即座に更新

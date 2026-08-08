@@ -1,6 +1,6 @@
 -- public.users へのクライアント INSERT は RLS で拒否されがちなため、
 -- SECURITY DEFINER の RPC で auth と同じ id の行を確実に作る。
--- ソース・オブ・トゥルース: docs/supabase/sql/ensure_current_user_row.sql と同一。
+-- このマイグレーションがSQLのソース・オブ・トゥルース。
 
 CREATE OR REPLACE FUNCTION public.ensure_current_user_row()
 RETURNS void
