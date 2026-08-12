@@ -7,6 +7,7 @@
 
 ### 📁 docs/rules/
 - **README.md** - このファイル（ルールブックの概要）
+- **codex-credit-optimization.md** - Codexのクレジット消費を抑えるための共通ルール
 - **cursor-rules.md** - Cursor AI Editor用のルール
 - **claude-rules.md** - Claude用のルール
 - **common-rules.md** - 共通ルール（重複部分）
@@ -21,6 +22,10 @@
 ### Claude
 - `docs/rules/claude-rules.md`をClaudeの設定で参照
 - プロジェクト固有の開発ルールが適用されます
+
+### Codex
+- リポジトリ直下の`AGENTS.md`から`docs/rules/codex-credit-optimization.md`を必読文書として参照
+- ローカル調査、Notion照会、Web検索、実装と検証のすべてで適用されます
 
 ## ルールの更新
 - 共通ルールの変更は`common-rules.md`で行う
