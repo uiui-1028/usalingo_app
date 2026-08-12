@@ -6,7 +6,27 @@ enum HTTPMethod: String {
     case delete = "DELETE"
 }
 
-final class SupabaseClient {
+protocol SupabaseRequesting {
+    func request<T: Decodable>(
+        path: String,
+        method: HTTPMethod,
+        queryItems: [URLQueryItem],
+        accessToken: String?,
+        body: Encodable?,
+        prefer: String?
+    ) async throws -> T
+
+    func execute(
+        path: String,
+        method: HTTPMethod,
+        queryItems: [URLQueryItem],
+        accessToken: String?,
+        body: Encodable?,
+        prefer: String?
+    ) async throws
+}
+
+final class SupabaseClient: SupabaseRequesting {
     static let shared = SupabaseClient()
 
     private let decoder: JSONDecoder = {

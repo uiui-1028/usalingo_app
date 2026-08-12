@@ -1,16 +1,50 @@
 import Foundation
 
-struct WordCard: Identifiable, Decodable, Hashable {
-    let id: Int
+struct WordCard: Identifiable, Hashable {
+    let wordId: Int
+    let cardId: Int?
     let text: String
     let meaning: String
     let partOfSpeech: String?
     let sentenceEnglish: String?
     let sentenceJapanese: String?
     let imageAssetPath: String?
+    let audioAssetPath: String?
     let tags: [String]
     let learningStatus: String?
     let learning: WordLearningSnapshot?
+
+    var id: Int {
+        cardId ?? wordId
+    }
+
+    init(
+        id wordId: Int,
+        cardId: Int? = nil,
+        text: String,
+        meaning: String,
+        partOfSpeech: String?,
+        sentenceEnglish: String?,
+        sentenceJapanese: String?,
+        imageAssetPath: String?,
+        audioAssetPath: String?,
+        tags: [String],
+        learningStatus: String?,
+        learning: WordLearningSnapshot?
+    ) {
+        self.wordId = wordId
+        self.cardId = cardId
+        self.text = text
+        self.meaning = meaning
+        self.partOfSpeech = partOfSpeech
+        self.sentenceEnglish = sentenceEnglish
+        self.sentenceJapanese = sentenceJapanese
+        self.imageAssetPath = imageAssetPath
+        self.audioAssetPath = audioAssetPath
+        self.tags = tags
+        self.learningStatus = learningStatus
+        self.learning = learning
+    }
 
     var illustrationURL: URL? {
         guard let path = imageAssetPath, !path.isEmpty else { return nil }
@@ -18,15 +52,23 @@ struct WordCard: Identifiable, Decodable, Hashable {
         return SupabaseConfig.publicStorageURL(for: path)
     }
 
+    var audioURL: URL? {
+        guard let path = audioAssetPath, !path.isEmpty else { return nil }
+        if let url = URL(string: path), url.scheme != nil { return url }
+        return SupabaseConfig.publicStorageURL(for: path)
+    }
+
     func applying(_ override: UserWordOverride) -> WordCard {
         WordCard(
-            id: id,
+            id: wordId,
+            cardId: cardId,
             text: override.wordText.requiredOverride(fallback: text),
             meaning: override.definitionJapanese.requiredOverride(fallback: meaning),
             partOfSpeech: partOfSpeech,
             sentenceEnglish: override.sentenceEnglish.optionalOverride(fallback: sentenceEnglish),
             sentenceJapanese: override.sentenceJapanese.optionalOverride(fallback: sentenceJapanese),
             imageAssetPath: override.imageAssetPath.optionalOverride(fallback: imageAssetPath),
+            audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
             learning: learning
@@ -35,13 +77,15 @@ struct WordCard: Identifiable, Decodable, Hashable {
 
     func withTags(_ tags: [String]) -> WordCard {
         WordCard(
-            id: id,
+            id: wordId,
+            cardId: cardId,
             text: text,
             meaning: meaning,
             partOfSpeech: partOfSpeech,
             sentenceEnglish: sentenceEnglish,
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
+            audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
             learning: learning
@@ -50,13 +94,15 @@ struct WordCard: Identifiable, Decodable, Hashable {
 
     func withLearningStatus(_ status: String?) -> WordCard {
         WordCard(
-            id: id,
+            id: wordId,
+            cardId: cardId,
             text: text,
             meaning: meaning,
             partOfSpeech: partOfSpeech,
             sentenceEnglish: sentenceEnglish,
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
+            audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: status,
             learning: learning
@@ -65,16 +111,35 @@ struct WordCard: Identifiable, Decodable, Hashable {
 
     func withLearningProgress(_ progress: LearningProgress?) -> WordCard {
         WordCard(
-            id: id,
+            id: wordId,
+            cardId: cardId,
             text: text,
             meaning: meaning,
             partOfSpeech: partOfSpeech,
             sentenceEnglish: sentenceEnglish,
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
+            audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: progress?.status,
             learning: progress.map(WordLearningSnapshot.init(progress:))
+        )
+    }
+
+    func withCardId(_ cardId: Int?) -> WordCard {
+        WordCard(
+            id: wordId,
+            cardId: cardId,
+            text: text,
+            meaning: meaning,
+            partOfSpeech: partOfSpeech,
+            sentenceEnglish: sentenceEnglish,
+            sentenceJapanese: sentenceJapanese,
+            imageAssetPath: imageAssetPath,
+            audioAssetPath: audioAssetPath,
+            tags: tags,
+            learningStatus: learningStatus,
+            learning: learning
         )
     }
 }
@@ -127,7 +192,7 @@ struct WordRecord: Decodable {
         case wordMeanings = "word_meanings"
     }
 
-    func toCard() -> WordCard? {
+    func toCard(cardId: Int? = nil) -> WordCard? {
         let meaning = wordMeanings?
             .sorted { ($0.priority ?? 9999) < ($1.priority ?? 9999) }
             .first
@@ -135,16 +200,49 @@ struct WordRecord: Decodable {
         let example = meaning.exampleContents?.first
         return WordCard(
             id: id,
+            cardId: cardId,
             text: wordText,
             meaning: meaning.definitionJapanese,
             partOfSpeech: meaning.partOfSpeechEnglish,
             sentenceEnglish: example?.sentenceEnglish,
             sentenceJapanese: example?.sentenceJapanese,
             imageAssetPath: example?.imageAssetPath,
+            audioAssetPath: example?.audioAssetPath,
             tags: [],
             learningStatus: nil,
             learning: nil
         )
+    }
+}
+
+struct StudyCardRecord: Decodable {
+    let id: Int
+    let wordId: Int
+    let sortOrder: Int
+    let word: WordRecord
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case wordId = "word_id"
+        case sortOrder = "sort_order"
+        case word
+    }
+
+    func toCard() -> WordCard? {
+        guard word.id == wordId else { return nil }
+        return word.toCard(cardId: id)
+    }
+}
+
+struct CardIdentityRecord: Decodable {
+    let id: Int
+    let wordId: Int
+    let sortOrder: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case wordId = "word_id"
+        case sortOrder = "sort_order"
     }
 }
 
@@ -169,11 +267,13 @@ struct ExampleContent: Decodable {
     let sentenceEnglish: String?
     let sentenceJapanese: String?
     let imageAssetPath: String?
+    let audioAssetPath: String?
 
     enum CodingKeys: String, CodingKey {
         case id
         case sentenceEnglish = "sentence_en"
         case sentenceJapanese = "sentence_jp"
         case imageAssetPath = "image_asset_path"
+        case audioAssetPath = "audio_asset_path"
     }
 }

@@ -28,11 +28,23 @@
 		A10000000000000000000016 /* ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ProfileDashboardView.swift */; };
 		A10000000000000000000017 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SessionStore.swift */; };
 		A10000000000000000000018 /* WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* WordListView.swift */; };
-		A10000000000000000000019 /* SpeechService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* SpeechService.swift */; };
+		A10000000000000000000019 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AudioPlaybackService.swift */; };
 		A1000000000000000000001A /* WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* WordEditSheet.swift */; };
 		A1000000000000000000001B /* TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TagSheet.swift */; };
 		A1000000000000000000001C /* DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* DesignSettings.swift */; };
+		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
+		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B00000000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A60000000000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A50000000000000000000001;
+			remoteInfo = UsalingoIOS;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A20000000000000000000001 /* UsalingoIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsalingoIOSApp.swift; sourceTree = "<group>"; };
@@ -59,14 +71,24 @@
 		A20000000000000000000016 /* ProfileDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileDashboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SessionStore.swift; sourceTree = "<group>"; };
 		A20000000000000000000018 /* WordListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListView.swift; sourceTree = "<group>"; };
-		A20000000000000000000019 /* SpeechService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SpeechService.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AudioPlaybackService.swift; sourceTree = "<group>"; };
 		A2000000000000000000001A /* WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* TagSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/TagSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000001C /* DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
+		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A30000000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B30000000000000000000001 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -80,6 +102,7 @@
 			isa = PBXGroup;
 			children = (
 				A40000000000000000000002 /* UsalingoIOS */,
+				B40000000000000000000001 /* UsalingoIOSTests */,
 				A20000000000000000000011 /* Local.xcconfig */,
 				A40000000000000000000003 /* Products */,
 			);
@@ -100,7 +123,7 @@
 				A20000000000000000000009 /* DeckService.swift */,
 				A2000000000000000000000A /* StudyService.swift */,
 				A20000000000000000000017 /* SessionStore.swift */,
-				A20000000000000000000019 /* SpeechService.swift */,
+				A20000000000000000000019 /* AudioPlaybackService.swift */,
 				A2000000000000000000000B /* AppStyle.swift */,
 				A2000000000000000000000C /* AuthView.swift */,
 				A2000000000000000000000D /* DeckListView.swift */,
@@ -122,8 +145,18 @@
 			isa = PBXGroup;
 			children = (
 				A20000000000000000000010 /* UsalingoIOS.app */,
+				B20000000000000000000002 /* UsalingoIOSTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		B40000000000000000000001 /* UsalingoIOSTests */ = {
+			isa = PBXGroup;
+			children = (
+				B20000000000000000000001 /* LearningProgressTests.swift */,
+				B20000000000000000000003 /* WordCardTests.swift */,
+			);
+			path = UsalingoIOSTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -145,6 +178,23 @@
 			productReference = A20000000000000000000010 /* UsalingoIOS.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B50000000000000000000001 /* UsalingoIOSTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B90000000000000000000001 /* Build configuration list for PBXNativeTarget "UsalingoIOSTests" */;
+			buildPhases = (
+				B70000000000000000000001 /* Sources */,
+				B30000000000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B60000000000000000000001 /* PBXTargetDependency */,
+			);
+			name = UsalingoIOSTests;
+			productName = UsalingoIOSTests;
+			productReference = B20000000000000000000002 /* UsalingoIOSTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -157,6 +207,10 @@
 				TargetAttributes = {
 					A50000000000000000000001 = {
 						CreatedOnToolsVersion = 16.0;
+					};
+					B50000000000000000000001 = {
+						CreatedOnToolsVersion = 16.0;
+						TestTargetID = A50000000000000000000001;
 					};
 				};
 			};
@@ -174,6 +228,7 @@
 			projectRoot = "";
 			targets = (
 				A50000000000000000000001 /* UsalingoIOS */,
+				B50000000000000000000001 /* UsalingoIOSTests */,
 			);
 		};
 /* End PBXProject section */
@@ -204,14 +259,31 @@
 				A10000000000000000000016 /* ProfileDashboardView.swift in Sources */,
 				A10000000000000000000017 /* SessionStore.swift in Sources */,
 				A10000000000000000000018 /* WordListView.swift in Sources */,
-				A10000000000000000000019 /* SpeechService.swift in Sources */,
+				A10000000000000000000019 /* AudioPlaybackService.swift in Sources */,
 				A1000000000000000000001A /* WordEditSheet.swift in Sources */,
 				A1000000000000000000001B /* TagSheet.swift in Sources */,
 				A1000000000000000000001C /* DesignSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		B70000000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B10000000000000000000001 /* LearningProgressTests.swift in Sources */,
+				B10000000000000000000002 /* WordCardTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B60000000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A50000000000000000000001 /* UsalingoIOS */;
+			targetProxy = B00000000000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A80000000000000000000001 /* Debug */ = {
@@ -377,6 +449,42 @@
 			};
 			name = Release;
 		};
+		B80000000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.usalingo.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/UsalingoIOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/UsalingoIOS";
+			};
+			name = Debug;
+		};
+		B80000000000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.usalingo.ios.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/UsalingoIOS.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/UsalingoIOS";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -394,6 +502,15 @@
 			buildConfigurations = (
 				A80000000000000000000003 /* Debug */,
 				A80000000000000000000004 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B90000000000000000000001 /* Build configuration list for PBXNativeTarget "UsalingoIOSTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B80000000000000000000001 /* Debug */,
+				B80000000000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

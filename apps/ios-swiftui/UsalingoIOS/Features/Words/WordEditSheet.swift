@@ -90,7 +90,7 @@ struct WordEditSheet: View {
 
         let override = UserWordOverride(
             userId: session.user.id,
-            wordId: word.id,
+            wordId: word.wordId,
             wordText: trimmedText,
             definitionJapanese: trimmedMeaning,
             sentenceEnglish: sentenceEnglish.trimmingCharacters(in: .whitespacesAndNewlines),

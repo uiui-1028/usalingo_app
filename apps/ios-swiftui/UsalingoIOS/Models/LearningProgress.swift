@@ -20,7 +20,7 @@ struct LearningProgress: Codable {
     }
 
     let userId: String
-    let wordId: Int
+    let cardId: Int
     let status: String
     let lastReviewedAt: String?
     let nextReviewDate: String
@@ -34,7 +34,7 @@ struct LearningProgress: Codable {
 
     enum CodingKeys: String, CodingKey {
         case userId = "user_id"
-        case wordId = "word_id"
+        case cardId = "card_id"
         case status
         case lastReviewedAt = "last_reviewed_at"
         case nextReviewDate = "next_review_date"
@@ -51,11 +51,11 @@ struct LearningProgress: Codable {
         incorrectCount >= Self.weakIncorrectCountThreshold
     }
 
-    static func initial(userId: String, wordId: Int, now: Date = Date()) -> LearningProgress {
+    static func initial(userId: String, cardId: Int, now: Date = Date()) -> LearningProgress {
         let formatter = ISO8601DateFormatter()
         return LearningProgress(
             userId: userId,
-            wordId: wordId,
+            cardId: cardId,
             status: "learning",
             lastReviewedAt: nil,
             nextReviewDate: formatter.string(from: Calendar.current.date(byAdding: .day, value: 1, to: now) ?? now),
@@ -73,19 +73,24 @@ struct LearningProgress: Codable {
         let formatter = ISO8601DateFormatter()
         if isCorrect {
             let nextRepetitions = repetitions + 1
-            let nextInterval = Self.nextIntervalDays(repetitions: nextRepetitions, currentIntervalDays: intervalDays, easinessFactor: easinessFactor)
+            let nextEasinessFactor = Self.clampedEasinessFactor(easinessFactor)
+            let nextInterval = Self.nextIntervalDays(
+                repetitions: nextRepetitions,
+                currentIntervalDays: intervalDays,
+                easinessFactor: nextEasinessFactor
+            )
             let nextLevel = min(SRSRule.maxLevel, srsLevel + 1)
             let nextStatus = nextLevel >= SRSRule.maxLevel && nextRepetitions >= SRSRule.masteredRepetitions
                 ? "mastered"
                 : "learning"
             return LearningProgress(
                 userId: userId,
-                wordId: wordId,
+                cardId: cardId,
                 status: nextStatus,
                 lastReviewedAt: formatter.string(from: now),
                 nextReviewDate: formatter.string(from: Calendar.current.date(byAdding: .day, value: nextInterval, to: now) ?? now),
                 srsLevel: nextLevel,
-                easinessFactor: easinessFactor,
+                easinessFactor: nextEasinessFactor,
                 repetitions: nextRepetitions,
                 incorrectCount: incorrectCount,
                 intervalDays: nextInterval,
@@ -96,12 +101,12 @@ struct LearningProgress: Codable {
 
         return LearningProgress(
             userId: userId,
-            wordId: wordId,
+            cardId: cardId,
             status: "learning",
             lastReviewedAt: formatter.string(from: now),
             nextReviewDate: formatter.string(from: Calendar.current.date(byAdding: .day, value: SRSRule.incorrectIntervalDays, to: now) ?? now),
             srsLevel: SRSRule.incorrectLevel,
-            easinessFactor: max(SRSRule.minEasinessFactor, min(SRSRule.maxEasinessFactor, easinessFactor - SRSRule.easinessPenalty)),
+            easinessFactor: Self.clampedEasinessFactor(easinessFactor - SRSRule.easinessPenalty),
             repetitions: SRSRule.incorrectRepetitions,
             incorrectCount: incorrectCount + 1,
             intervalDays: SRSRule.incorrectIntervalDays,
@@ -114,6 +119,10 @@ struct LearningProgress: Codable {
         if repetitions == 1 { return SRSRule.firstCorrectIntervalDays }
         if repetitions == 2 { return SRSRule.secondCorrectIntervalDays }
         return max(1, Int((Double(currentIntervalDays) * easinessFactor).rounded()))
+    }
+
+    private static func clampedEasinessFactor(_ value: Double) -> Double {
+        max(SRSRule.minEasinessFactor, min(SRSRule.maxEasinessFactor, value))
     }
 }
 

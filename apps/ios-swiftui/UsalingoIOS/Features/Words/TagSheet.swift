@@ -113,7 +113,7 @@ struct TagSheet: View {
         isLoading = true
         defer { isLoading = false }
         do {
-            selectedTags = Set(try await studyService.fetchTags(wordId: word.id, session: session))
+            selectedTags = Set(try await studyService.fetchTags(wordId: word.wordId, session: session))
             message = ""
         } catch {
             message = "タグの読み込みに失敗しました。"
@@ -125,7 +125,7 @@ struct TagSheet: View {
         isSaving = true
         defer { isSaving = false }
         do {
-            try await studyService.saveTags(selectedTags, wordId: word.id, session: session)
+            try await studyService.saveTags(selectedTags, wordId: word.wordId, session: session)
             onSaved?(word.withTags(selectedTags.sorted()))
             dismiss()
         } catch {
