@@ -1,4 +1,4 @@
 interface:
   display_name: "Usalingo 課題マネージャー"
-  short_description: "課題の洗い出し、Notion登録、文書・レポート作成"
-  default_prompt: "$usalingo-project-manager を使って、Usalingoの課題を洗い出し、承認されたEpicとタスクをNotionに作成してください。"
+  short_description: "課題候補の選択からAIレビュー・完了報告まで一貫管理"
+  default_prompt: "$usalingo-project-manager を使って、次の候補課題を示し、私が選んだ課題を実施・検証・AIレビュー・完了報告まで進めてください。"
