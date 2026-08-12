@@ -10,16 +10,11 @@ final class DesignSettings: ObservableObject {
         didSet { UserDefaults.standard.set(cardCornerRadius, forKey: Keys.cardCornerRadius) }
     }
 
-    @Published var isTTSEnabled: Bool {
-        didSet { UserDefaults.standard.set(isTTSEnabled, forKey: Keys.isTTSEnabled) }
-    }
-
     init() {
         let defaults = UserDefaults.standard
         accentName = defaults.string(forKey: Keys.accentName) ?? "green"
         let storedRadius = defaults.double(forKey: Keys.cardCornerRadius)
         cardCornerRadius = storedRadius == 0 ? 18 : storedRadius
-        isTTSEnabled = defaults.object(forKey: Keys.isTTSEnabled) as? Bool ?? true
     }
 
     var accentColor: Color {
@@ -38,6 +33,5 @@ final class DesignSettings: ObservableObject {
     private enum Keys {
         static let accentName = "design.accentName"
         static let cardCornerRadius = "design.cardCornerRadius"
-        static let isTTSEnabled = "design.isTTSEnabled"
     }
 }

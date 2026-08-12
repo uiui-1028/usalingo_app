@@ -18,7 +18,7 @@ struct StudySessionView: View {
     @State private var taggingWord: WordCard?
     @State private var sessionAnswers: [Bool] = []
     @State private var sessionProgresses: [LearningProgress] = []
-    @StateObject private var speechService = SpeechService()
+    @StateObject private var audioPlaybackService = AudioPlaybackService()
 
     private let studyService = StudyService()
 
@@ -59,6 +59,7 @@ struct StudySessionView: View {
             appState.isShellChromeHidden = true
         }
         .onDisappear {
+            audioPlaybackService.stop()
             appState.isShellChromeHidden = false
         }
         .sheet(item: $editingWord) { word in
@@ -164,7 +165,11 @@ struct StudySessionView: View {
     private var toolbar: some View {
         HStack(spacing: 22) {
             toolbarButton("tag", action: tagCurrentCard)
-            toolbarButton(speechService.isSpeaking ? "speaker.slash.fill" : "speaker.wave.2", action: speakCurrentCard)
+            toolbarButton(
+                audioPlaybackService.isPlaying ? "speaker.slash.fill" : "speaker.wave.2",
+                isDisabled: currentAudioURL == nil,
+                action: playCurrentCardAudio
+            )
             toolbarButton("arrow.uturn.backward", action: undo)
             toolbarButton("square.and.pencil", action: editCurrentCard)
         }
@@ -215,7 +220,7 @@ struct StudySessionView: View {
         .disabled(isSavingAnswer)
     }
 
-    private func toolbarButton(_ symbol: String, action: @escaping () -> Void) -> some View {
+    private func toolbarButton(_ symbol: String, isDisabled: Bool = false, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
                 .font(.system(size: 21, weight: .semibold))
@@ -228,6 +233,8 @@ struct StudySessionView: View {
                 }
         }
         .buttonStyle(.plain)
+        .disabled(isDisabled)
+        .opacity(isDisabled ? 0.35 : 1)
     }
 
     private var progress: CGFloat {
@@ -240,6 +247,7 @@ struct StudySessionView: View {
         isLoading = true
         do {
             cards = try await studyService.fetchStudyQueue(deckId: deck.id, mode: studyMode, session: session)
+            audioPlaybackService.stop()
             index = 0
             sessionAnswers = []
             sessionProgresses = []
@@ -273,6 +281,7 @@ struct StudySessionView: View {
             sessionAnswers.append(isCorrect)
             sessionProgresses.append(progress)
             appState.markStudyDataChanged()
+            audioPlaybackService.stop()
             index += 1
             showAnswer = false
             dragOffset = .zero
@@ -298,6 +307,7 @@ struct StudySessionView: View {
 
     private func undo() {
         guard index > 0 else { return }
+        audioPlaybackService.stop()
         withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
             index -= 1
             if !sessionAnswers.isEmpty {
@@ -311,13 +321,14 @@ struct StudySessionView: View {
         }
     }
 
-    private func speakCurrentCard() {
-        guard index < cards.count else { return }
-        guard designSettings.isTTSEnabled else {
-            message = "TTSはデザイン設定でOFFです。"
-            return
-        }
-        speechService.speak(card: cards[index])
+    private var currentAudioURL: URL? {
+        guard index < cards.count else { return nil }
+        return cards[index].audioURL
+    }
+
+    private func playCurrentCardAudio() {
+        guard let currentAudioURL else { return }
+        audioPlaybackService.togglePlayback(url: currentAudioURL)
     }
 
     private func editCurrentCard() {

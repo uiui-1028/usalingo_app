@@ -1,11 +1,11 @@
-# Usalingo iOS SwiftUI MVP
+# Usalingo iOS SwiftUI
 
 ```text
 Purpose:
-Native iOS MVP for illustrated English flashcards.
+Native iOS app for operator-curated English flashcards.
 ```
 
-## MVP Scope
+## Current Core Scope
 
 ```text
 - Email/password auth
@@ -13,6 +13,7 @@ Native iOS MVP for illustrated English flashcards.
 - Illustrated word cards
 - Correct/incorrect answer
 - Save progress to Supabase
+- Play operator-provided audio assets
 ```
 
 ## Setup
@@ -34,6 +35,14 @@ Then open:
 
 ```text
 UsalingoIOS.xcodeproj
+```
+
+## Tests
+
+Run the current unit tests on an installed iPhone Simulator:
+
+```text
+xcodebuild -project UsalingoIOS.xcodeproj -scheme UsalingoIOS -destination 'platform=iOS Simulator,name=iPhone 16 Pro' CODE_SIGNING_ALLOWED=NO test
 ```
 
 ## Auth Note

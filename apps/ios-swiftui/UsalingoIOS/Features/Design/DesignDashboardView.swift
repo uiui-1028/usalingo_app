@@ -13,7 +13,7 @@ struct DesignDashboardView: View {
                 DesignSettingRow(title: "カードUI設定", subtitle: "フラッシュカードのデザインを調整", symbol: "rectangle.stack.fill") {
                     activeSheet = .card
                 }
-                DesignSettingRow(title: "アプリ挙動設定", subtitle: "フォントやTTSなどを変更", symbol: "gearshape.fill") {
+                DesignSettingRow(title: "アプリ挙動設定", subtitle: "フォントや触覚などを変更", symbol: "gearshape.fill") {
                     activeSheet = .behavior
                 }
                 DesignSettingRow(title: "アルゴリズム設定", subtitle: "学習アルゴリズムの調整", symbol: "square.grid.2x2.fill") {
@@ -95,7 +95,7 @@ private struct DesignOptionSheet: View {
             case .card:
                 cardOptions
             case .behavior:
-                behaviorOptions
+                staticOptions
             case .algorithm:
                 staticOptions
             }
@@ -132,16 +132,6 @@ private struct DesignOptionSheet: View {
                 .font(.footnote)
                 .foregroundStyle(AppStyle.muted)
         }
-        .padding(14)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-    }
-
-    private var behaviorOptions: some View {
-        Toggle(isOn: $designSettings.isTTSEnabled) {
-            Label("TTS", systemImage: "speaker.wave.2.fill")
-        }
-        .tint(AppStyle.accent(designSettings))
         .padding(14)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -227,7 +217,6 @@ private struct DesignOptionSheet: View {
         case .behavior:
             return [
                 ("フォント", "textformat", "表示フォント"),
-                ("TTS", "speaker.wave.2.fill", "音声読み上げ"),
                 ("触覚フィードバック", "iphone.radiowaves.left.and.right", "操作時の振動")
             ]
         case .algorithm:
