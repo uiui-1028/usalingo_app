@@ -1,4 +1,6 @@
 import XCTest
+import SwiftUI
+import UIKit
 @testable import UsalingoIOS
 
 final class WordCardTests: XCTestCase {
@@ -145,5 +147,89 @@ final class WordCardTests: XCTestCase {
         )
 
         XCTAssertNil(card.audioURL)
+    }
+
+    @MainActor
+    func testWordListSwitchesToTwoColumnCardsAndRendersMissingImage() throws {
+        let words = [
+            WordCard(
+                id: 1,
+                text: "apple",
+                meaning: "りんご",
+                partOfSpeech: "noun",
+                sentenceEnglish: nil,
+                sentenceJapanese: nil,
+                imageAssetPath: nil,
+                audioAssetPath: nil,
+                tags: [],
+                learningStatus: nil,
+                learning: nil
+            ),
+            WordCard(
+                id: 2,
+                text: "banana",
+                meaning: "バナナ",
+                partOfSpeech: "noun",
+                sentenceEnglish: nil,
+                sentenceJapanese: nil,
+                imageAssetPath: nil,
+                audioAssetPath: nil,
+                tags: [],
+                learningStatus: nil,
+                learning: nil
+            )
+        ]
+        let appState = AppState(restoresSession: false)
+        let rootView = NavigationStack {
+            WordListView(previewWords: words)
+        }
+        .environmentObject(appState)
+        .environmentObject(appState.designSettings)
+        let controller = UIHostingController(rootView: rootView)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        controller.view.frame = window.bounds
+        controller.view.layoutIfNeeded()
+
+        let picker = try XCTUnwrap(firstSubview(of: UISegmentedControl.self, in: controller.view))
+        XCTAssertEqual(picker.numberOfSegments, 2)
+        XCTAssertEqual(picker.titleForSegment(at: 0), "リスト")
+        XCTAssertEqual(picker.titleForSegment(at: 1), "カード")
+
+        let listImage = renderedImage(of: controller.view)
+        picker.selectedSegmentIndex = 1
+        picker.sendActions(for: .valueChanged)
+        controller.view.layoutIfNeeded()
+        let cardImage = renderedImage(of: controller.view)
+
+        XCTAssertNotEqual(listImage.pngData(), cardImage.pngData())
+        XCTAssertGreaterThan(cardImage.size.width, 0)
+        XCTAssertGreaterThan(cardImage.size.height, 0)
+
+        let attachment = XCTAttachment(image: cardImage)
+        attachment.name = "USL-239 two-column cards with missing-image fallback"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    @MainActor
+    private func renderedImage(of view: UIView) -> UIImage {
+        UIGraphicsImageRenderer(bounds: view.bounds).image { _ in
+            view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
+        }
+    }
+
+    @MainActor
+    private func firstSubview<T: UIView>(of type: T.Type, in view: UIView) -> T? {
+        if let matchingView = view as? T {
+            return matchingView
+        }
+        for subview in view.subviews {
+            if let matchingView = firstSubview(of: type, in: subview) {
+                return matchingView
+            }
+        }
+        return nil
     }
 }
