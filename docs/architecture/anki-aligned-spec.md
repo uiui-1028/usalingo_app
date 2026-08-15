@@ -118,6 +118,7 @@ SwiftUIアプリが読み取り
 最低限、次の責任を分離します。具体的なSQLは移行課題で作成し、本番適用前に人間が確認します。
 
 詳細なER図、既存表との対応、移行・切り戻し順序は [`anki-data-model.md`](./anki-data-model.md) を正本とします。
+公式コンテンツの必須列、Storageパス、欠損時動作、権限境界は [`official-content-contract.md`](./official-content-contract.md) を正本とします。
 
 - 公式Note情報: 既存の `words`、`word_meanings`、`example_contents`
 - Card Type: `card_templates`

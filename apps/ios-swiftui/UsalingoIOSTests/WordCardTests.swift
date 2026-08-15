@@ -85,6 +85,50 @@ final class WordCardTests: XCTestCase {
         XCTAssertEqual(card.audioURL, expectedURL)
     }
 
+    func testRelativeAssetPathsUsePublicStorageURL() throws {
+        let card = WordCard(
+            id: 100,
+            text: "apple",
+            meaning: "りんご",
+            partOfSpeech: "noun",
+            sentenceEnglish: nil,
+            sentenceJapanese: nil,
+            imageAssetPath: "content-images/simple/0000-0499/100.webp",
+            audioAssetPath: "content-audio/example/simple/0000-0499/100.mp3",
+            tags: [],
+            learningStatus: nil,
+            learning: nil
+        )
+
+        let imageURL = try XCTUnwrap(card.illustrationURL)
+        let audioURL = try XCTUnwrap(card.audioURL)
+
+        XCTAssertTrue(imageURL.absoluteString.hasSuffix(
+            "/storage/v1/object/public/content-images/simple/0000-0499/100.webp"
+        ))
+        XCTAssertTrue(audioURL.absoluteString.hasSuffix(
+            "/storage/v1/object/public/content-audio/example/simple/0000-0499/100.mp3"
+        ))
+    }
+
+    func testMissingImageAssetDisablesIllustrationURL() {
+        let card = WordCard(
+            id: 42,
+            text: "apple",
+            meaning: "りんご",
+            partOfSpeech: "noun",
+            sentenceEnglish: nil,
+            sentenceJapanese: nil,
+            imageAssetPath: nil,
+            audioAssetPath: nil,
+            tags: [],
+            learningStatus: nil,
+            learning: nil
+        )
+
+        XCTAssertNil(card.illustrationURL)
+    }
+
     func testMissingAudioAssetDisablesAudioURL() {
         let card = WordCard(
             id: 42,
