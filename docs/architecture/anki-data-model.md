@@ -2,7 +2,7 @@
 
 最終更新日: 2026-08-10  
 対象: SwiftUIアプリ `apps/ios-swiftui/` とSupabase  
-状態: 設計完了。本番DBには未適用
+状態: 設計・migration・SwiftUIのCard ID対応・ローカル自動テストまで完了。本番DBには未適用
 
 ## 1. 一言でいうと
 
@@ -307,6 +307,8 @@ RLSで使う `user_id` は複合主キーの先頭なので、所有者確認用
 
 アプリ切替直前に最終差分コピーを行います。本アプリは未公開のため、切替中はテスト回答を止め、複雑な二重書き込みは導入しません。
 
+2026-08-15時点で、SwiftUIのモデルと `StudyService` は `card_id` 基準へ切り替え済みです。Card IDを使う学習キュー、回答保存、再読み込みと、復習計算・メディア欠損処理を含む13件のローカルXCTestが成功しています。ただし、これはモックを含むSimulatorテストであり、本番Supabaseの新テーブル、RLS、Data APIを通した確認ではありません。
+
 ### Phase 5: 旧構造を止める
 
 1. SwiftUIから `deck_words` と `user_learning_progress` の利用が0件であることを確認する。
@@ -361,19 +363,20 @@ CardはDeckごとに独立するため、複数Cardの進捗を1つの `word_id`
 ## 11. 今回やっていないこと
 
 - 本番DBへのDDL・データ移行
-- SwiftUIの `card_id` 対応
+- migrationを安全なローカルDBまたは開発用DBへ適用した実行検証
+- 本番Supabaseの新テーブル、RLS、GRANT、Data APIを使う学習1周
 - 本格UIUX
 - 回答イベント履歴と高度な統計
 - 通知、オフライン、課金、App Store対応
-- TTS
+- TTS（採用しない。運営が用意した音声だけを再生する）
 - 旧 `user_settings.tts_config` や個人編集機能の整理
 - 旧表の削除
 
 ## 12. 次に始める課題
 
-`DB｜Cardテーブルと進捗移行SQLを作る`
+`DB｜Anki migrationを安全なDBへ適用して検証する`
 
-この設計をSQLへ落とし込み、ローカルまたは開発環境で件数・RLS・切り戻しを検証します。本番適用は人間の承認後に行います。
+作成済みの `supabase/migrations/20260810065120_create_anki_cards_and_migrate_progress.sql` をローカルまたは開発用環境へ適用し、Card件数、進捗コピー、RLS、Data API、切り戻し条件を検証します。その合格後に本番を再監査し、本番適用は人間の承認後に行います。
 
 ## 13. 参照した公式資料
 

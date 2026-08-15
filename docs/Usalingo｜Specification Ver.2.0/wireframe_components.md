@@ -205,35 +205,34 @@
 
 ## 実装ガイドライン
 
-### Flutter実装
-```dart
-// カードの例
-Card(
-  color: theme.surfaceColor,
-  elevation: 0, // 影なし
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(theme.cornerRadius),
-    side: BorderSide(
-      color: theme.borderColor,
-      width: theme.borderWidth,
-    ),
-  ),
-  child: Container(
-    padding: EdgeInsets.all(theme.paddingMedium),
-    child: child,
-  ),
-)
+### SwiftUI実装
+```swift
+// カードの例。実際の共通値は DesignSystem/AppStyle.swift を参照する。
+content
+    .padding(16)
+    .background(AppStyle.surface)
+    .clipShape(
+        RoundedRectangle(
+            cornerRadius: CGFloat(designSettings.cardCornerRadius),
+            style: .continuous
+        )
+    )
+    .overlay {
+        RoundedRectangle(
+            cornerRadius: CGFloat(designSettings.cardCornerRadius),
+            style: .continuous
+        )
+        .stroke(AppStyle.line, lineWidth: 1)
+    }
 ```
 
 ### テーマ適用
-```dart
-// テーマの取得
-final theme = ref.watch(currentThemeProvider);
+```swift
+@EnvironmentObject private var designSettings: DesignSettings
 
-// 色の適用
-color: theme.backgroundColor,
-borderColor: theme.borderColor,
-textColor: theme.textColor,
+Text("Usalingo")
+    .foregroundStyle(AppStyle.ink)
+    .tint(designSettings.accentColor)
 ```
 
 ## 品質チェックリスト
