@@ -116,7 +116,7 @@ private struct DesignOptionSheet: View {
             settingButton("グリーン", "circle.fill", "達成感を強める", id: "green", current: designSettings.accentName) {
                 designSettings.accentName = "green"
             }
-            settingButton("オレンジ", "circle.fill", "Flutter版の学習タブ寄り", id: "orange", current: designSettings.accentName) {
+            settingButton("オレンジ", "circle.fill", "あたたかく親しみやすい印象", id: "orange", current: designSettings.accentName) {
                 designSettings.accentName = "orange"
             }
         }
