@@ -8,15 +8,19 @@ struct WordListView: View {
     @State private var selectedStatusFilter: WordStatusFilter = .all
     @State private var selectedDueFilter: WordDueFilter = .all
     @State private var selectedSort: WordSortOption = .registered
+    @State private var selectedDisplayMode: WordListDisplayMode = .list
     @State private var selectedWord: WordCard?
     @State private var message = ""
     @State private var isLoading = false
 
     private let deck: Deck?
+    private let previewWords: [WordCard]?
     private let studyService = StudyService()
 
-    init(deck: Deck? = nil) {
+    init(deck: Deck? = nil, previewWords: [WordCard]? = nil) {
         self.deck = deck
+        self.previewWords = previewWords
+        _words = State(initialValue: previewWords ?? [])
     }
 
     var body: some View {
@@ -34,6 +38,12 @@ struct WordListView: View {
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: 24, leading: 20, bottom: 24, trailing: 20))
             } else {
+                Section {
+                    displayModePicker
+                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 4, trailing: 20))
+                        .listRowSeparator(.hidden)
+                }
+
                 if !availableTags.isEmpty {
                     Section {
                         tagFilterBar
@@ -57,6 +67,19 @@ struct WordListView: View {
                 if filteredWords.isEmpty {
                     ContentUnavailableView("単語がありません", systemImage: "magnifyingglass", description: Text("検索条件またはタグを変更してください"))
                         .listRowSeparator(.hidden)
+                } else if selectedDisplayMode == .cards {
+                    LazyVGrid(columns: cardColumns, spacing: 12) {
+                        ForEach(filteredWords) { word in
+                            Button {
+                                selectedWord = word
+                            } label: {
+                                WordLibraryCard(word: word)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 20, trailing: 16))
+                    .listRowSeparator(.hidden)
                 } else {
                     ForEach(filteredWords) { word in
                         Button {
@@ -128,6 +151,24 @@ struct WordListView: View {
         .accessibilityLabel("並び替え")
     }
 
+    private var cardColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: 12),
+            GridItem(.flexible())
+        ]
+    }
+
+    private var displayModePicker: some View {
+        Picker("表示形式", selection: $selectedDisplayMode) {
+            ForEach(WordListDisplayMode.allCases) { mode in
+                Label(mode.title, systemImage: mode.symbol)
+                    .tag(mode)
+            }
+        }
+        .pickerStyle(.segmented)
+        .accessibilityLabel("単語の表示形式")
+    }
+
     private var tagFilterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -186,6 +227,7 @@ struct WordListView: View {
     }
 
     private func load() async {
+        guard previewWords == nil else { return }
         guard let session = appState.session else { return }
         isLoading = true
         defer { isLoading = false }
@@ -489,6 +531,98 @@ private enum WordStatusFilter: String, CaseIterable, Identifiable {
             word.learningStatus == "learning"
         case .mastered:
             word.learningStatus == "mastered"
+        }
+    }
+}
+
+private enum WordListDisplayMode: String, CaseIterable, Identifiable {
+    case list
+    case cards
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .list:
+            "リスト"
+        case .cards:
+            "カード"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .list:
+            "list.bullet"
+        case .cards:
+            "rectangle.grid.2x2"
+        }
+    }
+}
+
+private struct WordLibraryCard: View {
+    let word: WordCard
+
+    var body: some View {
+        VStack(spacing: 0) {
+            illustration
+                .aspectRatio(3 / 4, contentMode: .fit)
+                .clipped()
+
+            Text(word.text)
+                .font(.headline.weight(.bold))
+                .foregroundStyle(AppStyle.ink)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 6)
+        }
+        .background(AppStyle.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppStyle.line, lineWidth: 1)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(word.text)
+        .accessibilityHint("単語の詳細を開きます")
+    }
+
+    @ViewBuilder
+    private var illustration: some View {
+        if let url = word.illustrationURL {
+            AsyncImage(url: url) { phase in
+                switch phase {
+                case .success(let image):
+                    image
+                        .resizable()
+                        .scaledToFill()
+                case .empty:
+                    imagePlaceholder(showProgress: true)
+                case .failure:
+                    imagePlaceholder(showProgress: false)
+                @unknown default:
+                    imagePlaceholder(showProgress: false)
+                }
+            }
+        } else {
+            imagePlaceholder(showProgress: false)
+        }
+    }
+
+    private func imagePlaceholder(showProgress: Bool) -> some View {
+        ZStack {
+            Color(.secondarySystemBackground)
+            if showProgress {
+                ProgressView()
+            } else {
+                Image(systemName: "photo.on.rectangle.angled")
+                    .font(.title2.weight(.semibold))
+                    .foregroundStyle(AppStyle.muted)
+                    .accessibilityHidden(true)
+            }
         }
     }
 }
