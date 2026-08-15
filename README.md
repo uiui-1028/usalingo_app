@@ -10,44 +10,32 @@ Usalingoは、忘却曲線アルゴリズムを活用した効率的な英語学
 - **忘却曲線アルゴリズム**: 科学的根拠に基づいた復習スケジュール
 - **カスタマイズ可能なUI**: 複数のデザインテーマに対応
 - **学習進捗管理**: 詳細な学習データの可視化
-- **オフライン対応**: インターネット接続なしでも学習可能
 
 ## 🛠️ 技術スタック
 
-- **フロントエンド（モバイル）**: Flutter (Dart)
-- **フロントエンド（Web）**: Next.js (TypeScript)
-- **バックエンド**: Supabase
-- **データベース**: PostgreSQL
+- **iOSアプリ**: Swift / SwiftUI（iOS 17以降）
+- **ネットワーク**: Foundation / URLSession
+- **バックエンド・データベース**: Supabase / PostgreSQL
 - **認証**: Supabase Auth
 - **ストレージ**: Supabase Storage
+- **音声再生**: AVFoundation / AVPlayer
+- **テスト**: XCTest
 
 ## 📚 ドキュメント
 
-詳細なドキュメントは `docs/` フォルダを参照してください。
+現行資料の入口は [docs/README.md](docs/README.md) です。
 
-- [アーキテクチャ設計](docs/architecture/)
-- [機能仕様](docs/features/)
-- [開発ルール](docs/rules/)
-- [Supabase設定](docs/supabase/)
-
-## 🌐 Web版（Next.js）
-
-Web版は `apps/web` に配置しています。  
-開発フェーズの無料運用と親和性を重視して、デプロイ先は **Vercel** を推奨しています。
-
-```bash
-cd apps/web
-npm install
-cp .env.example .env.local
-npm run dev
-```
+- [Anki型学習コア仕様](docs/architecture/anki-aligned-spec.md)
+- [Anki型データモデル](docs/architecture/anki-data-model.md)
+- [公式コンテンツ契約](docs/architecture/official-content-contract.md)
+- [Supabase運用](docs/supabase/README.md)
 
 ## 🚀 セットアップ
 
 ### 前提条件
 
-- Flutter SDK (最新版)
-- Dart SDK
+- Xcode
+- iOS 17以降のSimulatorまたは実機
 - Supabaseアカウント
 
 ### インストール
@@ -55,57 +43,49 @@ npm run dev
 1. リポジトリをクローン
 
 ```bash
-git clone https://github.com/uiui-1028/usalingo_app_flutter.git
-cd usalingo_app_flutter
+git clone https://github.com/uiui-1028/usalingo_app_flutter.git usalingo_app
+cd usalingo_app
 ```
 
-1. 依存関係をインストール
+1. iOSアプリの設定ファイルを作成
 
 ```bash
-flutter pub get
+cd apps/ios-swiftui
+cp Config/Local.xcconfig.example Config/Local.xcconfig
 ```
 
-1. 環境設定
+1. `Config/Local.xcconfig` にSupabaseの設定を記入
 
-```bash
-# Supabaseの設定を追加
-cp lib/secrets.dart.example lib/secrets.dart
-# secrets.dartにSupabaseの設定を記入
+```text
+SUPABASE_PROJECT_REF = YOUR_PROJECT_REF
+SUPABASE_ANON_KEY = YOUR_SUPABASE_ANON_KEY
 ```
 
-1. アプリを実行
+1. Xcodeでプロジェクトを開き、`UsalingoIOS` スキームを実行
 
 ```bash
-flutter run
+open UsalingoIOS.xcodeproj
 ```
 
-## 🌐 Web版での実行（永続運用を想定した設定注入）
-
-SupabaseのURL/Anon Keyは、Webデプロイ時に環境として注入できるように `--dart-define` を優先して参照します。
+### テスト
 
 ```bash
-flutter run -d chrome \
-  --dart-define=SUPABASE_URL="https://xxxx.supabase.co" \
-  --dart-define=SUPABASE_ANON_KEY="xxxxx"
-```
-
-ビルド時も同様です。
-
-```bash
-flutter build web \
-  --dart-define=SUPABASE_URL="https://xxxx.supabase.co" \
-  --dart-define=SUPABASE_ANON_KEY="xxxxx"
+xcodebuild -project UsalingoIOS.xcodeproj \
+  -scheme UsalingoIOS \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro' \
+  CODE_SIGNING_ALLOWED=NO test
 ```
 
 ## 📖 開発ガイド
 
 ### アーキテクチャ
 
-このプロジェクトはClean Architectureを採用しています：
+現行のiOSアプリは、SwiftUIの機能単位の画面とサービス層で構成しています。
 
-- `lib/domain/` - ビジネスロジック
-- `lib/data/` - データアクセス層
-- `lib/presentation/` - UI層
+- `apps/ios-swiftui/UsalingoIOS/Features/` - 機能別のSwiftUI画面
+- `apps/ios-swiftui/UsalingoIOS/Models/` - データモデル
+- `apps/ios-swiftui/UsalingoIOS/Services/` - Supabase通信・認証・音声再生
+- `supabase/migrations/` - データベース変更履歴
 
 ### コーディング規約
 
@@ -114,7 +94,3 @@ flutter build web \
 ## 🤝 貢献
 
 プルリクエストやイシューの報告を歓迎します。
-
-## 📄 ライセンス
-
-このプロジェクトはMITライセンスの下で公開されています。

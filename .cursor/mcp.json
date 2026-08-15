@@ -1,15 +1,8 @@
 {
   "mcpServers": {
     "supabase": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@supabase/mcp-server-supabase@latest",
-        "--project-ref=udvmzaodsrgwecfybkry"
-      ],
-      "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_c24356e3c6af3ca0648104768fd3b2b791645ab0"
-      }
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=udvmzaodsrgwecfybkry&read_only=true&features=docs%2Cdatabase%2Cdebugging%2Cdevelopment"
     }
   }
 }
