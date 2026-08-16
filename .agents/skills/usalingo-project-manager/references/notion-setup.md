@@ -1,6 +1,6 @@
 # Usalingo Notion設定
 
-最終確認日: 2026-08-15。Notionへ書く前に必ず再取得し、現在のスキーマを優先する。
+最終確認日: 2026-08-16。Notionへ書く前に必ず再取得し、現在のスキーマを優先する。
 
 ## 対象
 
@@ -90,26 +90,55 @@ Notionは厳密な排他ロックではない。短い期限と再確認で重�
 
 ### AIが取得候補を探すSQL
 
-`now_utc` には現在のUTC日時を渡す。取得後は `blocked_by` の各課題が完了済みか確認する。
+`now_utc` には現在のUTC日時を渡す。通常の課題フローではSQL照会を着手前と完了後の
+2回までにする。`blocked_by`の確認を別照会にせず、同じSQLで未完了の依存を除外する。
 
 ```sql
-SELECT url, "userDefined:id", task, status, owner, approval,
-       worker_id, "date:lease_until:start", work_branch, blocked_by
-FROM "collection://7c0c3d1f-59e8-83f8-8958-07b0b1cf4a03"
-WHERE owner IN ('ai', 'joint')
-  AND approval = 'approved'
-  AND status LIKE ?
+WITH tasks AS (
+  SELECT *
+  FROM "collection://7c0c3d1f-59e8-83f8-8958-07b0b1cf4a03"
+)
+SELECT candidate.url, candidate."userDefined:id", candidate.task,
+       candidate.status, candidate.owner, candidate.approval,
+       candidate.priority, candidate.worker_id,
+       candidate."date:lease_until:start", candidate.work_branch,
+       candidate.blocked_by
+FROM tasks AS candidate
+WHERE candidate.owner IN ('ai', 'joint')
+  AND candidate.approval = 'approved'
+  AND candidate.status LIKE ?
   AND (
-    "date:lease_until:start" IS NULL
-    OR datetime("date:lease_until:start") <= datetime(?)
+    candidate."date:lease_until:start" IS NULL
+    OR datetime(candidate."date:lease_until:start") <= datetime(?)
   )
-ORDER BY "userDefined:id"
+  AND NOT EXISTS (
+    SELECT 1
+    FROM json_each(COALESCE(candidate.blocked_by, '[]')) AS dependency
+    LEFT JOIN tasks AS blocker ON blocker.url = dependency.value
+    WHERE blocker.url IS NULL OR blocker.status NOT LIKE ?
+  )
+ORDER BY CASE
+    WHEN candidate.priority LIKE '%21cc3d1f59e88148a7dff0bd84957295%' THEN 1
+    WHEN candidate.priority LIKE '%21cc3d1f59e8815ca1cfd35ad1850231%' THEN 2
+    WHEN candidate.priority LIKE '%21cc3d1f59e881428be5e481b2971473%' THEN 3
+    WHEN candidate.priority LIKE '%21cc3d1f59e8817cbc0ce4c2cf5d4552%' THEN 4
+    WHEN candidate.priority LIKE '%21cc3d1f59e8819b9503dc98179531a8%' THEN 5
+    ELSE 99
+  END,
+  candidate."userDefined:id" ASC
 LIMIT 10
 ```
 
 - 実装候補の1つ目の引数: `%21cc3d1f59e880baac37c00d7055d707%` (`will`)
 - レビュー候補の1つ目の引数: `%3b6c3d1f59e880eea066c44b5e2c360b%` (`review`)
 - 2つ目の引数: `now_utc`
+- 3つ目の引数: `%21cc3d1f59e880c282fef49f49ce7c12%` (`done`)
+
+完了後の2回目は、同じSQLの`approval = 'approved'`を
+`approval IN ('approved', 'waiting')`へ変える。`approval`を結果へ含め、承認済みと
+承認待ちを別SQLに分けない。`approved`を先に並べ、その中でPriority、Issue ID順にする。
+レビュー途中の次候補照会は行わない。3回目以降が必要な例外は
+`docs/rules/codex-credit-optimization.md`の「TaskspaceのSQL予算」に従う。
 
 ### 作業権を取るプロパティ
 
