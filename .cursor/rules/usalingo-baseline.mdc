@@ -1,0 +1,12 @@
+---
+description: Usalingoで作業するときの共通ルールとスキルの入口
+alwaysApply: true
+---
+
+- ルートの `AGENTS.md` を常に守る。
+- 大きな調査、計画、Notion、GitHub、Web検索の前に `docs/rules/codex-credit-optimization.md` を読む。
+- 現行アプリは `apps/ios-swiftui/`。ユーザーが明示しない限り、旧Flutter実装を基準にしない。
+- 既存の未コミット変更はユーザーの作業として保護する。
+- チケットの洗い出し・登録・報告には `/usalingo-project-manager` を使う。
+- 次の承認済みチケットを取得して進める依頼には `/usalingo-next-ticket` を使う。
+- 外部サービスへの書き込みは依頼された範囲だけ行い、stage、commit、push、公開、本番変更、削除は明示承認なしに行わない。

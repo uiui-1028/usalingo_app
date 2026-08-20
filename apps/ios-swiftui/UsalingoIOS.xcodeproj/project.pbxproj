@@ -8,30 +8,30 @@
 
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* UsalingoIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* UsalingoIOSApp.swift */; };
-		A10000000000000000000002 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AppState.swift */; };
-		A10000000000000000000003 /* Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Deck.swift */; };
-		A10000000000000000000004 /* WordCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* WordCard.swift */; };
-		A10000000000000000000005 /* LearningProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* LearningProgress.swift */; };
-		A10000000000000000000006 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* SupabaseConfig.swift */; };
-		A10000000000000000000007 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* SupabaseClient.swift */; };
-		A10000000000000000000008 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* AuthService.swift */; };
-		A10000000000000000000009 /* DeckService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* DeckService.swift */; };
-		A1000000000000000000000A /* StudyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* StudyService.swift */; };
-		A1000000000000000000000B /* AppStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* AppStyle.swift */; };
-		A1000000000000000000000C /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* AuthView.swift */; };
-		A1000000000000000000000D /* DeckListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* DeckListView.swift */; };
-		A1000000000000000000000E /* StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* StudySessionView.swift */; };
-		A1000000000000000000000F /* StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* StudyCardView.swift */; };
-		A10000000000000000000013 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* AppShellView.swift */; };
-		A10000000000000000000014 /* LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* LearningDashboardView.swift */; };
-		A10000000000000000000015 /* DesignDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* DesignDashboardView.swift */; };
-		A10000000000000000000016 /* ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ProfileDashboardView.swift */; };
-		A10000000000000000000017 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SessionStore.swift */; };
-		A10000000000000000000018 /* WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* WordListView.swift */; };
-		A10000000000000000000019 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AudioPlaybackService.swift */; };
-		A1000000000000000000001A /* WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* WordEditSheet.swift */; };
-		A1000000000000000000001B /* TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TagSheet.swift */; };
-		A1000000000000000000001C /* DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* DesignSettings.swift */; };
+		A10000000000000000000002 /* App/AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* App/AppState.swift */; };
+		A10000000000000000000003 /* Models/Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Models/Deck.swift */; };
+		A10000000000000000000004 /* Models/WordCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Models/WordCard.swift */; };
+		A10000000000000000000005 /* Models/LearningProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* Models/LearningProgress.swift */; };
+		A10000000000000000000006 /* Services/SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* Services/SupabaseConfig.swift */; };
+		A10000000000000000000007 /* Services/SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* Services/SupabaseClient.swift */; };
+		A10000000000000000000008 /* Services/AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Services/AuthService.swift */; };
+		A10000000000000000000009 /* Services/DeckService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000009 /* Services/DeckService.swift */; };
+		A1000000000000000000000A /* Services/StudyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* Services/StudyService.swift */; };
+		A1000000000000000000000B /* DesignSystem/AppStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* DesignSystem/AppStyle.swift */; };
+		A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* Features/Auth/AuthView.swift */; };
+		A1000000000000000000000D /* Features/Decks/DeckListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000D /* Features/Decks/DeckListView.swift */; };
+		A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* Features/Study/StudySessionView.swift */; };
+		A1000000000000000000000F /* Features/Study/StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* Features/Study/StudyCardView.swift */; };
+		A10000000000000000000013 /* Features/Shell/AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* Features/Shell/AppShellView.swift */; };
+		A10000000000000000000014 /* Features/Learning/LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */; };
+		A10000000000000000000015 /* Features/Design/DesignDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* Features/Design/DesignDashboardView.swift */; };
+		A10000000000000000000016 /* Features/Profile/ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* Features/Profile/ProfileDashboardView.swift */; };
+		A10000000000000000000017 /* Services/SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* Services/SessionStore.swift */; };
+		A10000000000000000000018 /* Features/Words/WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* Features/Words/WordListView.swift */; };
+		A10000000000000000000019 /* Services/AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* Services/AudioPlaybackService.swift */; };
+		A1000000000000000000001A /* Features/Words/WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* Features/Words/WordEditSheet.swift */; };
+		A1000000000000000000001B /* Features/Words/TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* Features/Words/TagSheet.swift */; };
+		A1000000000000000000001C /* Models/DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* Models/DesignSettings.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
 /* End PBXBuildFile section */
@@ -48,33 +48,33 @@
 
 /* Begin PBXFileReference section */
 		A20000000000000000000001 /* UsalingoIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsalingoIOSApp.swift; sourceTree = "<group>"; };
-		A20000000000000000000002 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppState.swift; sourceTree = "<group>"; };
-		A20000000000000000000003 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/Deck.swift; sourceTree = "<group>"; };
-		A20000000000000000000004 /* WordCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/WordCard.swift; sourceTree = "<group>"; };
-		A20000000000000000000005 /* LearningProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/LearningProgress.swift; sourceTree = "<group>"; };
-		A20000000000000000000006 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseConfig.swift; sourceTree = "<group>"; };
-		A20000000000000000000007 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseClient.swift; sourceTree = "<group>"; };
-		A20000000000000000000008 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AuthService.swift; sourceTree = "<group>"; };
-		A20000000000000000000009 /* DeckService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/DeckService.swift; sourceTree = "<group>"; };
-		A2000000000000000000000A /* StudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyService.swift; sourceTree = "<group>"; };
-		A2000000000000000000000B /* AppStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/AppStyle.swift; sourceTree = "<group>"; };
-		A2000000000000000000000C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
-		A2000000000000000000000D /* DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Decks/DeckListView.swift; sourceTree = "<group>"; };
-		A2000000000000000000000E /* StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
-		A2000000000000000000000F /* StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* App/AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppState.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* Models/Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/Deck.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* Models/WordCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/WordCard.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* Models/LearningProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/LearningProgress.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* Services/SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseConfig.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* Services/SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* Services/AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AuthService.swift; sourceTree = "<group>"; };
+		A20000000000000000000009 /* Services/DeckService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/DeckService.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* Services/StudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyService.swift; sourceTree = "<group>"; };
+		A2000000000000000000000B /* DesignSystem/AppStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/AppStyle.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* Features/Auth/AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000D /* Features/Decks/DeckListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Decks/DeckListView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* Features/Study/StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000F /* Features/Study/StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* UsalingoIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UsalingoIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A20000000000000000000011 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Local.xcconfig; sourceTree = "<group>"; };
+		A20000000000000000000011 /* Config/Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Local.xcconfig; sourceTree = "<group>"; };
 		A20000000000000000000012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A20000000000000000000013 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/AppShellView.swift; sourceTree = "<group>"; };
-		A20000000000000000000014 /* LearningDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningDashboardView.swift; sourceTree = "<group>"; };
-		A20000000000000000000015 /* DesignDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignDashboardView.swift; sourceTree = "<group>"; };
-		A20000000000000000000016 /* ProfileDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileDashboardView.swift; sourceTree = "<group>"; };
-		A20000000000000000000017 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SessionStore.swift; sourceTree = "<group>"; };
-		A20000000000000000000018 /* WordListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListView.swift; sourceTree = "<group>"; };
-		A20000000000000000000019 /* AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AudioPlaybackService.swift; sourceTree = "<group>"; };
-		A2000000000000000000001A /* WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
-		A2000000000000000000001B /* TagSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/TagSheet.swift; sourceTree = "<group>"; };
-		A2000000000000000000001C /* DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* Features/Shell/AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/AppShellView.swift; sourceTree = "<group>"; };
+		A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000015 /* Features/Design/DesignDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* Features/Profile/ProfileDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* Services/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SessionStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* Features/Words/WordListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListView.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* Services/AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AudioPlaybackService.swift; sourceTree = "<group>"; };
+		A2000000000000000000001A /* Features/Words/WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
+		A2000000000000000000001B /* Features/Words/TagSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/TagSheet.swift; sourceTree = "<group>"; };
+		A2000000000000000000001C /* Models/DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
@@ -103,7 +103,7 @@
 			children = (
 				A40000000000000000000002 /* UsalingoIOS */,
 				B40000000000000000000001 /* UsalingoIOSTests */,
-				A20000000000000000000011 /* Local.xcconfig */,
+				A20000000000000000000011 /* Config/Local.xcconfig */,
 				A40000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -112,30 +112,30 @@
 			isa = PBXGroup;
 			children = (
 				A20000000000000000000001 /* UsalingoIOSApp.swift */,
-				A20000000000000000000002 /* AppState.swift */,
-				A20000000000000000000003 /* Deck.swift */,
-				A20000000000000000000004 /* WordCard.swift */,
-				A20000000000000000000005 /* LearningProgress.swift */,
-				A2000000000000000000001C /* DesignSettings.swift */,
-				A20000000000000000000006 /* SupabaseConfig.swift */,
-				A20000000000000000000007 /* SupabaseClient.swift */,
-				A20000000000000000000008 /* AuthService.swift */,
-				A20000000000000000000009 /* DeckService.swift */,
-				A2000000000000000000000A /* StudyService.swift */,
-				A20000000000000000000017 /* SessionStore.swift */,
-				A20000000000000000000019 /* AudioPlaybackService.swift */,
-				A2000000000000000000000B /* AppStyle.swift */,
-				A2000000000000000000000C /* AuthView.swift */,
-				A2000000000000000000000D /* DeckListView.swift */,
-				A2000000000000000000000E /* StudySessionView.swift */,
-				A2000000000000000000000F /* StudyCardView.swift */,
-				A20000000000000000000013 /* AppShellView.swift */,
-				A20000000000000000000014 /* LearningDashboardView.swift */,
-				A20000000000000000000015 /* DesignDashboardView.swift */,
-				A20000000000000000000016 /* ProfileDashboardView.swift */,
-				A20000000000000000000018 /* WordListView.swift */,
-				A2000000000000000000001A /* WordEditSheet.swift */,
-				A2000000000000000000001B /* TagSheet.swift */,
+				A20000000000000000000002 /* App/AppState.swift */,
+				A20000000000000000000003 /* Models/Deck.swift */,
+				A20000000000000000000004 /* Models/WordCard.swift */,
+				A20000000000000000000005 /* Models/LearningProgress.swift */,
+				A2000000000000000000001C /* Models/DesignSettings.swift */,
+				A20000000000000000000006 /* Services/SupabaseConfig.swift */,
+				A20000000000000000000007 /* Services/SupabaseClient.swift */,
+				A20000000000000000000008 /* Services/AuthService.swift */,
+				A20000000000000000000009 /* Services/DeckService.swift */,
+				A2000000000000000000000A /* Services/StudyService.swift */,
+				A20000000000000000000017 /* Services/SessionStore.swift */,
+				A20000000000000000000019 /* Services/AudioPlaybackService.swift */,
+				A2000000000000000000000B /* DesignSystem/AppStyle.swift */,
+				A2000000000000000000000C /* Features/Auth/AuthView.swift */,
+				A2000000000000000000000D /* Features/Decks/DeckListView.swift */,
+				A2000000000000000000000E /* Features/Study/StudySessionView.swift */,
+				A2000000000000000000000F /* Features/Study/StudyCardView.swift */,
+				A20000000000000000000013 /* Features/Shell/AppShellView.swift */,
+				A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */,
+				A20000000000000000000015 /* Features/Design/DesignDashboardView.swift */,
+				A20000000000000000000016 /* Features/Profile/ProfileDashboardView.swift */,
+				A20000000000000000000018 /* Features/Words/WordListView.swift */,
+				A2000000000000000000001A /* Features/Words/WordEditSheet.swift */,
+				A2000000000000000000001B /* Features/Words/TagSheet.swift */,
 				A20000000000000000000012 /* Info.plist */,
 			);
 			path = UsalingoIOS;
@@ -239,30 +239,30 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000001 /* UsalingoIOSApp.swift in Sources */,
-				A10000000000000000000002 /* AppState.swift in Sources */,
-				A10000000000000000000003 /* Deck.swift in Sources */,
-				A10000000000000000000004 /* WordCard.swift in Sources */,
-				A10000000000000000000005 /* LearningProgress.swift in Sources */,
-				A10000000000000000000006 /* SupabaseConfig.swift in Sources */,
-				A10000000000000000000007 /* SupabaseClient.swift in Sources */,
-				A10000000000000000000008 /* AuthService.swift in Sources */,
-				A10000000000000000000009 /* DeckService.swift in Sources */,
-				A1000000000000000000000A /* StudyService.swift in Sources */,
-				A1000000000000000000000B /* AppStyle.swift in Sources */,
-				A1000000000000000000000C /* AuthView.swift in Sources */,
-				A1000000000000000000000D /* DeckListView.swift in Sources */,
-				A1000000000000000000000E /* StudySessionView.swift in Sources */,
-				A1000000000000000000000F /* StudyCardView.swift in Sources */,
-				A10000000000000000000013 /* AppShellView.swift in Sources */,
-				A10000000000000000000014 /* LearningDashboardView.swift in Sources */,
-				A10000000000000000000015 /* DesignDashboardView.swift in Sources */,
-				A10000000000000000000016 /* ProfileDashboardView.swift in Sources */,
-				A10000000000000000000017 /* SessionStore.swift in Sources */,
-				A10000000000000000000018 /* WordListView.swift in Sources */,
-				A10000000000000000000019 /* AudioPlaybackService.swift in Sources */,
-				A1000000000000000000001A /* WordEditSheet.swift in Sources */,
-				A1000000000000000000001B /* TagSheet.swift in Sources */,
-				A1000000000000000000001C /* DesignSettings.swift in Sources */,
+				A10000000000000000000002 /* App/AppState.swift in Sources */,
+				A10000000000000000000003 /* Models/Deck.swift in Sources */,
+				A10000000000000000000004 /* Models/WordCard.swift in Sources */,
+				A10000000000000000000005 /* Models/LearningProgress.swift in Sources */,
+				A10000000000000000000006 /* Services/SupabaseConfig.swift in Sources */,
+				A10000000000000000000007 /* Services/SupabaseClient.swift in Sources */,
+				A10000000000000000000008 /* Services/AuthService.swift in Sources */,
+				A10000000000000000000009 /* Services/DeckService.swift in Sources */,
+				A1000000000000000000000A /* Services/StudyService.swift in Sources */,
+				A1000000000000000000000B /* DesignSystem/AppStyle.swift in Sources */,
+				A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */,
+				A1000000000000000000000D /* Features/Decks/DeckListView.swift in Sources */,
+				A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */,
+				A1000000000000000000000F /* Features/Study/StudyCardView.swift in Sources */,
+				A10000000000000000000013 /* Features/Shell/AppShellView.swift in Sources */,
+				A10000000000000000000014 /* Features/Learning/LearningDashboardView.swift in Sources */,
+				A10000000000000000000015 /* Features/Design/DesignDashboardView.swift in Sources */,
+				A10000000000000000000016 /* Features/Profile/ProfileDashboardView.swift in Sources */,
+				A10000000000000000000017 /* Services/SessionStore.swift in Sources */,
+				A10000000000000000000018 /* Features/Words/WordListView.swift in Sources */,
+				A10000000000000000000019 /* Services/AudioPlaybackService.swift in Sources */,
+				A1000000000000000000001A /* Features/Words/WordEditSheet.swift in Sources */,
+				A1000000000000000000001B /* Features/Words/TagSheet.swift in Sources */,
+				A1000000000000000000001C /* Models/DesignSettings.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,7 +401,7 @@
 		};
 		A80000000000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A20000000000000000000011 /* Local.xcconfig */;
+			baseConfigurationReference = A20000000000000000000011 /* Config/Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -418,6 +418,9 @@
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.usalingo.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -426,7 +429,7 @@
 		};
 		A80000000000000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A20000000000000000000011 /* Local.xcconfig */;
+			baseConfigurationReference = A20000000000000000000011 /* Config/Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
@@ -443,6 +446,9 @@
 				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.usalingo.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;

@@ -82,7 +82,6 @@ Epicまたは大きな課題を作る前に、AIが依頼文、コード、既�
 # AIと人間の分担
 
 - owner: [human / ai / joint]
-- approval: [not-needed / waiting / approved]
 - AIに任せてよいこと: [範囲]
 - 人間の確認が必要なこと: [判断・承認事項]
 

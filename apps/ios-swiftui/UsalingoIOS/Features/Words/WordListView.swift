@@ -781,3 +781,4 @@ private struct DetailBlock: View {
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
+

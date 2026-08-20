@@ -1,5 +1,8 @@
 {
   "mcpServers": {
+    "notion": {
+      "url": "https://mcp.notion.com/mcp"
+    },
     "supabase": {
       "command": "npx",
       "args": [
@@ -8,7 +11,7 @@
         "--project-ref=udvmzaodsrgwecfybkry"
       ],
       "env": {
-        "SUPABASE_ACCESS_TOKEN": "sbp_c24356e3c6af3ca0648104768fd3b2b791645ab0"
+        "SUPABASE_ACCESS_TOKEN": "${env:SUPABASE_ACCESS_TOKEN}"
       }
     }
   }

@@ -1,120 +1,38 @@
-# Usalingo - 英語学習アプリ
+# Usalingo Ver.2.0
 
-## 📱 概要
+Usalingoは、運営が用意した英単語カードを使い、正解・不正解を答えながら復習するiPhone向け学習アプリです。
+学習結果と次の復習予定は、ログインした利用者ごとにSupabaseへ保存します。
 
-Usalingoは、忘却曲線アルゴリズムを活用した効率的な英語学習アプリです。フラッシュカード形式で単語を学習し、個人の記憶パターンに基づいて最適な復習タイミングを提供します。
+## 最初に読む順番
 
-## 🚀 主な機能
+1. [正式な機能範囲](docs/decisions/usl-207-official-feature-scope.md)
 
-- **フラッシュカード学習**: 直感的なスワイプ操作で単語を学習
-- **忘却曲線アルゴリズム**: 科学的根拠に基づいた復習スケジュール
-- **カスタマイズ可能なUI**: 複数のデザインテーマに対応
-- **学習進捗管理**: 詳細な学習データの可視化
-- **オフライン対応**: インターネット接続なしでも学習可能
+   現在使える機能、今は説明に載せない機能、将来案を確認します。
+2. [SwiftUIアプリの起動方法](apps/ios-swiftui/README.md)
 
-## 🛠️ 技術スタック
+   ローカル設定を用意し、Xcodeでアプリを開きます。
+3. [現在の学習ルール](docs/architecture/anki-aligned-spec.md)
 
-- **フロントエンド（モバイル）**: Flutter (Dart)
-- **フロントエンド（Web）**: Next.js (TypeScript)
-- **バックエンド**: Supabase
-- **データベース**: PostgreSQL
-- **認証**: Supabase Auth
-- **ストレージ**: Supabase Storage
+   カードの出し方、正解・不正解、復習予定の考え方を確認します。
+4. [データの仕組み](docs/architecture/anki-data-model.md)
 
-## 📚 ドキュメント
+   単語、カード、デッキ、利用者ごとの進捗の関係を確認します。
+5. [Supabaseの変更ルール](docs/supabase/README.md)
 
-詳細なドキュメントは `docs/` フォルダを参照してください。
+   データベースを変更するときの正本と安全な進め方を確認します。
 
-- [アーキテクチャ設計](docs/architecture/)
-- [機能仕様](docs/features/)
-- [開発ルール](docs/rules/)
-- [Supabase設定](docs/supabase/)
+## アプリの場所
 
-## 🌐 Web版（Next.js）
+現在のアプリは次の場所にあります。
 
-Web版は `apps/web` に配置しています。  
-開発フェーズの無料運用と親和性を重視して、デプロイ先は **Vercel** を推奨しています。
-
-```bash
-cd apps/web
-npm install
-cp .env.example .env.local
-npm run dev
+```text
+apps/ios-swiftui/
 ```
 
-## 🚀 セットアップ
+起動するときは、上のフォルダにある `UsalingoIOS.xcodeproj` をXcodeで開きます。必要な設定値とテスト方法は[SwiftUIアプリのREADME](apps/ios-swiftui/README.md)にあります。
 
-### 前提条件
+## 古いFlutter資料について
 
-- Flutter SDK (最新版)
-- Dart SDK
-- Supabaseアカウント
+ルート直下や `docs/` には、移行前のFlutterを前提にした資料が残っています。Flutter、Dart、Riverpod、`flutter run`、旧SQLite構成が書かれた資料は、現在のSwiftUIアプリの説明ではありません。
 
-### インストール
-
-1. リポジトリをクローン
-
-```bash
-git clone https://github.com/uiui-1028/usalingo_app_flutter.git
-cd usalingo_app_flutter
-```
-
-1. 依存関係をインストール
-
-```bash
-flutter pub get
-```
-
-1. 環境設定
-
-```bash
-# Supabaseの設定を追加
-cp lib/secrets.dart.example lib/secrets.dart
-# secrets.dartにSupabaseの設定を記入
-```
-
-1. アプリを実行
-
-```bash
-flutter run
-```
-
-## 🌐 Web版での実行（永続運用を想定した設定注入）
-
-SupabaseのURL/Anon Keyは、Webデプロイ時に環境として注入できるように `--dart-define` を優先して参照します。
-
-```bash
-flutter run -d chrome \
-  --dart-define=SUPABASE_URL="https://xxxx.supabase.co" \
-  --dart-define=SUPABASE_ANON_KEY="xxxxx"
-```
-
-ビルド時も同様です。
-
-```bash
-flutter build web \
-  --dart-define=SUPABASE_URL="https://xxxx.supabase.co" \
-  --dart-define=SUPABASE_ANON_KEY="xxxxx"
-```
-
-## 📖 開発ガイド
-
-### アーキテクチャ
-
-このプロジェクトはClean Architectureを採用しています：
-
-- `lib/domain/` - ビジネスロジック
-- `lib/data/` - データアクセス層
-- `lib/presentation/` - UI層
-
-### コーディング規約
-
-詳細は `docs/rules/` を参照してください。
-
-## 🤝 貢献
-
-プルリクエストやイシューの報告を歓迎します。
-
-## 📄 ライセンス
-
-このプロジェクトはMITライセンスの下で公開されています。
+過去の設計を調べる目的以外では、`apps/ios-swiftui/` と、このページから案内する現在資料を使ってください。

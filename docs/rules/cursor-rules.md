@@ -5,14 +5,16 @@ alwaysApply: true
 # Cursor AI Editor ルール - Usalingoプロジェクト
 
 ## 概要
-このファイルはCursor AI Editor専用のルールです。共通ルールと組み合わせて使用してください。
+
+Cursorが自動で読むルールは `.cursor/rules/usalingo-baseline.mdc` に置く。この文書は人間向けの説明として使う。
 
 ## 共通ルールの参照
-以下の共通ルールを必ず適用してください：
-- 作業プロセス（タスク分析、実行、品質管理、最終確認）
-- ショートカットエイリアス（/ask, /plan, /debug, /cmt, /log）
-- 技術スタック制約
-- 重要な注意事項
+以下を必ず適用する。
+
+- `AGENTS.md`
+- `docs/rules/codex-credit-optimization.md`
+- `.agents/skills/usalingo-project-manager/SKILL.md`
+- `.agents/skills/usalingo-next-ticket/SKILL.md`
 
 ## Cursor固有のルール
 
@@ -29,10 +31,12 @@ alwaysApply: true
 - 権限エラーが発生した場合は適切に対処
 
 ### プロジェクト固有の制約
-- Flutterプロジェクトの構造を理解する
-- pubspec.yamlの依存関係を確認
-- プラットフォーム固有の設定を考慮
-- アセットファイルの適切な管理
+
+- 現行アプリは `apps/ios-swiftui/` のSwiftUI版を基準にする
+- 古いFlutter版は、ユーザーが明示した場合だけ対象にする
+- 既存の未コミット変更をユーザーの作業として保護する
+- Notionのチケット取得では `worker_id`、`lease_until`、`work_branch` を使い、他AIとの重複作業を避ける
+- 秘密鍵やアクセストークンを設定ファイルへ直書きしない
 
 ## 出力形式
 - Always do the output in 日本語
@@ -44,4 +48,4 @@ alwaysApply: true
 - 生成されたコードはlintエラーがないこと
 - 既存のアーキテクチャパターンに従う
 - パフォーマンスを考慮した実装
-- セキュリティベストプラクティスを遵守 
+- セキュリティベストプラクティスを遵守

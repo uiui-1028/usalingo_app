@@ -31,7 +31,6 @@
 - `status`: status DBへのrelation、1件
 - `priority`: priority DBへのrelation、1件
 - `owner`: human / ai / joint
-- `approval`: not-needed / waiting / approved
 - `blocked_by`: 同じTaskspace内の前提課題へのrelation
 - `source`: Knowledge DBへのrelation
 - `runday`, `enday`: 日付。日程が決まっていない場合は空にする。
@@ -50,8 +49,8 @@ Status:
 
 共同作業用プロパティ:
 
-- owner: human（人間が実施）/ ai（AIが実施）/ joint（共同）
-- approval: not-needed（追加承認不要）/ waiting（承認待ち）/ approved（承認済み）
+- owner: human（人間が実施）/ ai（AIが実施）/ joint（共同）。`human` 以外（空欄を含む）はAIが処理できる。
+- status: `will` がAIの着手可能状態。`reserve`、`review` はこのスキルだけで `will` に変更しない。
 - blocked_by: 先に完了する必要がある課題。なければ空。
 - source: 根拠となるKnowledge。該当文書がなければ空にし、必要に応じて先にKnowledgeを作る。
 

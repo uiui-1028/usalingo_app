@@ -4,6 +4,8 @@ struct AppShellView: View {
     @EnvironmentObject private var appState: AppState
     @EnvironmentObject private var designSettings: DesignSettings
     @State private var selectedTab = 1
+    @State private var headerHeight: CGFloat = 0
+    @State private var bottomToolbarHeight: CGFloat = 0
 
     private let tabs: [ShellTab] = [
         .init(title: "デザイン", symbol: "paintpalette.fill", color: AppStyle.secondary),
@@ -12,33 +14,72 @@ struct AppShellView: View {
     ]
 
     var body: some View {
-        ZStack(alignment: .bottom) {
-            GridBackground()
-
-            VStack(spacing: 0) {
-                if !appState.isShellChromeHidden {
-                    header
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
-                Group {
-                    switch selectedTab {
-                    case 0:
-                        DesignDashboardView()
-                    case 2:
-                        ProfileDashboardView()
-                    default:
-                        LearningDashboardView()
+        ZStack {
+            shellBody
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .contentMargins(
+                    .top,
+                    appState.isShellChromeHidden ? 0 : headerHeight,
+                    for: .scrollContent
+                )
+                .contentMargins(
+                    .bottom,
+                    appState.isShellChromeHidden ? 0 : bottomToolbarHeight,
+                    for: .scrollContent
+                )
+                .background(GridBackground())
+        }
+        .overlay(alignment: .top) {
+            if !appState.isShellChromeHidden {
+                header
+                    .background {
+                        GeometryReader { proxy in
+                            Color.clear.preference(
+                                key: HeaderHeightPreferenceKey.self,
+                                value: proxy.size.height
+                            )
+                        }
                     }
-                }
-                .padding(.bottom, appState.isShellChromeHidden ? 0 : 96)
+                    .transition(.move(edge: .top).combined(with: .opacity))
             }
-
+        }
+        .overlay(alignment: .bottom) {
             if !appState.isShellChromeHidden {
                 floatingTabBar
+                    .background {
+                        GeometryReader { proxy in
+                            Color.clear.preference(
+                                key: BottomToolbarHeightPreferenceKey.self,
+                                value: proxy.size.height
+                            )
+                        }
+                    }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
+        .onPreferenceChange(HeaderHeightPreferenceKey.self) { height in
+            if height > 0 {
+                headerHeight = height
+            }
+        }
+        .onPreferenceChange(BottomToolbarHeightPreferenceKey.self) { height in
+            if height > 0 {
+                bottomToolbarHeight = height
+            }
+        }
         .animation(.spring(response: 0.28, dampingFraction: 0.86), value: appState.isShellChromeHidden)
+    }
+
+    @ViewBuilder
+    private var shellBody: some View {
+        switch selectedTab {
+        case 0:
+            DesignDashboardView()
+        case 2:
+            ProfileDashboardView()
+        default:
+            LearningDashboardView()
+        }
     }
 
     private var header: some View {
@@ -107,6 +148,22 @@ private struct ShellTab {
     let title: String
     let symbol: String
     let color: Color
+}
+
+private struct HeaderHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
+}
+
+private struct BottomToolbarHeightPreferenceKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
+    }
 }
 
 #if DEBUG
