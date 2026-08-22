@@ -1,0 +1,4 @@
+interface:
+  display_name: "Usalingo Next Ticket"
+  short_description: "次のチケットを安全に実装・テスト・PR作成まで進める"
+  default_prompt: "$usalingo-next-ticket を使い、着手可能な1件を最新mainから分離して実装・テストし、未マージのPRまで作成してください。"
