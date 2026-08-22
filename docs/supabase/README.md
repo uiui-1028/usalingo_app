@@ -18,6 +18,7 @@ Supabase関連は、用途ごとに次の2か所だけを正本とします。
 
 Supabase公式の基本フローも、バージョン管理するSQLを `supabase/migrations/` に置く構成です。
 
+- [Docker入門：Usalingoの安全な実験箱](docker-basics.md)
 - [Local development with schema migrations](https://supabase.com/docs/guides/local-development/overview)
 - [Database migrations](https://supabase.com/docs/guides/local-development/database-migrations)
 

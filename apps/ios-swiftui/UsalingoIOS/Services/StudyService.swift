@@ -133,6 +133,12 @@ final class StudyService {
         static let weak = 20
     }
 
+    private enum FetchLimit {
+        // Keep REST URLs short and stay below the Data API's default response cap.
+        static let pageSize = 200
+        static let identifierBatchSize = 100
+    }
+
     private enum SelectColumns {
         static let progress = "user_id,card_id,status,last_reviewed_at,next_review_date,srs_level,easiness_factor,repetitions,incorrect_count,interval_days,created_at,updated_at"
         static let word = "id,word_text,word_meanings(id,priority,part_of_speech_en,definition_jp,example_contents(id,sentence_en,sentence_jp,image_asset_path,audio_asset_path))"
@@ -164,15 +170,15 @@ final class StudyService {
         }
     }
 
-    func fetchWordList(session: AuthSession, limit: Int = 200) async throws -> [WordCard] {
-        let records: [WordRecord] = try await request(
+    func fetchWordList(session: AuthSession, limit: Int? = nil) async throws -> [WordCard] {
+        let records: [WordRecord] = try await fetchAllPages(
             path: "words",
             queryItems: [
                 URLQueryItem(name: "select", value: SelectColumns.word),
-                URLQueryItem(name: "order", value: "id.asc"),
-                URLQueryItem(name: "limit", value: "\(limit)")
+                URLQueryItem(name: "order", value: "id.asc")
             ],
-            accessToken: session.accessToken
+            accessToken: session.accessToken,
+            maximumRecordCount: limit
         )
 
         let words = records.compactMap { $0.toCard() }
@@ -185,7 +191,7 @@ final class StudyService {
             return try await fetchAllCards(session: session)
         }
 
-        let records: [StudyCardRecord] = try await request(
+        let records: [StudyCardRecord] = try await fetchAllPages(
             path: "cards",
             queryItems: [
                 URLQueryItem(name: "select", value: SelectColumns.studyCard),
@@ -216,13 +222,12 @@ final class StudyService {
     }
 
     private func fetchAllCards(session: AuthSession) async throws -> [WordCard] {
-        let records: [StudyCardRecord] = try await request(
+        let records: [StudyCardRecord] = try await fetchAllPages(
             path: "cards",
             queryItems: [
                 URLQueryItem(name: "select", value: SelectColumns.studyCard),
                 URLQueryItem(name: "is_active", value: "eq.true"),
-                URLQueryItem(name: "order", value: "deck_id.asc,sort_order.asc,id.asc"),
-                URLQueryItem(name: "limit", value: "50")
+                URLQueryItem(name: "order", value: "deck_id.asc,sort_order.asc,id.asc")
             ],
             accessToken: session.accessToken
         )
@@ -424,11 +429,12 @@ final class StudyService {
 
     private func fetchWordCards(wordIds: [Int], session: AuthSession) async throws -> [WordCard] {
         guard !wordIds.isEmpty else { return [] }
-        let records: [WordRecord] = try await request(
+        let records: [WordRecord] = try await fetchRecords(
             path: "words",
+            identifierName: "id",
+            identifiers: wordIds,
             queryItems: [
                 URLQueryItem(name: "select", value: SelectColumns.word),
-                URLQueryItem(name: "id", value: "in.(\(wordIds.map(String.init).joined(separator: ",")))"),
                 URLQueryItem(name: "order", value: "id.asc")
             ],
             accessToken: session.accessToken
@@ -440,21 +446,69 @@ final class StudyService {
 
     private func fetchStudyCards(cardIds: [Int], deckId: Int, session: AuthSession) async throws -> [WordCard] {
         guard !cardIds.isEmpty else { return [] }
-        var queryItems = [
-            URLQueryItem(name: "select", value: SelectColumns.studyCard),
-            URLQueryItem(name: "id", value: "in.(\(cardIds.map(String.init).joined(separator: ",")))"),
-            URLQueryItem(name: "is_active", value: "eq.true")
-        ]
-        if deckId != -1 {
-            queryItems.append(URLQueryItem(name: "deck_id", value: "eq.\(deckId)"))
-        }
-
-        let records: [StudyCardRecord] = try await request(
+        let records: [StudyCardRecord] = try await fetchRecords(
             path: "cards",
-            queryItems: queryItems,
+            identifierName: "id",
+            identifiers: cardIds,
+            queryItems: [
+                URLQueryItem(name: "select", value: SelectColumns.studyCard),
+                URLQueryItem(name: "is_active", value: "eq.true")
+            ] + (deckId == -1 ? [] : [URLQueryItem(name: "deck_id", value: "eq.\(deckId)")]),
             accessToken: session.accessToken
         )
         return try await applyUserData(to: records.compactMap { $0.toCard() }, session: session)
+    }
+
+    private func fetchAllPages<T: Decodable>(
+        path: String,
+        queryItems: [URLQueryItem],
+        accessToken: String,
+        maximumRecordCount: Int? = nil
+    ) async throws -> [T] {
+        var records: [T] = []
+        var offset = 0
+
+        while maximumRecordCount.map({ records.count < $0 }) ?? true {
+            let remaining = maximumRecordCount.map { $0 - records.count }
+            let pageSize = min(FetchLimit.pageSize, remaining ?? FetchLimit.pageSize)
+            guard pageSize > 0 else { break }
+            let page: [T] = try await request(
+                path: path,
+                queryItems: queryItems + [
+                    URLQueryItem(name: "limit", value: "\(pageSize)"),
+                    URLQueryItem(name: "offset", value: "\(offset)")
+                ],
+                accessToken: accessToken
+            )
+            records += page
+            guard page.count == pageSize else { break }
+            offset += pageSize
+        }
+
+        return records
+    }
+
+    private func fetchRecords<T: Decodable>(
+        path: String,
+        identifierName: String,
+        identifiers: [Int],
+        queryItems: [URLQueryItem],
+        accessToken: String
+    ) async throws -> [T] {
+        var records: [T] = []
+        for start in stride(from: 0, to: identifiers.count, by: FetchLimit.identifierBatchSize) {
+            let end = min(start + FetchLimit.identifierBatchSize, identifiers.count)
+            let batch = identifiers[start..<end]
+            let page: [T] = try await request(
+                path: path,
+                queryItems: queryItems + [
+                    URLQueryItem(name: identifierName, value: "in.(\(batch.map(String.init).joined(separator: ",")))")
+                ],
+                accessToken: accessToken
+            )
+            records += page
+        }
+        return records
     }
 
     private func limitedStudyQueue(_ cards: [WordCard]) -> [WordCard] {
@@ -509,22 +563,24 @@ final class StudyService {
         let cardIds = Array(Set(cards.compactMap(\.cardId))).sorted()
         guard !wordIds.isEmpty else { return cards }
 
-        let overrideRows: [UserWordOverride] = try await request(
+        let overrideRows: [UserWordOverride] = try await fetchRecords(
             path: "user_word_overrides",
+            identifierName: "word_id",
+            identifiers: wordIds,
             queryItems: [
                 URLQueryItem(name: "select", value: "user_id,word_id,word_text,definition_jp,sentence_en,sentence_jp,image_asset_path"),
-                URLQueryItem(name: "user_id", value: "eq.\(session.user.id)"),
-                URLQueryItem(name: "word_id", value: "in.(\(wordIds.map(String.init).joined(separator: ",")))")
+                URLQueryItem(name: "user_id", value: "eq.\(session.user.id)")
             ],
             accessToken: session.accessToken
         )
 
-        let tagRows: [UserWordTag] = try await request(
+        let tagRows: [UserWordTag] = try await fetchRecords(
             path: "user_word_tags",
+            identifierName: "word_id",
+            identifiers: wordIds,
             queryItems: [
                 URLQueryItem(name: "select", value: "user_id,word_id,tag"),
                 URLQueryItem(name: "user_id", value: "eq.\(session.user.id)"),
-                URLQueryItem(name: "word_id", value: "in.(\(wordIds.map(String.init).joined(separator: ",")))"),
                 URLQueryItem(name: "order", value: "tag.asc")
             ],
             accessToken: session.accessToken
@@ -534,12 +590,13 @@ final class StudyService {
         if cardIds.isEmpty {
             progressRows = []
         } else {
-            progressRows = try await request(
+            progressRows = try await fetchRecords(
                 path: "user_card_progress",
+                identifierName: "card_id",
+                identifiers: cardIds,
                 queryItems: [
                     URLQueryItem(name: "select", value: SelectColumns.progress),
-                    URLQueryItem(name: "user_id", value: "eq.\(session.user.id)"),
-                    URLQueryItem(name: "card_id", value: "in.(\(cardIds.map(String.init).joined(separator: ",")))")
+                    URLQueryItem(name: "user_id", value: "eq.\(session.user.id)")
                 ],
                 accessToken: session.accessToken
             )
@@ -561,11 +618,12 @@ final class StudyService {
         let wordIds = Array(Set(words.map(\.wordId))).sorted()
         guard !wordIds.isEmpty else { return words }
 
-        let rows: [CardIdentityRecord] = try await request(
+        let rows: [CardIdentityRecord] = try await fetchRecords(
             path: "cards",
+            identifierName: "word_id",
+            identifiers: wordIds,
             queryItems: [
                 URLQueryItem(name: "select", value: "id,word_id,sort_order"),
-                URLQueryItem(name: "word_id", value: "in.(\(wordIds.map(String.init).joined(separator: ",")))"),
                 URLQueryItem(name: "is_active", value: "eq.true"),
                 URLQueryItem(name: "order", value: "word_id.asc,sort_order.asc,id.asc")
             ],

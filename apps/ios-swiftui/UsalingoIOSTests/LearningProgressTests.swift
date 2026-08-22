@@ -126,6 +126,24 @@ final class LearningProgressTests: XCTestCase {
 }
 
 final class StudyFlowTests: XCTestCase {
+    func testLargeDeckIsFetchedInPagesWithoutLosingCards() async throws {
+        let client = FakeStudySupabaseClient(deckCardCount: 1_000)
+        let service = StudyService(client: client)
+        let session = AuthSession(
+            accessToken: "test-token",
+            refreshToken: nil,
+            expiresAt: nil,
+            user: AuthUser(id: "user-1", email: "test@example.com")
+        )
+
+        let cards = try await service.fetchCards(deckId: 1, session: session)
+
+        XCTAssertEqual(cards.count, 1_000)
+        XCTAssertEqual(cards.first?.cardId, 100)
+        XCTAssertEqual(cards.last?.cardId, 1_099)
+        XCTAssertEqual(client.cardPageRequestCount, 6)
+    }
+
     func testDeckQueueAnswerSaveAndReloadUseCardIdentity() async throws {
         let client = FakeStudySupabaseClient()
         let service = StudyService(client: client)
@@ -193,15 +211,22 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
         }
     }
 
-    private let cards = [
-        FixtureCard(id: 100, wordId: 10, deckId: 1, sortOrder: 0, wordText: "apple", definitionJapanese: "りんご"),
-        FixtureCard(id: 101, wordId: 11, deckId: 1, sortOrder: 1, wordText: "book", definitionJapanese: "本"),
-        FixtureCard(id: 200, wordId: 20, deckId: 2, sortOrder: 0, wordText: "cat", definitionJapanese: "猫")
-    ]
+    private let cards: [FixtureCard]
     private var progressByCardId: [Int: LearningProgress]
     private(set) var savedCardIds: [Int] = []
+    private(set) var cardPageRequestCount = 0
 
-    init() {
+    init(deckCardCount: Int = 2) {
+        cards = (0..<deckCardCount).map { index in
+            FixtureCard(
+                id: 100 + index,
+                wordId: 10 + index,
+                deckId: 1,
+                sortOrder: index,
+                wordText: "word-\(index)",
+                definitionJapanese: "意味\(index)"
+            )
+        } + [FixtureCard(id: 200, wordId: 20, deckId: 2, sortOrder: 0, wordText: "cat", definitionJapanese: "猫")]
         progressByCardId = [
             100: Self.progress(cardId: 100, nextReviewDate: "2020-01-02T00:00:00Z"),
             200: Self.progress(cardId: 200, nextReviewDate: "2020-01-01T00:00:00Z")
@@ -252,7 +277,7 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
         let cardIds = inIntValues("id", in: queryItems)
         let wordIds = inIntValues("word_id", in: queryItems)
 
-        let filtered = cards
+        var filtered = cards
             .filter { deckId == nil || $0.deckId == deckId }
             .filter { cardIds == nil || cardIds?.contains($0.id) == true }
             .filter { wordIds == nil || wordIds?.contains($0.wordId) == true }
@@ -261,6 +286,16 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
                 if $0.sortOrder != $1.sortOrder { return $0.sortOrder < $1.sortOrder }
                 return $0.id < $1.id
             }
+
+        if queryValue("offset", in: queryItems) != nil {
+            cardPageRequestCount += 1
+        }
+        if let offset = Int(queryValue("offset", in: queryItems) ?? "0") {
+            filtered = Array(filtered.dropFirst(offset))
+        }
+        if let limit = Int(queryValue("limit", in: queryItems) ?? "") {
+            filtered = Array(filtered.prefix(limit))
+        }
 
         let json = selectedColumns.contains("word:words")
             ? filtered.map(\.studyJSON)
