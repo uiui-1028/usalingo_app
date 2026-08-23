@@ -41,26 +41,41 @@ Ver.2.0 Taskspace `collection://7c0c3d1f-59e8-83f8-8958-07b0b1cf4a03` だけを�
 - `blocked_by` がすべて `done`
 - 他AIの有効な `lease_until` がない
 
-Priority、Issue IDの順で1件を選ぶ。`owner=human`、`reserve`、`review`、有効な他AI lease、未完了依存へ条件を広げない。`reserve` を `will` へ自動変更しない。`approval` は照会・更新・判断に使わない。
+`status=will` を着手許可として扱い、Priority、Issue IDの順で選ぶ。`owner=human` だけはAIが取得しない。`owner` が空欄でも取得対象に含める。SQLでは `owner IS NULL OR owner = '' OR owner != 'human'` として判定する。`reserve` は将来候補、`review` はレビュー工程なので、このスキル呼び出しだけで `will` へ変更しない。`owner=human`、`reserve`、`review`、有効期限内の他AI作業、未完了依存へ条件を広げない。`approval` は照会・更新・判断に使わない。
+
+候補SQLは非humanの `will` をWHERE句で取得し、依存とleaseを `dependencies_ready`、`lease_ready`、`ready` として計算する。未完了依存や有効なleaseをWHERE句で消してはいけない。`ready=1` を先頭に並べ、最初の `ready=1` だけを取得する。これにより「will自体が0件」と「willはあるが、すべて待機中」を区別する。
 
 ## 開始時のGit分離
 
 1. `git status --short --branch`、現在branch、既存worktreeを確認し、既存差分をユーザーの作業として保護する。
-2. `git fetch origin` を実行し、開始点を最新の `origin/main` にする。ローカル `main` が古くても、その上から作業branchを作らない。
-3. 通常は現在のcheckoutを使う。checkoutがcleanで、別の作業に使用中でなければ、`<client>/usl-<番号>-<短い名前>` の未使用branchを `origin/main` から作って切り替える。同名があれば一意な接尾辞を付け、古いbranchを再利用しない。
-4. `main` へ直接変更・commitしない。既存checkoutがdirty、別チケットを作業中、または複数AIが並行作業中の場合だけ、既存状態を守るため別worktreeを使う。その場でpull、rebase、reset、stashして既存作業を動かさない。
-5. worktreeが必要な場合はリポジトリ外、原則 `/private/tmp/usalingo-<番号>-<一意値>` に作る。リポジトリ内の `.codex-worktrees/` を作成・stageしない。
-6. 分離先にignoredな `Config/Local.xcconfig` が必要なら、秘密値をコピーせず `Local.xcconfig.example` 相当の一時設定を使う。一時設定、DerivedData、Simulator成果物をcommitしない。
+2. Notion接続の `self` をfetchし、正しいワークスペースと `query_data_sources` の利用可否を確認する。
+3. Taskspaceスキーマをfetchし、非humanの `will` と各行の `ready` 判定を1回の `query_data_sources` SQLで取得する。SQLは `../usalingo-project-manager/references/notion-setup.md` の現行例を使う。
+4. `will` が0件ならその事実を報告する。`will` はあるが `ready=1` が0件なら、上位候補と未完了の `blocked_by` または有効なleaseを解除条件として報告する。どちらの場合も何も変更しない。
+5. 先頭候補のページ本文をfetchし、受け入れ条件と危険操作を確認する。
+6. `git fetch origin` を実行し、開始点を最新の `origin/main` にする。ローカル `main` が古くても、その上から作業branchを作らない。
+7. クライアント名を小文字にした接頭辞を使い、チケットごとに `<client>/usl-<番号>-<短い名前>` の新規専用branchを作る。Cursorは `cursor/`、Codexは `codex/` を使う。既存branchを再利用せず、同名が存在する場合は一意な接尾辞を付ける。
+8. 通常は現在のcheckoutを使う。checkoutがcleanで、別の作業に使用中でなければ、最新の `origin/main` から専用branchを作って切り替える。
+9. `main` へ直接変更・commitしない。既存checkoutがdirty、別チケットを作業中、または複数AIが並行作業中の場合だけ、既存状態を守るため別worktreeを使う。その場でpull、rebase、reset、stashして既存作業を動かさない。
+10. worktreeが必要な場合はリポジトリ外、原則 `/private/tmp/usalingo-<番号>-<一意値>` に作る。リポジトリ内の `.codex-worktrees/` を作成・stageしない。
+11. 分離先にignoredな `Config/Local.xcconfig` が必要なら、秘密値をコピーせず `Local.xcconfig.example` 相当の一時設定を使う。一時設定、DerivedData、Simulator成果物をcommitしない。
+12. `<client>-<一意な文字列>` の `worker_id`、30分後のタイムゾーン付き `lease_until`、`work_branch`、`status=active` を1回で更新する。
+13. 直後にページを再取得し、`worker_id`、`lease_until`、`work_branch` が自分の値であることを確認する。競合したら編集せず停止する。
 
 ## 最小Notionフロー
 
 1. Notion接続とTaskspaceスキーマを確認する。
 2. 着手前の1回のSQLで取得条件を満たす候補を取得する。候補が0件なら何も変更せず終了する。
 3. 先頭候補の本文、受け入れ条件、最新決定、危険操作を確認する。チケットが最新の人間決定と矛盾する場合は実装せず停止する。
-4. 専用branchを作った後、一意な `worker_id`、30分後の `lease_until`、`work_branch`、`status=run` を1回で更新する。
+4. 専用branchを作った後、一意な `worker_id`、30分後の `lease_until`、`work_branch`、`status=active` を1回で更新する。
 5. 直後に再取得し、自分の作業権であることを確認する。競合したら編集せず撤退する。
 6. 20分以内ごと、commit、push、PR、Notion状態変更の直前に作業権を再確認・延長する。
 7. 完了または外部要因による停止では、自分が作業権を持つことを確認してから `lease_until` を空にする。作業権が別AIへ移っていたら上書きしない。
+8. チケットの対象だけを調査・変更する。現行アプリは `apps/ios-swiftui/` を基準にする。
+9. 対象テストを実行し、必要なら関連テストまで広げる。
+10. `active` から `review` へ移し、受け入れ条件、実差分、テスト、未確認事項を別工程としてAIレビューする。
+11. 不備は修正して再検証する。合格時だけ完了レポートを追記し、`done`、終了日、空の `lease_until` を設定する。
+12. 必須環境や権限がなく完了できなければ、解除条件を記録して `blocked` とし、作業権を返す。
+13. 完了後の1回のSQLで、`status=will` かつ `owner` が `human` ではない（空欄を含む）次候補をまとめて取得し、上位2〜3件を報告する。
 
 `query_data_sources` は原則、着手前と完了後の2回だけ使う。同じ制限エラーを繰り返さない。
 

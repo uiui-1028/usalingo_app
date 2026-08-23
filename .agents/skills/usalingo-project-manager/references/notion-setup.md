@@ -1,6 +1,6 @@
 # Usalingo Notion設定
 
-最終確認日: 2026-08-16。Notionへ書く前に必ず再取得し、現在のスキーマを優先する。
+最終確認日: 2026-08-22。Notionへ書く前に必ず再取得し、現在のスキーマを優先する。
 
 ## 対象
 
@@ -31,7 +31,6 @@
 - `status`: status DBへのrelation、1件
 - `priority`: priority DBへのrelation、1件
 - `owner`: human / ai / joint
-- `approval`: not-needed / waiting / approved
 - `worker_id`: 作業権を持つAIの一意な名前
 - `lease_until`: 作業権の期限。タイムゾーン付きISO 8601日時を使い、`date:lease_until:is_datetime=1` にする。
 - `work_branch`: Gitブランチまたはworktreeなど、作業を分離した場所
@@ -44,17 +43,16 @@
 Status:
 
 - will: `https://app.notion.com/21cc3d1f59e880baac37c00d7055d707`
-- run: `https://app.notion.com/21cc3d1f59e8807f8f1de6ea75153784`
+- active: `https://app.notion.com/21cc3d1f59e8807f8f1de6ea75153784`
 - done: `https://app.notion.com/21cc3d1f59e880c282fef49f49ce7c12`
-- reserve: `https://app.notion.com/21cc3d1f59e880ca853dd0c33bec805d`
-- aborted: `https://app.notion.com/21cc3d1f59e8800a9a80d3a7aa3c2247`
+- reserved: `https://app.notion.com/21cc3d1f59e880ca853dd0c33bec805d`
+- canceled: `https://app.notion.com/21cc3d1f59e8800a9a80d3a7aa3c2247`
 - review: `https://app.notion.com/3b6c3d1f59e880eea066c44b5e2c360b`
 - blocked: `https://app.notion.com/3b6c3d1f59e8806ca455f8ac1497e6a3`
 
 共同作業用プロパティ:
 
 - owner: human（人間が実施）/ ai（AIが実施）/ joint（共同）
-- approval: not-needed（入口の選択不要）/ waiting（着手候補）/ approved（人間が着手を選択済み）
 - blocked_by: 先に完了する必要がある課題。なければ空。
 - source: 根拠となるKnowledge。該当文書がなければ空にし、必要に応じて先にKnowledgeを作る。
 
@@ -64,9 +62,9 @@ Status:
 
 - 人間: AIが示した2〜3件から、次に着手する課題を選ぶ。変えてはいけない条件があれば入口で伝える。
 - AI: 選択後の調査、設計、作業、テスト、レビュー、修正、完了報告、Notion更新を行う。
-- `will` + `approval=waiting`: 人間が選べる着手候補。
-- `will` + `approval=approved`: 人間が選択済みで、AIが取得できる課題。
-- `run` + 有効な `lease_until`: `worker_id` のAIが作業している課題。
+- `reserved`: 将来候補。人間が着手対象へ移すまではAIが取得しない。
+- `will`: AIが取得できる着手候補。`owner=human`、未完了依存、有効な他AI leaseは除く。
+- `active` + 有効な `lease_until`: `worker_id` のAIが作業している課題。
 - `review` + 期限なし: AIレビューの取得待ち。
 - `review` + 有効な `lease_until`: `worker_id` のAIが受け入れ条件、差分、テスト、危険を確認中。人間の確認待ちには使わない。
 - `done`: AIレビューに合格し、証拠と残る危険を記録した課題。
@@ -84,59 +82,79 @@ Status:
 - 完了、停止、レビュー引き渡しでは期限を空にする。
 - 期限切れを引き継ぐ場合は、元のブランチと差分を確認してから担当を書き換える。
 
-取得候補は `owner=ai` または `joint` に限る。`owner=human` は自動取得しない。
+取得候補は `owner=human` ではないものに限る。空欄も含め、`owner=human` は自動取得しない。
 
 Notionは厳密な排他ロックではない。短い期限と再確認で重複を減らし、Gitブランチまたはworktreeでコード衝突を隔離する。
 
 ### AIが取得候補を探すSQL
 
 `now_utc` には現在のUTC日時を渡す。通常の課題フローではSQL照会を着手前と完了後の
-2回までにする。`blocked_by`の確認を別照会にせず、同じSQLで未完了の依存を除外する。
+2回までにする。非humanの`will`をすべて返し、`blocked_by`とleaseを同じSQLで
+`dependencies_ready`、`lease_ready`、`ready`として判定する。未完了依存をWHERE句で
+除外すると「willが0件」と「willはあるが待機中」を区別できないため、除外しない。
 
 ```sql
-WITH tasks AS (
+WITH params AS (
+  SELECT ? AS will_pattern, ? AS done_pattern, ? AS now_utc
+),
+tasks AS (
   SELECT *
   FROM "collection://7c0c3d1f-59e8-83f8-8958-07b0b1cf4a03"
+),
+candidate_state AS (
+  SELECT candidate.url, candidate."userDefined:id", candidate.task,
+         candidate.status, candidate.owner, candidate.priority,
+         candidate.worker_id, candidate."date:lease_until:start",
+         candidate.work_branch, candidate.blocked_by,
+         CASE WHEN NOT EXISTS (
+           SELECT 1
+           FROM json_each(COALESCE(candidate.blocked_by, '[]')) AS dependency
+           LEFT JOIN tasks AS blocker ON blocker.url = dependency.value
+           WHERE blocker.url IS NULL OR blocker.status NOT LIKE params.done_pattern
+         ) THEN 1 ELSE 0 END AS dependencies_ready,
+         CASE WHEN candidate."date:lease_until:start" IS NULL
+                    OR datetime(candidate."date:lease_until:start") <= datetime(params.now_utc)
+              THEN 1 ELSE 0 END AS lease_ready,
+         (
+           SELECT json_group_array(json_object(
+             'url', dependency.value,
+             'id', blocker."userDefined:id",
+             'task', blocker.task,
+             'status', blocker.status
+           ))
+           FROM json_each(COALESCE(candidate.blocked_by, '[]')) AS dependency
+           LEFT JOIN tasks AS blocker ON blocker.url = dependency.value
+           WHERE blocker.url IS NULL OR blocker.status NOT LIKE params.done_pattern
+         ) AS unresolved_blockers
+  FROM tasks AS candidate
+  CROSS JOIN params
+  WHERE candidate.status LIKE params.will_pattern
+    AND (candidate.owner IS NULL OR candidate.owner = '' OR candidate.owner != 'human')
 )
-SELECT candidate.url, candidate."userDefined:id", candidate.task,
-       candidate.status, candidate.owner, candidate.approval,
-       candidate.priority, candidate.worker_id,
-       candidate."date:lease_until:start", candidate.work_branch,
-       candidate.blocked_by
-FROM tasks AS candidate
-WHERE candidate.owner IN ('ai', 'joint')
-  AND candidate.approval = 'approved'
-  AND candidate.status LIKE ?
-  AND (
-    candidate."date:lease_until:start" IS NULL
-    OR datetime(candidate."date:lease_until:start") <= datetime(?)
-  )
-  AND NOT EXISTS (
-    SELECT 1
-    FROM json_each(COALESCE(candidate.blocked_by, '[]')) AS dependency
-    LEFT JOIN tasks AS blocker ON blocker.url = dependency.value
-    WHERE blocker.url IS NULL OR blocker.status NOT LIKE ?
-  )
-ORDER BY CASE
-    WHEN candidate.priority LIKE '%21cc3d1f59e88148a7dff0bd84957295%' THEN 1
-    WHEN candidate.priority LIKE '%21cc3d1f59e8815ca1cfd35ad1850231%' THEN 2
-    WHEN candidate.priority LIKE '%21cc3d1f59e881428be5e481b2971473%' THEN 3
-    WHEN candidate.priority LIKE '%21cc3d1f59e8817cbc0ce4c2cf5d4552%' THEN 4
-    WHEN candidate.priority LIKE '%21cc3d1f59e8819b9503dc98179531a8%' THEN 5
+SELECT *, CASE WHEN dependencies_ready = 1 AND lease_ready = 1 THEN 1 ELSE 0 END AS ready
+FROM candidate_state
+ORDER BY ready DESC,
+  CASE
+    WHEN priority LIKE '%21cc3d1f59e88148a7dff0bd84957295%' THEN 1
+    WHEN priority LIKE '%21cc3d1f59e8815ca1cfd35ad1850231%' THEN 2
+    WHEN priority LIKE '%21cc3d1f59e881428be5e481b2971473%' THEN 3
+    WHEN priority LIKE '%21cc3d1f59e8817cbc0ce4c2cf5d4552%' THEN 4
+    WHEN priority LIKE '%21cc3d1f59e8819b9503dc98179531a8%' THEN 5
     ELSE 99
   END,
-  candidate."userDefined:id" ASC
-LIMIT 10
+  "userDefined:id" ASC
+LIMIT 100
 ```
 
-- 実装候補の1つ目の引数: `%21cc3d1f59e880baac37c00d7055d707%` (`will`)
-- レビュー候補の1つ目の引数: `%3b6c3d1f59e880eea066c44b5e2c360b%` (`review`)
-- 2つ目の引数: `now_utc`
-- 3つ目の引数: `%21cc3d1f59e880c282fef49f49ce7c12%` (`done`)
+- 1つ目の引数: `%21cc3d1f59e880baac37c00d7055d707%` (`will`)
+- 2つ目の引数: `%21cc3d1f59e880c282fef49f49ce7c12%` (`done`)
+- 3つ目の引数: `now_utc`
 
-完了後の2回目は、同じSQLの`approval = 'approved'`を
-`approval IN ('approved', 'waiting')`へ変える。`approval`を結果へ含め、承認済みと
-承認待ちを別SQLに分けない。`approved`を先に並べ、その中でPriority、Issue ID順にする。
+最初の`ready=1`だけを取得する。結果が空なら`will`が0件、結果はあるが`ready=1`が
+なければ`will`は存在するがすべて待機中である。後者は`unresolved_blockers`または
+有効なleaseを解除条件として報告する。
+
+完了後の2回目も同じSQLを使い、次候補と待機中の`will`を同時に取得する。
 レビュー途中の次候補照会は行わない。3回目以降が必要な例外は
 `docs/rules/codex-credit-optimization.md`の「TaskspaceのSQL予算」に従う。
 

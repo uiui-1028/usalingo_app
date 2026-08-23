@@ -31,19 +31,19 @@ Usalingoの事実を確認し、子どもでも意味が分かる短い日本語
 
 ## 複数AIでチケットを取り合わない
 
-Notionの `status`、`approval`、`worker_id`、`lease_until`、`work_branch` を作業権として使う。
+Notionの `status`、`owner`、`blocked_by`、`worker_id`、`lease_until`、`work_branch` を作業権として使う。
 
 1. AIごとに一意な `worker_id` を作る。例: `codex-8f31a2`。別のAIと同じ値を使わない。
 2. 次の課題だけを取得候補にする。
-   - 実装候補: `status=will`、`approval=approved`、`owner=ai` または `joint`、前提課題が完了済み
-   - レビュー候補: `status=review`、`owner=ai` または `joint` で、有効な作業権がない
-3. `status=run` または `review` で、別AIの `lease_until` が現在より後なら、その課題へ触れず別の候補を選ぶ。
-4. 着手前に `worker_id`、現在から30分後の `lease_until`、`work_branch`、`status=run` を1回の更新でまとめて書く。`lease_until` はタイムゾーン付きISO 8601日時にする。レビュー取得時は `status=review` を保つ。
+   - 実装候補: `status=will`、`owner` が `human` ではない（空欄を含む）、前提課題が完了済み
+   - レビュー候補: `status=review`、`owner` が `human` ではなく、有効な作業権がない
+3. `status=active` または `review` で、別AIの `lease_until` が現在より後なら、その課題へ触れず別の候補を選ぶ。
+4. 着手前に `worker_id`、現在から30分後の `lease_until`、`work_branch`、`status=active` を1回の更新でまとめて書く。`lease_until` はタイムゾーン付きISO 8601日時にする。レビュー取得時は `status=review` を保つ。
 5. 書き込み直後に同じページを再取得する。`worker_id` が自分と一致しなければ、編集を始めず撤退する。
 6. 作業中は20分以内ごとと、コミット、push、Notion状態変更、外部書き込みの直前に再取得する。担当が変わっていたら、相手の内容を上書きせず停止する。
 7. 続行する場合は `lease_until` を現在から30分後へ延長する。待機中のまま期限を延長しない。
-8. `done`、`blocked`、`aborted` へ移すときは `lease_until` を空にして作業権を返す。独立したAIへレビューを渡す場合も、`status=review` にして期限を空にする。
-9. 期限切れの `run` を引き継ぐ前に、元の `work_branch`、差分、コメントを確認する。確認できない場合は新しい作業を重ねず `blocked` とする。
+8. `done`、`blocked`、`canceled` へ移すときは `lease_until` を空にして作業権を返す。独立したAIへレビューを渡す場合も、`status=review` にして期限を空にする。
+9. 期限切れの `active` を引き継ぐ前に、元の `work_branch`、差分、コメントを確認する。確認できない場合は新しい作業を重ねず `blocked` とする。
 
 異なるチケットでも同じファイルやDB変更を触る場合は同時実行しない。`blocked_by` で順番を付けるか、別ブランチ・別worktreeへ分離し、統合前に差分とテストを確認する。
 
@@ -103,8 +103,8 @@ Epic本文へ、目的、やること、完了のしるし、含めないこと�
 2. 作成前にデータソースを取得し、現在のプロパティ名と選択肢を確認する。
 3. 同じEpic名、課題名を検索またはSQL照会し、重複を防ぐ。
 4. Epicを先に作り、返されたURLを全課題の `epic` relationへ設定する。
-5. 候補として作る新規項目は原則 `status=will`、`approval=waiting`。人間が着手を選んだら `approval=approved` とし、AIが作業権を取得するまでは `will` を保つ。読み取りだけで追加許可が不要な作業は `not-needed` を使える。
-6. `owner`、`approval`、`blocked_by`、`source`、`worker_id`、`lease_until`、`work_branch` を現在の事実に基づいて設定する。`approval` は人間の完成品レビューではなく、着手または高危険操作の実行許可を表す。分からない値を推測で埋めない。
+5. 将来候補として作る新規項目は原則 `status=reserved` にする。人間が着手対象へ移したら `status=will` とし、AIが作業権を取得するまでは `will` を保つ。
+6. `owner`、`blocked_by`、`source`、`worker_id`、`lease_until`、`work_branch` を現在の事実に基づいて設定する。分からない値を推測で埋めない。
 7. 課題本文はテンプレートに従い、チェックできる完了条件を書く。
 8. 作成後に再照会し、件数、種類、Epic relation、statusを確認する。
 
@@ -114,7 +114,7 @@ Notionのスキーマを推測しない。取得したスキーマと [reference
 
 実施とレビューを同じ勢いで済ませず、別の工程として扱う。
 
-1. 実装または文書作成が終わったら `run` から `review` へ移す。`review` は人間の確認待ちではなく、AIが品質確認中であることを表す。
+1. 実装または文書作成が終わったら `active` から `review` へ移す。`review` は人間の確認待ちではなく、AIが品質確認中であることを表す。
 2. 作業者の説明ではなく、依頼文、受け入れ条件、実際の差分、実行ログを先に読む。
 3. 次を確認する。
    - 依頼した成果と対象外の境界を守っているか

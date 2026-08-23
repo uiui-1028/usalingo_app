@@ -67,14 +67,13 @@ Notionを開く前に、次の3点を決める。
 1件の課題を選定して完了する通常フローでは、Notionの
 `query_data_sources` によるSQL照会を**原則2回まで**にする。
 
-1. **着手前の1回**: `will`、`approved`、`owner=ai|joint`、有効な作業権なし、
-   `blocked_by`がすべて`done`を1つのSQLで判定し、Priority、Issue IDの順で候補を返す。
-2. **完了後の1回**: 次候補の`approved`と`waiting`を同じSQLで取得する。
-   依存状態、Priority、Issue ID、approvalも一度に返し、次に着手可能な課題と
-   人間の承認待ち候補を同じ結果から判断する。
+1. **着手前の1回**: 非humanの`will`を取得し、有効な作業権と`blocked_by`の完了状態を
+   同じSQLで`ready`として判定する。`ready`、Priority、Issue IDの順で返す。
+2. **完了後の1回**: 非humanの`will`と`ready`を同じSQLで取得し、次に着手可能な課題と
+   待機中の課題を同じ結果から判断する。
 
-- `run`から`review`へ移す途中では、次候補SQLを実行しない。
-- `approved`と`waiting`、またはPriorityごとにSQLを分割しない。
+- `active`から`review`へ移す途中では、次候補SQLを実行しない。
+- 着手可能と待機中、またはPriorityごとにSQLを分割しない。
 - 同じ候補一覧を、選定、レビュー、完了報告のために再照会しない。
 - 3回目以降が許されるのは、競合、期限切れ引き継ぎ、結果の欠落、スキーマ変更、
   SQLエラー、またはユーザーの明示要求がある場合だけとし、追加理由を記録する。
@@ -132,9 +131,9 @@ Notionを開く前に、次の3点を決める。
 
 ## 7.2 複数AIの同時作業
 
-- AIは着手前にNotionの `status`、`approval`、`worker_id`、`lease_until` を確認する。
+- AIは着手前にNotionの `status`、`owner`、`blocked_by`、`worker_id`、`lease_until` を確認する。
 - 別AIの有効な作業期限があるチケットを取得しない。
-- `owner=ai` または `joint` の課題だけを取得対象にする。
+- `owner=human` ではない課題を取得対象にする。空欄も含める。
 - 取得時に一意な担当ID、タイムゾーン付き日時による30分後の期限、作業ブランチを書き、直後に再取得して担当が自分か確認する。
 - 作業中は20分以内ごとと、重要な書き込み前に担当と期限を再確認する。
 - 完了、停止、レビュー引き渡しでは期限を空にする。

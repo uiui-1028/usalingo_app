@@ -87,7 +87,6 @@ Epicまたは大きな課題を作る前に、AIが依頼文、コード、既�
 # 人間が入口で決めること
 
 - owner: [human / ai / joint]
-- approval: [not-needed / waiting / approved]
 - 着手するか: [選択済み / 候補]
 - 変えてはいけない条件: [なければ「なし」]
 
