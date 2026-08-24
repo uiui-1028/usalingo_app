@@ -125,6 +125,89 @@ final class LearningProgressTests: XCTestCase {
     }
 }
 
+final class AuthServiceTests: XCTestCase {
+    func testPasswordRecoveryUsesAppRecoveryRedirect() async throws {
+        let network = FakeAuthNetworkSession(responseBody: "{}")
+        let service = AuthService(session: network, sessionStore: FakeSessionStore())
+
+        try await service.requestPasswordRecovery(email: "learner@example.com")
+
+        let request = try XCTUnwrap(network.requests.first)
+        XCTAssertEqual(request.url?.path, "/auth/v1/recover")
+        let body = try XCTUnwrap(request.httpBody)
+        let values = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: String])
+        XCTAssertEqual(values["email"], "learner@example.com")
+        XCTAssertEqual(values["redirect_to"], "usalingo://auth/recovery")
+    }
+
+    func testRecoveredSessionOnlyAcceptsConfiguredRecoveryURL() async throws {
+        let store = FakeSessionStore()
+        let network = FakeAuthNetworkSession(responseBody: "{\"id\":\"user-1\",\"email\":\"learner@example.com\"}")
+        let service = AuthService(session: network, sessionStore: store)
+        let url = try XCTUnwrap(URL(string: "usalingo://auth/recovery#access_token=access&refresh_token=refresh"))
+
+        let session = try await service.recoverSession(from: url)
+
+        XCTAssertEqual(session?.accessToken, "access")
+        XCTAssertEqual(session?.user.email, "learner@example.com")
+        XCTAssertEqual(store.saved?.refreshToken, "refresh")
+        XCTAssertEqual(network.requests.first?.url?.path, "/auth/v1/user")
+
+        let invalidURL = try XCTUnwrap(URL(string: "usalingo://auth/other#access_token=access&refresh_token=refresh"))
+        let ignored = try await service.recoverSession(from: invalidURL)
+        XCTAssertNil(ignored)
+        XCTAssertEqual(network.requests.count, 1)
+    }
+
+    func testShortPasswordIsRejectedBeforeNetworkRequest() async {
+        let network = FakeAuthNetworkSession(responseBody: "{}")
+        let service = AuthService(session: network, sessionStore: FakeSessionStore())
+
+        do {
+            try await service.updatePassword("short", currentPassword: "current-password", nonce: nil, accessToken: "access")
+            XCTFail("Expected a weak-password error")
+        } catch let error as AuthError {
+            guard case .weakPassword = error else {
+                return XCTFail("Unexpected auth error: \(error)")
+            }
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+        XCTAssertTrue(network.requests.isEmpty)
+    }
+}
+
+private final class FakeAuthNetworkSession: NetworkSession {
+    private let responseBody: Data
+    private(set) var requests: [URLRequest] = []
+
+    init(responseBody: String) {
+        self.responseBody = Data(responseBody.utf8)
+    }
+
+    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        requests.append(request)
+        let response = HTTPURLResponse(url: try XCTUnwrap(request.url), statusCode: 200, httpVersion: nil, headerFields: nil)!
+        return (responseBody, response)
+    }
+}
+
+private final class FakeSessionStore: SessionStoring {
+    var saved: AuthSession?
+
+    func save(_ session: AuthSession) throws {
+        saved = session
+    }
+
+    func load() throws -> AuthSession? {
+        saved
+    }
+
+    func clear() throws {
+        saved = nil
+    }
+}
+
 final class StudyFlowTests: XCTestCase {
     func testLargeDeckIsFetchedInPagesWithoutLosingCards() async throws {
         let client = FakeStudySupabaseClient(deckCardCount: 1_000)

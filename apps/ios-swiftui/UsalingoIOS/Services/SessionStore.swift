@@ -1,7 +1,7 @@
 import Foundation
 import Security
 
-final class SessionStore {
+final class SessionStore: SessionStoring {
     private let service = "com.usalingo.ios.auth"
     private let account = "supabase-session"
 

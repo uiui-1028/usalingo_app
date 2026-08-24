@@ -6,6 +6,7 @@ struct AuthView: View {
     @State private var password = ""
     @State private var message = ""
     @State private var isLoading = false
+    @State private var isRequestingRecovery = false
 
     private let authService = AuthService()
 
@@ -37,6 +38,11 @@ struct AuthView: View {
             }
             .disabled(isLoading)
 
+            Button("パスワードを忘れた場合") {
+                Task { await requestRecovery() }
+            }
+            .disabled(isLoading || email.isEmpty)
+
             if !message.isEmpty {
                 Text(message)
                     .font(.footnote)
@@ -60,5 +66,16 @@ struct AuthView: View {
             message = error.localizedDescription
         }
         isLoading = false
+    }
+
+    private func requestRecovery() async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            try await authService.requestPasswordRecovery(email: email)
+            message = "メールを確認してください。リンクを開くと、新しいパスワードを設定できます。"
+        } catch {
+            message = error.localizedDescription
+        }
     }
 }

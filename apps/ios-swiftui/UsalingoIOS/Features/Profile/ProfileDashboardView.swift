@@ -159,7 +159,9 @@ private struct HeatmapTile: View {
 
 private struct ProfileEditSheet: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var appState: AppState
     @State private var nickname: String
+    @State private var isManagingAccount = false
     let signOut: () -> Void
     let save: (String) async -> Void
 
@@ -175,6 +177,11 @@ private struct ProfileEditSheet: View {
                 Section("ユーザー名") {
                     TextField("ユーザー名", text: $nickname)
                         .textInputAutocapitalization(.never)
+                }
+                Section("アカウント") {
+                    Button("メールアドレス・パスワードを変更") {
+                        isManagingAccount = true
+                    }
                 }
                 Section {
                     Button(role: .destructive) {
@@ -202,6 +209,107 @@ private struct ProfileEditSheet: View {
                     .disabled(nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
+        }
+        .sheet(isPresented: $isManagingAccount) {
+            AccountSecuritySheet()
+                .environmentObject(appState)
+        }
+    }
+}
+
+private struct AccountSecuritySheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var appState: AppState
+    @State private var currentPassword = ""
+    @State private var newPassword = ""
+    @State private var passwordNonce = ""
+    @State private var newEmail = ""
+    @State private var message = ""
+    @State private var isLoading = false
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("パスワードを変更") {
+                    SecureField("今のパスワード", text: $currentPassword)
+                    SecureField("新しいパスワード（8文字以上）", text: $newPassword)
+                    Button("古いログインにも確認コードを送る") {
+                        Task { await requestReauthentication() }
+                    }
+                    TextField("確認コード（届いたときだけ）", text: $passwordNonce)
+                        .textInputAutocapitalization(.never)
+                    Button("パスワードを変更") {
+                        Task { await changePassword() }
+                    }
+                    .disabled(isLoading || currentPassword.isEmpty || newPassword.isEmpty)
+                }
+
+                Section("メールアドレスを変更") {
+                    Text("現在: \(appState.session?.user.email ?? "未設定")")
+                    TextField("新しいメールアドレス", text: $newEmail)
+                        .textInputAutocapitalization(.never)
+                        .keyboardType(.emailAddress)
+                    SecureField("今のパスワード", text: $currentPassword)
+                    Button("メールアドレスを変更") {
+                        Task { await changeEmail() }
+                    }
+                    .disabled(isLoading || currentPassword.isEmpty || newEmail.isEmpty)
+                    Text("今のメールと新しいメールの両方に届く確認メールを開くと、変更が完了します。")
+                        .font(.footnote)
+                        .foregroundStyle(AppStyle.muted)
+                }
+
+                if !message.isEmpty {
+                    Section {
+                        Text(message)
+                            .font(.footnote)
+                    }
+                }
+            }
+            .navigationTitle("アカウントの安全")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("閉じる") { dismiss() }
+                }
+            }
+        }
+    }
+
+    private func requestReauthentication() async {
+        guard let token = appState.session?.accessToken else { return }
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            try await AuthService().reauthenticate(accessToken: token)
+            message = "確認コードをメールに送りました。届いたときだけ入力してください。"
+        } catch {
+            message = error.localizedDescription
+        }
+    }
+
+    private func changePassword() async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            try await appState.updatePassword(newPassword, currentPassword: currentPassword, nonce: passwordNonce)
+            message = "パスワードを変更しました。"
+            newPassword = ""
+            passwordNonce = ""
+        } catch {
+            message = error.localizedDescription
+        }
+    }
+
+    private func changeEmail() async {
+        isLoading = true
+        defer { isLoading = false }
+        do {
+            try await appState.updateEmail(newEmail, currentPassword: currentPassword)
+            message = "2つのメールアドレスに確認メールを送りました。両方を開いてください。"
+            newEmail = ""
+        } catch {
+            message = error.localizedDescription
         }
     }
 }
