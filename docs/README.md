@@ -7,10 +7,11 @@
 1. [Anki型学習コア仕様](architecture/anki-aligned-spec.md)
 2. [Anki型データモデルと移行設計](architecture/anki-data-model.md)
 3. [公式コンテンツのDB・Storage契約](architecture/official-content-contract.md)
-4. [Supabase運用](supabase/README.md)
-5. [`supabase/migrations/`](../supabase/migrations/) — 実行可能SQLの正本
-6. [現行SwiftUI 開発環境・技術スタック](development/technology-stack.md)
-7. [現行リポジトリ構成](development/repository-layout.md)
+4. [退会・復元・最終削除のデータ契約](architecture/account-deletion-contract.md)
+5. [Supabase運用](supabase/README.md)
+6. [`supabase/migrations/`](../supabase/migrations/) — 実行可能SQLの正本
+7. [現行SwiftUI 開発環境・技術スタック](development/technology-stack.md)
+8. [現行リポジトリ構成](development/repository-layout.md)
 
 実装は `apps/ios-swiftui/UsalingoIOS/`、テストは `apps/ios-swiftui/UsalingoIOSTests/` を確認します。
 
@@ -18,7 +19,6 @@
 
 次はまだ確定仕様ではありません。履歴資料を判断材料として残していますが、実装の正本にはしません。
 
-- 退会仕様: USL-254・USL-257で判断予定。旧案は [ワークフロー設計](archive/legacy-spec-v2/workflow-design.md)
 - 法務・AIGC: USL-249・USL-255で判断予定。旧案は [AIGC方針](archive/legacy-spec-v2/aigc-policy.md)
 - 類義語DB索引: 未採用のresearch。[検討レポート](archive/legacy-spec-v2/dynamic-synonym-index-research.md)
 
