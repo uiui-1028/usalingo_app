@@ -2,6 +2,12 @@
 
 現行アプリは `apps/ios-swiftui/` のSwiftUI版です。旧Flutter・SQLite・旧DB・旧MVPの資料は履歴として分離しています。実装や判断では、次の順に参照します。
 
+## 方向づけ
+
+- [Usalingoのいちばん大きな計画](usalingo-simple-product-plan.md)
+- [ワークフロー設計 実行計画書](usalingo-workflow-planning-execution-plan.md)
+- [ワークフロー策定の記録](workflow-records/README.md)
+
 ## 現行資料
 
 1. [Anki型学習コア仕様](architecture/anki-aligned-spec.md)
