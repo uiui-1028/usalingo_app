@@ -1,4 +1,4 @@
 interface:
   display_name: "Usalingo Next Ticket"
-  short_description: "次のチケットを安全に実装・テスト・PR作成まで進める"
-  default_prompt: "$usalingo-next-ticket を使い、着手可能な1件を最新mainから分離して実装・テストし、未マージのPRまで作成してください。"
+  short_description: "次のチケットか障害を解消し、マージ・Git整理まで進める"
+  default_prompt: "$usalingo-next-ticket を使い、readyなwillがなければ依存関係から安全に進められる障害チケットを1件選び、実装・テスト・PR作成・通常マージ後にそのチケットのbranchとworktreeだけを片付けてください。"
