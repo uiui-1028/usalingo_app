@@ -9,11 +9,13 @@ struct StudySessionView: View {
 
     @State private var cards: [WordCard] = []
     @State private var index = 0
-    @State private var message = ""
     @State private var isLoading = false
+    @State private var loadErrorMessage: String?
+    @State private var saveErrorMessage: String?
     @State private var dragOffset = CGSize.zero
     @State private var showAnswer = false
-    @State private var isSavingAnswer = false
+    @State private var answerAttempt = StudyAnswerAttempt()
+    @State private var isUndoingAnswer = false
     @State private var editingWord: WordCard?
     @State private var taggingWord: WordCard?
     @State private var sessionAnswers: [Bool] = []
@@ -35,6 +37,22 @@ struct StudySessionView: View {
             ZStack {
                 if isLoading {
                     ProgressView()
+                } else if let loadErrorMessage {
+                    StudyStatusView(
+                        symbol: "wifi.exclamationmark",
+                        title: "カードを読み込めませんでした",
+                        message: loadErrorMessage,
+                        actionTitle: "もう一度試す"
+                    ) {
+                        Task { await load() }
+                    }
+                } else if cards.isEmpty {
+                    StudyStatusView(
+                        symbol: "rectangle.stack.badge.minus",
+                        title: emptyMessage,
+                        message: "別の学習モードを選ぶか、デッキに戻ってください。",
+                        actionTitle: "デッキに戻る"
+                    ) { dismiss() }
                 } else if index < cards.count {
                     cardStack
                 } else {
@@ -49,6 +67,7 @@ struct StudySessionView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
+            saveFailureBanner
             answerControls
             toolbar
         }
@@ -173,7 +192,7 @@ struct StudySessionView: View {
             )
             toolbarButton(
                 "arrow.uturn.backward",
-                isDisabled: answerHistory.isEmpty || isSavingAnswer,
+                isDisabled: answerHistory.isEmpty || answerAttempt.isSaving || isUndoingAnswer,
                 action: undo
             )
             toolbarButton("square.and.pencil", action: editCurrentCard)
@@ -188,6 +207,28 @@ struct StudySessionView: View {
         }
         .shadow(color: AppStyle.shadow, radius: 0, y: 5)
         .padding(16)
+    }
+
+    @ViewBuilder
+    private var saveFailureBanner: some View {
+        if let saveErrorMessage, index < cards.count {
+            VStack(spacing: 8) {
+                Text("回答を保存できませんでした")
+                    .font(.subheadline.bold())
+                    .foregroundStyle(AppStyle.coral)
+                Text(saveErrorMessage)
+                    .font(.footnote)
+                    .foregroundStyle(AppStyle.muted)
+                    .multilineTextAlignment(.center)
+                Button("同じ回答をもう一度保存") {
+                    retryAnswer()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(answerAttempt.isSaving || isUndoingAnswer)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+        }
     }
 
     @ViewBuilder
@@ -222,7 +263,7 @@ struct StudySessionView: View {
                 .shadow(color: color.opacity(0.30), radius: 0, y: 5)
         }
         .buttonStyle(.plain)
-        .disabled(isSavingAnswer)
+        .disabled(answerAttempt.isSaving || isUndoingAnswer)
     }
 
     private func toolbarButton(_ symbol: String, isDisabled: Bool = false, action: @escaping () -> Void) -> some View {
@@ -250,6 +291,7 @@ struct StudySessionView: View {
     private func load() async {
         guard let session = appState.session else { return }
         isLoading = true
+        loadErrorMessage = nil
         do {
             cards = try await studyService.fetchStudyQueue(deckId: deck.id, mode: studyMode, session: session)
             audioPlaybackService.stop()
@@ -257,9 +299,11 @@ struct StudySessionView: View {
             sessionAnswers = []
             sessionProgresses = []
             answerHistory = []
-            message = cards.isEmpty ? emptyMessage : ""
+            answerAttempt = StudyAnswerAttempt()
+            saveErrorMessage = nil
         } catch {
-            message = error.localizedDescription
+            cards = []
+            loadErrorMessage = error.localizedDescription
         }
         isLoading = false
     }
@@ -277,10 +321,13 @@ struct StudySessionView: View {
         }
     }
 
-    private func answer(_ isCorrect: Bool) async {
-        guard let session = appState.session, index < cards.count, !isSavingAnswer else { return }
-        isSavingAnswer = true
-        defer { isSavingAnswer = false }
+    private func persistPendingAnswer() async {
+        guard let isCorrect = answerAttempt.pendingAnswer,
+              let session = appState.session,
+              index < cards.count else {
+            answerAttempt.cancel()
+            return
+        }
         do {
             let originalCard = cards[index]
             let savedAnswer = try await studyService.saveAnswerWithUndo(
@@ -301,22 +348,35 @@ struct StudySessionView: View {
             appState.markStudyDataChanged()
             audioPlaybackService.stop()
             index += 1
+            answerAttempt.succeeded()
+            saveErrorMessage = nil
             showAnswer = false
             dragOffset = .zero
         } catch {
-            message = error.localizedDescription
+            answerAttempt.failed()
+            saveErrorMessage = error.localizedDescription
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.78)) {
+                dragOffset = .zero
+            }
         }
     }
 
     private func submitAnswer(isCorrect: Bool) {
+        guard index < cards.count, answerAttempt.begin(isCorrect: isCorrect) else { return }
+        saveErrorMessage = nil
         let target: CGFloat = isCorrect ? 700 : -700
         withAnimation(.easeIn(duration: 0.18)) {
             dragOffset = CGSize(width: target, height: 0)
         }
         Task {
             try? await Task.sleep(nanoseconds: 180_000_000)
-            await answer(isCorrect)
+            await persistPendingAnswer()
         }
+    }
+
+    private func retryAnswer() {
+        guard answerAttempt.beginRetry() else { return }
+        Task { await persistPendingAnswer() }
     }
 
     private func swipe(isCorrect: Bool) {
@@ -326,13 +386,14 @@ struct StudySessionView: View {
     private func undo() {
         guard let checkpoint = answerHistory.last,
               let session = appState.session,
-              !isSavingAnswer else { return }
+              !answerAttempt.isSaving,
+              !isUndoingAnswer else { return }
         Task { await restore(checkpoint, session: session) }
     }
 
     private func restore(_ checkpoint: AnswerCheckpoint, session: AuthSession) async {
-        isSavingAnswer = true
-        defer { isSavingAnswer = false }
+        isUndoingAnswer = true
+        defer { isUndoingAnswer = false }
         do {
             guard let cardId = checkpoint.originalCard.cardId else { return }
             try await studyService.restoreLearningProgress(
@@ -353,7 +414,7 @@ struct StudySessionView: View {
             }
             appState.markStudyDataChanged()
         } catch {
-            message = "取り消しを保存できませんでした。もう一度お試しください。"
+            saveErrorMessage = "取り消しを保存できませんでした。もう一度お試しください。"
         }
     }
 
@@ -390,10 +451,69 @@ struct StudySessionView: View {
 
 }
 
+struct StudyAnswerAttempt {
+    private(set) var pendingAnswer: Bool?
+    private(set) var isSaving = false
+
+    mutating func begin(isCorrect: Bool) -> Bool {
+        guard !isSaving, pendingAnswer == nil else { return false }
+        pendingAnswer = isCorrect
+        isSaving = true
+        return true
+    }
+
+    mutating func beginRetry() -> Bool {
+        guard !isSaving, pendingAnswer != nil else { return false }
+        isSaving = true
+        return true
+    }
+
+    mutating func succeeded() {
+        pendingAnswer = nil
+        isSaving = false
+    }
+
+    mutating func failed() {
+        isSaving = false
+    }
+
+    mutating func cancel() {
+        pendingAnswer = nil
+        isSaving = false
+    }
+}
+
 private struct AnswerCheckpoint {
     let cardIndex: Int
     let originalCard: WordCard
     let previousProgress: LearningProgress?
+}
+
+private struct StudyStatusView: View {
+    let symbol: String
+    let title: String
+    let message: String
+    let actionTitle: String
+    let action: () -> Void
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Image(systemName: symbol)
+                .font(.system(size: 38))
+                .foregroundStyle(AppStyle.secondary)
+            Text(title)
+                .font(.title3.bold())
+                .foregroundStyle(AppStyle.ink)
+                .multilineTextAlignment(.center)
+            Text(message)
+                .font(.subheadline)
+                .foregroundStyle(AppStyle.muted)
+                .multilineTextAlignment(.center)
+            Button(actionTitle, action: action)
+                .buttonStyle(.borderedProminent)
+        }
+        .padding(24)
+    }
 }
 
 private struct StudyCompletionView: View {

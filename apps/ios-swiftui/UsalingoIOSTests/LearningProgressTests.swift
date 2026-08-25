@@ -298,6 +298,44 @@ final class StudyFlowTests: XCTestCase {
         XCTAssertNil(restoredProgress)
     }
 
+    func testFailedAnswerCanRetryTheSameCardWithoutDoubleSave() async throws {
+        let client = FakeStudySupabaseClient(saveFailures: 1)
+        let service = StudyService(client: client)
+        let queue = try await service.fetchStudyQueue(deckId: 1, mode: .all, session: Self.session)
+        let card = try XCTUnwrap(queue.last)
+
+        do {
+            _ = try await service.saveAnswerWithUndo(card: card, isCorrect: true, session: Self.session)
+            XCTFail("Expected the first save to fail")
+        } catch {
+            XCTAssertEqual(client.savedCardIds, [])
+            let progressAfterFailure = try await service.fetchLearningProgress(cardId: 101, session: Self.session)
+            XCTAssertNil(progressAfterFailure)
+        }
+
+        _ = try await service.saveAnswerWithUndo(card: card, isCorrect: true, session: Self.session)
+
+        XCTAssertEqual(client.savedCardIds, [101])
+        let progressAfterRetry = try await service.fetchLearningProgress(cardId: 101, session: Self.session)
+        XCTAssertNotNil(progressAfterRetry)
+    }
+
+    func testAnswerAttemptBlocksDoubleSubmitAndKeepsChoiceForRetry() {
+        var attempt = StudyAnswerAttempt()
+
+        XCTAssertTrue(attempt.begin(isCorrect: false))
+        XCTAssertFalse(attempt.begin(isCorrect: true))
+        XCTAssertEqual(attempt.pendingAnswer, false)
+
+        attempt.failed()
+        XCTAssertTrue(attempt.beginRetry())
+        XCTAssertEqual(attempt.pendingAnswer, false)
+
+        attempt.succeeded()
+        XCTAssertNil(attempt.pendingAnswer)
+        XCTAssertFalse(attempt.isSaving)
+    }
+
     private static let session = AuthSession(
         accessToken: "test-token",
         refreshToken: nil,
@@ -345,10 +383,11 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
 
     private let cards: [FixtureCard]
     private var progressByCardId: [Int: LearningProgress]
+    private var remainingSaveFailures: Int
     private(set) var savedCardIds: [Int] = []
     private(set) var cardPageRequestCount = 0
 
-    init(deckCardCount: Int = 2) {
+    init(deckCardCount: Int = 2, saveFailures: Int = 0) {
         cards = (0..<deckCardCount).map { index in
             FixtureCard(
                 id: 100 + index,
@@ -363,6 +402,7 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
             100: Self.progress(cardId: 100, nextReviewDate: "2020-01-02T00:00:00Z"),
             200: Self.progress(cardId: 200, nextReviewDate: "2020-01-01T00:00:00Z")
         ]
+        remainingSaveFailures = saveFailures
     }
 
     func request<T: Decodable>(
@@ -379,6 +419,10 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
         case ("user_card_progress", .get):
             return try decodeProgressResponse(queryItems: queryItems)
         case ("user_card_progress", .post):
+            if remainingSaveFailures > 0 {
+                remainingSaveFailures -= 1
+                throw SupabaseError.badResponse("Synthetic save failure")
+            }
             guard let body else { throw SupabaseError.badResponse("Missing test progress body") }
             let data = try JSONEncoder().encode(AnyEncodable(body))
             let progress = try JSONDecoder().decode(LearningProgress.self, from: data)
