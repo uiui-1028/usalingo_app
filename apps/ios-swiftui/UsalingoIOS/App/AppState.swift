@@ -2,24 +2,33 @@ import Foundation
 
 @MainActor
 final class AppState: ObservableObject {
+    private enum TutorialKey {
+        static let hasCompletedSwipeTutorial = "hasCompletedSwipeTutorial"
+    }
+
     @Published var session: AuthSession?
     @Published var isRestoringSession = true
     @Published var isResettingPassword = false
     @Published var isShellChromeHidden = false
     @Published private(set) var initialLearningProfile: InitialLearningProfile?
+    @Published private(set) var isSwipeTutorialPresented: Bool
     @Published private(set) var studyDataVersion = 0
 
     let designSettings = DesignSettings()
 
     private let authService = AuthService()
     private let initialLearningProfileStore: any InitialLearningProfileStoring
+    private let defaults: UserDefaults
 
     init(
         restoresSession: Bool = true,
-        initialLearningProfileStore: any InitialLearningProfileStoring = InitialLearningProfileStore()
+        initialLearningProfileStore: any InitialLearningProfileStoring = InitialLearningProfileStore(),
+        defaults: UserDefaults = .standard
     ) {
         self.initialLearningProfileStore = initialLearningProfileStore
+        self.defaults = defaults
         initialLearningProfile = initialLearningProfileStore.load()
+        isSwipeTutorialPresented = !defaults.bool(forKey: TutorialKey.hasCompletedSwipeTutorial)
         guard restoresSession else {
             isRestoringSession = false
             return
@@ -74,6 +83,19 @@ final class AppState: ObservableObject {
     func completeInitialLearningProfile(_ profile: InitialLearningProfile) throws {
         try initialLearningProfileStore.save(profile)
         initialLearningProfile = profile
+    }
+
+    func showSwipeTutorial() {
+        isSwipeTutorialPresented = true
+    }
+
+    func dismissSwipeTutorial() {
+        isSwipeTutorialPresented = false
+    }
+
+    func completeSwipeTutorial() {
+        defaults.set(true, forKey: TutorialKey.hasCompletedSwipeTutorial)
+        isSwipeTutorialPresented = false
     }
 
     private func restoreSession() async {

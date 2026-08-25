@@ -37,6 +37,17 @@ struct ProfileDashboardView: View {
                     .foregroundStyle(AppStyle.muted)
                     .padding(.horizontal, 16)
             }
+
+            Button {
+                appState.showSwipeTutorial()
+            } label: {
+                Label("操作ガイドをもう一度見る", systemImage: "hand.draw")
+                    .font(.subheadline.weight(.semibold))
+                    .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 24)
         }
         .task { await load() }
         .task(id: appState.studyDataVersion) { await refreshStats() }

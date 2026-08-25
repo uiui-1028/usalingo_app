@@ -20,7 +20,7 @@ struct RootView: View {
     @EnvironmentObject private var appState: AppState
 
     var body: some View {
-        Group {
+        ZStack {
             if appState.isRestoringSession {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -35,6 +35,14 @@ struct RootView: View {
                 PasswordResetView()
             } else {
                 AppShellView()
+            }
+
+            if appState.isSwipeTutorialPresented, !appState.isRestoringSession {
+                SwipeTutorialView(
+                    complete: appState.completeSwipeTutorial,
+                    dismiss: appState.dismissSwipeTutorial
+                )
+                .zIndex(1)
             }
         }
     }

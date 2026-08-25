@@ -43,6 +43,12 @@ struct AuthView: View {
             }
             .disabled(isLoading || email.isEmpty)
 
+            Button("操作ガイドをもう一度見る") {
+                appState.showSwipeTutorial()
+            }
+            .font(.footnote.weight(.semibold))
+            .disabled(isLoading)
+
             if !message.isEmpty {
                 Text(message)
                     .font(.footnote)
