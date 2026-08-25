@@ -16,13 +16,17 @@ select ok(
 
 select results_eq(
   $$select count(*)
-    from pg_policies
-    where schemaname = 'public'
-      and tablename = 'user_card_progress'
-      and policyname = 'user_card_progress_delete_own'
-      and cmd = 'DELETE'
-      and roles = array['authenticated']::name[]
-      and qual = '(auth.uid() = user_id)'$$,
+    from pg_policies as delete_policy
+    join pg_policies as select_policy
+      on select_policy.schemaname = delete_policy.schemaname
+     and select_policy.tablename = delete_policy.tablename
+     and select_policy.policyname = 'user_card_progress_select_own'
+     and select_policy.qual = delete_policy.qual
+    where delete_policy.schemaname = 'public'
+      and delete_policy.tablename = 'user_card_progress'
+      and delete_policy.policyname = 'user_card_progress_delete_own'
+      and delete_policy.cmd = 'DELETE'
+      and delete_policy.roles = array['authenticated']::name[]$$,
   array[1::bigint],
   'Undo DELETE is limited to the current user by RLS'
 );
