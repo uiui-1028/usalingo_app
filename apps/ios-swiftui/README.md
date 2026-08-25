@@ -45,6 +45,12 @@ Run the current unit tests on an installed iPhone Simulator:
 xcodebuild -project UsalingoIOS.xcodeproj -scheme UsalingoIOS -destination 'platform=iOS Simulator,name=iPhone 16 Pro' CODE_SIGNING_ALLOWED=NO test
 ```
 
+## Quality gate
+
+Before calling a build ready for release, record the applicable evidence in
+[the quality gate](../../docs/release-quality-gate.md). The checklist separates
+ordinary development checks from human-owned release and production checks.
+
 ## Auth Note
 
 ```text
