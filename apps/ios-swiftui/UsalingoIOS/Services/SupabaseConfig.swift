@@ -1,6 +1,7 @@
 import Foundation
 
 enum SupabaseConfig {
+    static let authCallbackURL = URL(string: "com.usalingo.ios://auth-callback")!
     private static let projectRef = Bundle.main.object(forInfoDictionaryKey: "SUPABASE_PROJECT_REF") as? String ?? ""
 
     static let supabaseURL = projectRef.isEmpty ? "" : "https://\(projectRef).supabase.co"

@@ -12,6 +12,7 @@ final class AppState: ObservableObject {
     @Published var isShellChromeHidden = false
     @Published private(set) var initialLearningProfile: InitialLearningProfile?
     @Published private(set) var isSwipeTutorialPresented: Bool
+    @Published var authMessage = ""
     @Published private(set) var studyDataVersion = 0
 
     let designSettings = DesignSettings()
@@ -49,12 +50,15 @@ final class AppState: ObservableObject {
     func handleIncomingURL(_ url: URL) {
         Task {
             do {
-                guard let recovered = try await authService.recoverSession(from: url) else { return }
-                session = recovered
-                isResettingPassword = true
+                if let recovered = try await authService.recoverSession(from: url) {
+                    session = recovered
+                    isResettingPassword = true
+                    return
+                }
+                session = try await authService.sessionFromConfirmationCallback(url: url)
+                authMessage = "メール確認が完了しました。"
             } catch {
-                session = nil
-                isResettingPassword = false
+                authMessage = error.localizedDescription
             }
         }
     }
@@ -74,6 +78,15 @@ final class AppState: ObservableObject {
     func updateEmail(_ email: String, currentPassword: String) async throws {
         guard let session else { throw AuthError.sessionRestoreFailed }
         try await authService.updateEmail(email, currentEmail: session.user.email ?? "", currentPassword: currentPassword, accessToken: session.accessToken)
+    }
+
+    func handleAuthCallback(_ url: URL) async {
+        do {
+            session = try await authService.sessionFromConfirmationCallback(url: url)
+            authMessage = "メール確認が完了しました。"
+        } catch {
+            authMessage = error.localizedDescription
+        }
     }
 
     func markStudyDataChanged() {

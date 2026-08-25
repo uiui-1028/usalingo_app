@@ -45,6 +45,33 @@ private struct AuthResponse: Decodable {
     }
 }
 
+enum SignUpResult {
+    case authenticated(AuthSession)
+    case confirmationRequired
+}
+
+private struct AuthRequestBody: Encodable {
+    let email: String
+    let password: String
+    let emailRedirectTo: String?
+
+    enum CodingKeys: String, CodingKey {
+        case email, password
+        case emailRedirectTo = "email_redirect_to"
+    }
+}
+
+private struct ResendRequestBody: Encodable {
+    let type = "signup"
+    let email: String
+    let emailRedirectTo: String
+
+    enum CodingKeys: String, CodingKey {
+        case type, email
+        case emailRedirectTo = "email_redirect_to"
+    }
+}
+
 final class AuthService {
     private let sessionStore: any SessionStoring
     private let client: any SupabaseRequesting
@@ -67,8 +94,53 @@ final class AuthService {
         return session
     }
 
-    func signUp(email: String, password: String) async throws -> AuthSession {
-        let session = try await authRequest(path: "signup", query: [], email: email, password: password)
+    func signUp(email: String, password: String) async throws -> SignUpResult {
+        guard let session = try await authRequest(
+            path: "signup",
+            query: [],
+            body: AuthRequestBody(email: email, password: password, emailRedirectTo: SupabaseConfig.authCallbackURL.absoluteString)
+        ) else {
+            return .confirmationRequired
+        }
+        try await ensureCurrentUserRow(session: session)
+        try sessionStore.save(session)
+        return .authenticated(session)
+    }
+
+    func resendSignUpConfirmation(email: String) async throws {
+        var request = URLRequest(url: SupabaseConfig.authURL.appendingPathComponent("resend"))
+        request.httpMethod = "POST"
+        request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(
+            ResendRequestBody(email: email, emailRedirectTo: SupabaseConfig.authCallbackURL.absoluteString)
+        )
+        try await perform(request, fallbackMessage: "確認メールを再送できませんでした。")
+    }
+
+    func sessionFromConfirmationCallback(url: URL) async throws -> AuthSession {
+        guard url.scheme == SupabaseConfig.authCallbackURL.scheme,
+              url.host == SupabaseConfig.authCallbackURL.host else {
+            throw AuthError.invalidConfirmationLink
+        }
+
+        let parameters = callbackParameters(from: url)
+        if let code = parameters["error_code"]?.lowercased(), code.contains("expired") {
+            throw AuthError.expiredConfirmationLink
+        }
+        guard parameters["error"] == nil,
+              let accessToken = parameters["access_token"],
+              let refreshToken = parameters["refresh_token"] else {
+            throw AuthError.invalidConfirmationLink
+        }
+
+        var request = URLRequest(url: SupabaseConfig.authURL.appendingPathComponent("user"))
+        request.httpMethod = "GET"
+        request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        let (data, _) = try await perform(request, fallbackMessage: "確認リンクを処理できませんでした。")
+        let user = try JSONDecoder().decode(AuthUser.self, from: data)
+        let session = AuthSession(accessToken: accessToken, refreshToken: refreshToken, expiresAt: Int(parameters["expires_at"] ?? ""), user: user)
         try await ensureCurrentUserRow(session: session)
         try sessionStore.save(session)
         return session
@@ -136,11 +208,18 @@ final class AuthService {
 
     func updateEmail(_ email: String, currentEmail: String, currentPassword: String, accessToken: String) async throws {
         guard !currentPassword.isEmpty else { throw AuthError.currentPasswordRequired }
-        _ = try await authRequest(path: "token", query: [URLQueryItem(name: "grant_type", value: "password")], email: currentEmail, password: currentPassword, accessToken: accessToken)
+        _ = try await authRequest(path: "token", query: [URLQueryItem(name: "grant_type", value: "password")], email: currentEmail, password: currentPassword)
         try await executeAuthRequest(path: "user", method: "PUT", accessToken: accessToken, body: ["email": email])
     }
 
-    private func authRequest(path: String, query: [URLQueryItem], email: String, password: String, accessToken: String? = nil) async throws -> AuthSession {
+    private func authRequest(path: String, query: [URLQueryItem], email: String, password: String) async throws -> AuthSession {
+        guard let session = try await authRequest(path: path, query: query, body: AuthRequestBody(email: email, password: password, emailRedirectTo: nil)) else {
+            throw AuthError.emailConfirmationRequired
+        }
+        return session
+    }
+
+    private func authRequest(path: String, query: [URLQueryItem], body: AuthRequestBody) async throws -> AuthSession? {
         var components = URLComponents(url: SupabaseConfig.authURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         components.queryItems = query.isEmpty ? nil : query
 
@@ -148,17 +227,11 @@ final class AuthService {
         request.httpMethod = "POST"
         request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        if let accessToken { request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
-        request.httpBody = try JSONEncoder().encode(["email": email, "password": password])
+        request.httpBody = try JSONEncoder().encode(body)
 
-        let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw SupabaseError.badResponse(String(data: data, encoding: .utf8) ?? "Auth failed")
-        }
+        let (data, _) = try await perform(request, fallbackMessage: "認証に失敗しました。")
         let responseBody = try JSONDecoder().decode(AuthResponse.self, from: data)
-        guard let accessToken = responseBody.accessToken, let user = responseBody.user else {
-            throw AuthError.emailConfirmationRequired
-        }
+        guard let accessToken = responseBody.accessToken, let user = responseBody.user else { return nil }
         return AuthSession(
             accessToken: accessToken,
             refreshToken: responseBody.refreshToken,
@@ -188,10 +261,7 @@ final class AuthService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(["refresh_token": refreshToken])
 
-        let (data, response) = try await session.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw SupabaseError.badResponse(String(data: data, encoding: .utf8) ?? "Session refresh failed")
-        }
+        let (data, _) = try await perform(request, fallbackMessage: "セッションの復元に失敗しました。")
 
         let responseBody = try JSONDecoder().decode(AuthResponse.self, from: data)
         guard let accessToken = responseBody.accessToken, let user = responseBody.user else {
@@ -221,10 +291,29 @@ final class AuthService {
     private func validatePassword(_ password: String) throws {
         guard password.count >= 8 else { throw AuthError.weakPassword }
     }
+
+    private func perform(_ request: URLRequest, fallbackMessage: String) async throws -> (Data, URLResponse) {
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            throw SupabaseError.badResponse(fallbackMessage)
+        }
+        return (data, response)
+    }
+
+    private func callbackParameters(from url: URL) -> [String: String] {
+        var parameters = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        if let fragment = URLComponents(url: url, resolvingAgainstBaseURL: false)?.fragment,
+           let fragmentItems = URLComponents(string: "https://callback.invalid/?\(fragment)")?.queryItems {
+            parameters.append(contentsOf: fragmentItems)
+        }
+        return Dictionary(parameters.compactMap { item in item.value.map { (item.name, $0) } }, uniquingKeysWith: { _, latest in latest })
+    }
 }
 
 enum AuthError: LocalizedError {
     case emailConfirmationRequired
+    case expiredConfirmationLink
+    case invalidConfirmationLink
     case sessionRestoreFailed
     case weakPassword
     case currentPasswordRequired
@@ -233,7 +322,11 @@ enum AuthError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .emailConfirmationRequired:
-            return "確認メールを開いたあと、Sign Inしてください。"
+            return "確認メールを開いたあと、このアプリに戻ってください。"
+        case .expiredConfirmationLink:
+            return "この確認リンクの期限が切れています。確認メールを再送してください。"
+        case .invalidConfirmationLink:
+            return "この確認リンクは使えません。確認メールを再送してください。"
         case .sessionRestoreFailed:
             return "セッションの復元に失敗しました。もう一度Sign Inしてください。"
         case .weakPassword:

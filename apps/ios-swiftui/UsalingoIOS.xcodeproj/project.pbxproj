@@ -39,6 +39,7 @@
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
 		B10000000000000000000003 /* InitialLearningProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000004 /* InitialLearningProfileTests.swift */; };
 		B10000000000000000000004 /* AuthTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* AuthTransportTests.swift */; };
+		B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* AuthConfirmationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +89,7 @@
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000004 /* InitialLearningProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialLearningProfileTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000005 /* AuthTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTransportTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000006 /* AuthConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfirmationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -170,6 +172,7 @@
 				B20000000000000000000003 /* WordCardTests.swift */,
 				B20000000000000000000004 /* InitialLearningProfileTests.swift */,
 				B20000000000000000000005 /* AuthTransportTests.swift */,
+				B20000000000000000000006 /* AuthConfirmationTests.swift */,
 			);
 			path = UsalingoIOSTests;
 			sourceTree = "<group>";
@@ -292,6 +295,7 @@
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
 				B10000000000000000000003 /* InitialLearningProfileTests.swift in Sources */,
 				B10000000000000000000004 /* AuthTransportTests.swift in Sources */,
+				B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
