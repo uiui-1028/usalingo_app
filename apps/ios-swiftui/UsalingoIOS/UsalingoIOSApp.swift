@@ -25,6 +25,10 @@ struct RootView: View {
                 ProgressView()
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(AppStyle.background)
+            } else if appState.initialLearningProfile == nil {
+                InitialLearningProfileView { profile in
+                    try appState.completeInitialLearningProfile(profile)
+                }
             } else if appState.session == nil {
                 AuthView()
             } else if appState.isResettingPassword {

@@ -32,8 +32,11 @@
 		A1000000000000000000001A /* WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* WordEditSheet.swift */; };
 		A1000000000000000000001B /* TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TagSheet.swift */; };
 		A1000000000000000000001C /* DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* DesignSettings.swift */; };
+		A1000000000000000000001D /* InitialLearningProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001D /* InitialLearningProfile.swift */; };
+		A1000000000000000000001E /* InitialLearningProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001E /* InitialLearningProfileView.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
+		B10000000000000000000003 /* InitialLearningProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000004 /* InitialLearningProfileTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,9 +78,12 @@
 		A2000000000000000000001A /* WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* TagSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/TagSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000001C /* DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
+		A2000000000000000000001D /* InitialLearningProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/InitialLearningProfile.swift; sourceTree = "<group>"; };
+		A2000000000000000000001E /* InitialLearningProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Onboarding/InitialLearningProfileView.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000004 /* InitialLearningProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialLearningProfileTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -117,6 +123,7 @@
 				A20000000000000000000004 /* WordCard.swift */,
 				A20000000000000000000005 /* LearningProgress.swift */,
 				A2000000000000000000001C /* DesignSettings.swift */,
+				A2000000000000000000001D /* InitialLearningProfile.swift */,
 				A20000000000000000000006 /* SupabaseConfig.swift */,
 				A20000000000000000000007 /* SupabaseClient.swift */,
 				A20000000000000000000008 /* AuthService.swift */,
@@ -136,6 +143,7 @@
 				A20000000000000000000018 /* WordListView.swift */,
 				A2000000000000000000001A /* WordEditSheet.swift */,
 				A2000000000000000000001B /* TagSheet.swift */,
+				A2000000000000000000001E /* InitialLearningProfileView.swift */,
 				A20000000000000000000012 /* Info.plist */,
 			);
 			path = UsalingoIOS;
@@ -155,6 +163,7 @@
 			children = (
 				B20000000000000000000001 /* LearningProgressTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
+				B20000000000000000000004 /* InitialLearningProfileTests.swift */,
 			);
 			path = UsalingoIOSTests;
 			sourceTree = "<group>";
@@ -263,6 +272,8 @@
 				A1000000000000000000001A /* WordEditSheet.swift in Sources */,
 				A1000000000000000000001B /* TagSheet.swift in Sources */,
 				A1000000000000000000001C /* DesignSettings.swift in Sources */,
+				A1000000000000000000001D /* InitialLearningProfile.swift in Sources */,
+				A1000000000000000000001E /* InitialLearningProfileView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -272,6 +283,7 @@
 			files = (
 				B10000000000000000000001 /* LearningProgressTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
+				B10000000000000000000003 /* InitialLearningProfileTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
