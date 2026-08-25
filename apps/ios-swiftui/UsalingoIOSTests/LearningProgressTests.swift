@@ -255,6 +255,55 @@ final class StudyFlowTests: XCTestCase {
         XCTAssertEqual(reloaded?.nextReviewDate, saved.nextReviewDate)
         XCTAssertEqual(reloaded?.repetitions, saved.repetitions)
     }
+
+    func testUndoRestoresAnExistingProgressRow() async throws {
+        let client = FakeStudySupabaseClient()
+        let service = StudyService(client: client)
+        let session = Self.session
+        let queue = try await service.fetchStudyQueue(deckId: 1, mode: .all, session: session)
+        let card = try XCTUnwrap(queue.first)
+        let fetchedOriginal = try await service.fetchLearningProgress(cardId: 100, session: session)
+        let original = try XCTUnwrap(fetchedOriginal)
+
+        let saved = try await service.saveAnswerWithUndo(card: card, isCorrect: false, session: session)
+        XCTAssertEqual(saved.previousProgress?.updatedAt, original.updatedAt)
+
+        try await service.restoreLearningProgress(
+            cardId: 100,
+            previousProgress: saved.previousProgress,
+            session: session
+        )
+
+        let restored = try await service.fetchLearningProgress(cardId: 100, session: session)
+        XCTAssertEqual(restored?.status, original.status)
+        XCTAssertEqual(restored?.repetitions, original.repetitions)
+        XCTAssertEqual(restored?.incorrectCount, original.incorrectCount)
+        XCTAssertEqual(restored?.updatedAt, original.updatedAt)
+    }
+
+    func testUndoDeletesProgressCreatedByFirstAnswer() async throws {
+        let client = FakeStudySupabaseClient()
+        let service = StudyService(client: client)
+        let session = Self.session
+        let queue = try await service.fetchStudyQueue(deckId: 1, mode: .all, session: session)
+        let card = try XCTUnwrap(queue.last)
+
+        let saved = try await service.saveAnswerWithUndo(card: card, isCorrect: true, session: session)
+        XCTAssertNil(saved.previousProgress)
+        let savedProgress = try await service.fetchLearningProgress(cardId: 101, session: session)
+        XCTAssertNotNil(savedProgress)
+
+        try await service.restoreLearningProgress(cardId: 101, previousProgress: nil, session: session)
+        let restoredProgress = try await service.fetchLearningProgress(cardId: 101, session: session)
+        XCTAssertNil(restoredProgress)
+    }
+
+    private static let session = AuthSession(
+        accessToken: "test-token",
+        refreshToken: nil,
+        expiresAt: nil,
+        user: AuthUser(id: "user-1", email: "test@example.com")
+    )
 }
 
 private final class FakeStudySupabaseClient: SupabaseRequesting {
@@ -351,7 +400,11 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
         body: Encodable?,
         prefer: String?
     ) async throws {
-        throw SupabaseError.badResponse("Unexpected test execute: \(method.rawValue) \(path)")
+        guard path == "user_card_progress", method == .delete,
+              let cardId = equalIntValue("card_id", in: queryItems) else {
+            throw SupabaseError.badResponse("Unexpected test execute: \(method.rawValue) \(path)")
+        }
+        progressByCardId[cardId] = nil
     }
 
     private func decodeCardResponse<T: Decodable>(queryItems: [URLQueryItem]) throws -> T {

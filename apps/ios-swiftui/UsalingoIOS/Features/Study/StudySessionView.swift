@@ -18,6 +18,7 @@ struct StudySessionView: View {
     @State private var taggingWord: WordCard?
     @State private var sessionAnswers: [Bool] = []
     @State private var sessionProgresses: [LearningProgress] = []
+    @State private var answerHistory: [AnswerCheckpoint] = []
     @StateObject private var audioPlaybackService = AudioPlaybackService()
 
     private let studyService = StudyService()
@@ -170,7 +171,11 @@ struct StudySessionView: View {
                 isDisabled: currentAudioURL == nil,
                 action: playCurrentCardAudio
             )
-            toolbarButton("arrow.uturn.backward", action: undo)
+            toolbarButton(
+                "arrow.uturn.backward",
+                isDisabled: answerHistory.isEmpty || isSavingAnswer,
+                action: undo
+            )
             toolbarButton("square.and.pencil", action: editCurrentCard)
         }
         .padding(.horizontal, 24)
@@ -251,6 +256,7 @@ struct StudySessionView: View {
             index = 0
             sessionAnswers = []
             sessionProgresses = []
+            answerHistory = []
             message = cards.isEmpty ? emptyMessage : ""
         } catch {
             message = error.localizedDescription
@@ -276,10 +282,22 @@ struct StudySessionView: View {
         isSavingAnswer = true
         defer { isSavingAnswer = false }
         do {
-            let progress = try await studyService.saveAnswer(card: cards[index], isCorrect: isCorrect, session: session)
-            cards[index] = cards[index].withLearningProgress(progress)
+            let originalCard = cards[index]
+            let savedAnswer = try await studyService.saveAnswerWithUndo(
+                card: originalCard,
+                isCorrect: isCorrect,
+                session: session
+            )
+            cards[index] = originalCard.withLearningProgress(savedAnswer.progress)
             sessionAnswers.append(isCorrect)
-            sessionProgresses.append(progress)
+            sessionProgresses.append(savedAnswer.progress)
+            answerHistory.append(
+                AnswerCheckpoint(
+                    cardIndex: index,
+                    originalCard: originalCard,
+                    previousProgress: savedAnswer.previousProgress
+                )
+            )
             appState.markStudyDataChanged()
             audioPlaybackService.stop()
             index += 1
@@ -306,18 +324,36 @@ struct StudySessionView: View {
     }
 
     private func undo() {
-        guard index > 0 else { return }
-        audioPlaybackService.stop()
-        withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
-            index -= 1
-            if !sessionAnswers.isEmpty {
+        guard let checkpoint = answerHistory.last,
+              let session = appState.session,
+              !isSavingAnswer else { return }
+        Task { await restore(checkpoint, session: session) }
+    }
+
+    private func restore(_ checkpoint: AnswerCheckpoint, session: AuthSession) async {
+        isSavingAnswer = true
+        defer { isSavingAnswer = false }
+        do {
+            guard let cardId = checkpoint.originalCard.cardId else { return }
+            try await studyService.restoreLearningProgress(
+                cardId: cardId,
+                previousProgress: checkpoint.previousProgress,
+                session: session
+            )
+
+            audioPlaybackService.stop()
+            withAnimation(.spring(response: 0.28, dampingFraction: 0.86)) {
+                cards[checkpoint.cardIndex] = checkpoint.originalCard
+                index = checkpoint.cardIndex
                 sessionAnswers.removeLast()
-            }
-            if !sessionProgresses.isEmpty {
                 sessionProgresses.removeLast()
+                answerHistory.removeLast()
+                showAnswer = false
+                dragOffset = .zero
             }
-            showAnswer = false
-            dragOffset = .zero
+            appState.markStudyDataChanged()
+        } catch {
+            message = "取り消しを保存できませんでした。もう一度お試しください。"
         }
     }
 
@@ -352,6 +388,12 @@ struct StudySessionView: View {
         sessionProgresses.filter(\.isWeak).count
     }
 
+}
+
+private struct AnswerCheckpoint {
+    let cardIndex: Int
+    let originalCard: WordCard
+    let previousProgress: LearningProgress?
 }
 
 private struct StudyCompletionView: View {
