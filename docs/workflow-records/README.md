@@ -42,6 +42,7 @@ AIは記録を整理して2〜3案を出し、人間は大切な入口だけを�
 ### 1. 競合調査
 
 - [`01-competitor-research/README.md`](01-competitor-research/README.md) — 4社比較とUsalingoの仮説
+- [`01-competitor-research/handoff-prompt.md`](01-competitor-research/handoff-prompt.md) — 別AIへ追加調査を依頼するプロンプト
 - [`01-competitor-research/anki.md`](01-competitor-research/anki.md)
 - [`01-competitor-research/quizlet.md`](01-competitor-research/quizlet.md)
 - [`01-competitor-research/tanzam.md`](01-competitor-research/tanzam.md)
