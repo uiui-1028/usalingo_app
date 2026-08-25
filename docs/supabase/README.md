@@ -7,6 +7,8 @@ Supabase関連は、用途ごとに次の2か所だけを正本とします。
 | `supabase/migrations/` | データベース変更の実行可能な履歴（SQLの正本） |
 | `docs/supabase/README.md` | 運用方針と参照先（このファイル） |
 
+ローカルで空のDBから再現・検証する手順は、[ローカルSupabaseの再現手順](local-development.md) を参照してください。
+
 ## 運用ルール
 
 - スキーマ、関数、RLS、インデックスの変更は `supabase/migrations/` に追加する。
