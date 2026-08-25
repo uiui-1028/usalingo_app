@@ -6,6 +6,12 @@ enum HTTPMethod: String {
     case delete = "DELETE"
 }
 
+protocol NetworkSession {
+    func data(for request: URLRequest) async throws -> (Data, URLResponse)
+}
+
+extension URLSession: NetworkSession {}
+
 protocol SupabaseRequesting {
     func request<T: Decodable>(
         path: String,
@@ -29,11 +35,17 @@ protocol SupabaseRequesting {
 final class SupabaseClient: SupabaseRequesting {
     static let shared = SupabaseClient()
 
+    private let session: any NetworkSession
+
     private let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
     }()
+
+    init(session: any NetworkSession = URLSession.shared) {
+        self.session = session
+    }
 
     func request<T: Decodable>(
         path: String,
@@ -60,7 +72,7 @@ final class SupabaseClient: SupabaseRequesting {
             request.httpBody = try JSONEncoder().encode(AnyEncodable(body))
         }
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw SupabaseError.badResponse(String(data: data, encoding: .utf8) ?? "Unknown error")
         }
@@ -92,7 +104,7 @@ final class SupabaseClient: SupabaseRequesting {
             request.httpBody = try JSONEncoder().encode(AnyEncodable(body))
         }
 
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
             throw SupabaseError.badResponse(String(data: data, encoding: .utf8) ?? "Unknown error")
         }

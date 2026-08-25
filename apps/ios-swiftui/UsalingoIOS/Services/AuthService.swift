@@ -46,12 +46,18 @@ private struct AuthResponse: Decodable {
 }
 
 final class AuthService {
-    private let session: NetworkSession
-    private let sessionStore: SessionStoring
+    private let sessionStore: any SessionStoring
+    private let client: any SupabaseRequesting
+    private let session: any NetworkSession
 
-    init(session: NetworkSession = URLSession.shared, sessionStore: SessionStoring = SessionStore()) {
-        self.session = session
+    init(
+        sessionStore: any SessionStoring = SessionStore(),
+        client: any SupabaseRequesting = SupabaseClient.shared,
+        session: any NetworkSession = URLSession.shared
+    ) {
         self.sessionStore = sessionStore
+        self.client = client
+        self.session = session
     }
 
     func signIn(email: String, password: String) async throws -> AuthSession {
@@ -162,9 +168,13 @@ final class AuthService {
     }
 
     private func ensureCurrentUserRow(session: AuthSession) async throws {
-        try await SupabaseClient.shared.execute(
+        try await client.execute(
             path: "rpc/ensure_current_user_row",
-            accessToken: session.accessToken
+            method: .post,
+            queryItems: [],
+            accessToken: session.accessToken,
+            body: EmptyPayload(),
+            prefer: nil
         )
     }
 
