@@ -81,6 +81,10 @@ final class AuthService {
         self.session = session
     }
 
+    convenience init(session: any NetworkSession, sessionStore: any SessionStoring) {
+        self.init(sessionStore: sessionStore, session: session)
+    }
+
     func signIn(email: String, password: String) async throws -> AuthSession {
         let session = try await authRequest(path: "token", query: [URLQueryItem(name: "grant_type", value: "password")], email: email, password: password)
         try await ensureCurrentUserRow(session: session)
@@ -109,7 +113,7 @@ final class AuthService {
         request.httpBody = try JSONEncoder().encode(
             ResendRequestBody(email: email, emailRedirectTo: SupabaseConfig.authCallbackURL.absoluteString)
         )
-        try await perform(request, fallbackMessage: "確認メールを再送できませんでした。")
+        _ = try await perform(request, fallbackMessage: "確認メールを再送できませんでした。")
     }
 
     func sessionFromConfirmationCallback(url: URL) async throws -> AuthSession {
