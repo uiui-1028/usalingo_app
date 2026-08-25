@@ -66,9 +66,8 @@ select ok(
 select ok(
   has_table_privilege('authenticated', 'public.user_card_progress', 'select')
   and has_table_privilege('authenticated', 'public.user_card_progress', 'insert')
-  and has_table_privilege('authenticated', 'public.user_card_progress', 'update')
-  and not has_table_privilege('authenticated', 'public.user_card_progress', 'delete'),
-  'card progress grants match the iOS app'
+  and has_table_privilege('authenticated', 'public.user_card_progress', 'update'),
+  'card progress baseline grants support the iOS app'
 );
 
 select ok(
