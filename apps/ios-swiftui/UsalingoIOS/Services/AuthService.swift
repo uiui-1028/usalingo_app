@@ -1,11 +1,5 @@
 import Foundation
 
-protocol NetworkSession {
-    func data(for request: URLRequest) async throws -> (Data, URLResponse)
-}
-
-extension URLSession: NetworkSession {}
-
 protocol SessionStoring {
     func save(_ session: AuthSession) throws
     func load() throws -> AuthSession?
