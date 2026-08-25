@@ -5,7 +5,7 @@ struct ProfileDashboardView: View {
     @State private var stats = StudyStats.empty
     @State private var profile = UserProfile(userId: "", nickname: nil, plan: "free")
     @State private var isEditingProfile = false
-    @State private var isShowingLegalSamples = false
+    @State private var isShowingLegalInformation = false
     @State private var message = ""
 
     private let studyService = StudyService()
@@ -28,7 +28,7 @@ struct ProfileDashboardView: View {
                 }
                 .buttonStyle(.plain)
                 Button {
-                    isShowingLegalSamples = true
+                    isShowingLegalInformation = true
                 } label: {
                     ProfileTile(
                         title: "法務・ライセンス",
@@ -38,7 +38,7 @@ struct ProfileDashboardView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.plain)
-                .accessibilityHint("公開前のサンプルを含む法務・ライセンス画面を開きます")
+                .accessibilityHint("利用規約、プライバシー、ライセンス、クレジットの公開状況を開きます")
                 ProfileTile(title: "\(stats.studiedCount)", symbol: "sparkles", color: .purple)
                 ProfileTile(title: "\(stats.totalReviews)", symbol: "checkmark.circle.fill", color: .green)
             }
@@ -73,8 +73,8 @@ struct ProfileDashboardView: View {
             }
             .presentationDetents([.medium])
         }
-        .sheet(isPresented: $isShowingLegalSamples) {
-            LegalSamplesView()
+        .sheet(isPresented: $isShowingLegalInformation) {
+            LegalInformationView()
         }
     }
 
@@ -119,46 +119,59 @@ struct ProfileDashboardView: View {
     }
 }
 
-private struct LegalSamplesView: View {
+private struct LegalInformationView: View {
     @Environment(\.dismiss) private var dismiss
+    private let documents = LegalDocument.publishedDocuments
 
     var body: some View {
         NavigationStack {
             List {
                 Section {
-                    Label("サンプルデータ・公開前", systemImage: "testtube.2")
-                        .font(.headline)
-                        .foregroundStyle(.orange)
-                    Text("これは画面確認用の見本です。正式な文書、著作者情報、URL、問い合わせ先に置き換えるまで公開しないでください。")
+                    Text("正式に公開された文書と、利用しているコンテンツの出典をここで確認できます。公開前の草案は表示しません。")
                         .font(.subheadline)
                         .foregroundStyle(AppStyle.muted)
-                        .accessibilityLabel("サンプルデータ、公開前です。正式な文書に置き換えるまで公開しないでください。")
+                        .accessibilityLabel("正式に公開された文書とコンテンツの出典を確認できます。公開前の草案は表示しません。")
                 }
 
-                Section("文書とクレジットの見本") {
-                    ForEach(LegalSample.editableSamples) { sample in
-                        LegalSampleRow(sample: sample)
+                Section("法務文書") {
+                    legalRow(.terms)
+                    legalRow(.privacy)
+                }
+
+                Section("ライセンスとクレジット") {
+                    legalRow(.licenses)
+                    legalRow(.credits)
+                }
+
+                Section("お問い合わせ") {
+                    LegalUnavailableRow(
+                        title: "問い合わせ先",
+                        detail: "正式な連絡先は公開準備中です。"
+                    )
+                }
+
+                if documents.isEmpty {
+                    Section {
+                        ContentUnavailableView(
+                            "公開済みの文書はまだありません",
+                            systemImage: "clock",
+                            description: Text("版、施行日、外部リンクを確認できる正式文書が登録されるまで、草案は表示しません。")
+                        )
                     }
-                }
-
-                Section("問い合わせ先の見本") {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("サンプル問い合わせ先（公開前）")
-                            .foregroundStyle(AppStyle.ink)
-                        Text("support@example.invalid")
-                            .font(.footnote.monospaced())
-                            .foregroundStyle(AppStyle.muted)
-                        Text("実際のメールは送信しません。正式な窓口へ差し替えてください。")
-                            .font(.footnote)
-                            .foregroundStyle(AppStyle.muted)
+                } else {
+                    Section("公開済みの文書") {
+                        ForEach(documents) { document in
+                            Link(destination: document.url) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(document.title)
+                                    Text("\(document.version) ・施行日 \(document.effectiveDate)")
+                                        .font(.footnote)
+                                        .foregroundStyle(AppStyle.muted)
+                                }
+                            }
+                            .accessibilityHint("Safariで正式文書を開きます。リンクを開けない場合は、もう一度接続を確認してください。")
+                        }
                     }
-                    .accessibilityElement(children: .combine)
-                }
-
-                Section {
-                    Text("編集場所: ProfileDashboardView.swift の LegalSample.editableSamples。公開前にサンプルを削除し、法務承認済みの値へ置き換えます。")
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
                 }
             }
             .navigationTitle("法務・ライセンス")
@@ -171,83 +184,74 @@ private struct LegalSamplesView: View {
             }
         }
     }
+
+    @ViewBuilder
+    private func legalRow(_ kind: LegalDocument.Kind) -> some View {
+        if let document = documents.first(where: { $0.kind == kind }) {
+            Link(destination: document.url) {
+                LegalDocumentRow(document: document)
+            }
+            .accessibilityHint("Safariで正式文書を開きます。リンクを開けない場合は、もう一度接続を確認してください。")
+        } else {
+            LegalUnavailableRow(title: kind.title, detail: "正式版は公開準備中です。")
+        }
+    }
 }
 
-// MARK: - Sample data only
-// Replace every value below with legal-approved records before release.
-private struct LegalSample: Identifiable {
-    let id: String
+private struct LegalDocument: Identifiable {
+    enum Kind: CaseIterable {
+        case terms
+        case privacy
+        case licenses
+        case credits
+
+        var title: String {
+            switch self {
+            case .terms: "利用規約"
+            case .privacy: "プライバシー"
+            case .licenses: "ライセンス"
+            case .credits: "クレジット"
+            }
+        }
+    }
+
+    let id = UUID()
+    let kind: Kind
     let title: String
     let version: String
     let effectiveDate: String
-    let author: String
-    let work: String
-    let license: String
-    let linkStatus: String
+    let url: URL
 
-    static let editableSamples: [LegalSample] = [
-        .init(
-            id: "sample-terms",
-            title: "利用規約（サンプル・公開前）",
-            version: "v0.0-sample",
-            effectiveDate: "YYYY-MM-DD に置き換え",
-            author: "法務承認後の事業者名に置き換え",
-            work: "正式な利用規約",
-            license: "該当する公開条件に置き換え",
-            linkStatus: "正式URL: 未公開（この行はリンクではありません）"
-        ),
-        .init(
-            id: "sample-privacy",
-            title: "プライバシー（サンプル・公開前）",
-            version: "v0.0-sample",
-            effectiveDate: "YYYY-MM-DD に置き換え",
-            author: "個人情報取扱責任者に置き換え",
-            work: "正式なプライバシーポリシー",
-            license: "公開条件に置き換え",
-            linkStatus: "正式URL: 未公開（この行はリンクではありません）"
-        ),
-        .init(
-            id: "sample-license",
-            title: "ライセンス（サンプル・公開前）",
-            version: "v0.0-sample",
-            effectiveDate: "YYYY-MM-DD に置き換え",
-            author: "コンテンツ提供者名に置き換え",
-            work: "デッキまたはアセット名に置き換え",
-            license: "ライセンス名と条件に置き換え",
-            linkStatus: "ライセンスURL: 未公開（この行はリンクではありません）"
-        ),
-        .init(
-            id: "sample-credit",
-            title: "クレジット（サンプル・公開前）",
-            version: "v0.0-sample",
-            effectiveDate: "YYYY-MM-DD に置き換え",
-            author: "著作者名に置き換え",
-            work: "作品名・素材名に置き換え",
-            license: "利用許諾またはライセンスに置き換え",
-            linkStatus: "出典URL: 未公開（この行はリンクではありません）"
-        )
-    ]
+    // Add only legal-approved documents here. Drafts and unverified asset records stay hidden.
+    static let publishedDocuments: [LegalDocument] = []
 }
 
-private struct LegalSampleRow: View {
-    let sample: LegalSample
+private struct LegalDocumentRow: View {
+    let document: LegalDocument
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            Text(sample.title)
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 4) {
+            Text(document.title)
                 .foregroundStyle(AppStyle.ink)
-            Text("版: \(sample.version) ・施行日: \(sample.effectiveDate)")
+            Text("\(document.version) ・施行日 \(document.effectiveDate)")
                 .font(.footnote)
                 .foregroundStyle(AppStyle.muted)
-            Text("著作者・提供者: \(sample.author)")
-            Text("作品・対象: \(sample.work)")
-            Text("ライセンス: \(sample.license)")
-            Text(sample.linkStatus)
-                .font(.footnote)
-                .foregroundStyle(.orange)
         }
-        .font(.subheadline)
+    }
+}
+
+private struct LegalUnavailableRow: View {
+    let title: String
+    let detail: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .foregroundStyle(AppStyle.ink)
+            Text(detail)
+                .font(.footnote)
+                .foregroundStyle(AppStyle.muted)
+        }
         .accessibilityElement(children: .combine)
     }
 }
