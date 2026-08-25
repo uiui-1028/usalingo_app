@@ -56,6 +56,11 @@ struct DeckProgressSummary {
     }
 }
 
+struct SavedAnswer {
+    let progress: LearningProgress
+    let previousProgress: LearningProgress?
+}
+
 enum StudyMode: String, CaseIterable, Identifiable, Hashable {
     case newOnly
     case reviewOnly
@@ -237,10 +242,15 @@ final class StudyService {
 
     @discardableResult
     func saveAnswer(card: WordCard, isCorrect: Bool, session: AuthSession) async throws -> LearningProgress {
+        try await saveAnswerWithUndo(card: card, isCorrect: isCorrect, session: session).progress
+    }
+
+    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool, session: AuthSession) async throws -> SavedAnswer {
         guard let cardId = card.cardId else {
             throw SupabaseError.badResponse("Learning progress requires a card_id")
         }
-        let current = try await fetchLearningProgress(cardId: cardId, session: session)
+        let previousProgress = try await fetchLearningProgress(cardId: cardId, session: session)
+        let current = previousProgress
             ?? LearningProgress.initial(userId: session.user.id, cardId: cardId)
         let progress = current.marking(isCorrect: isCorrect)
 
@@ -252,7 +262,35 @@ final class StudyService {
             body: progress,
             prefer: "resolution=merge-duplicates,return=representation"
         )
-        return rows.first ?? progress
+        return SavedAnswer(progress: rows.first ?? progress, previousProgress: previousProgress)
+    }
+
+    func restoreLearningProgress(
+        cardId: Int,
+        previousProgress: LearningProgress?,
+        session: AuthSession
+    ) async throws {
+        if let previousProgress {
+            let _: [LearningProgress] = try await request(
+                path: "user_card_progress",
+                method: .post,
+                queryItems: [URLQueryItem(name: "on_conflict", value: "user_id,card_id")],
+                accessToken: session.accessToken,
+                body: previousProgress,
+                prefer: "resolution=merge-duplicates,return=representation"
+            )
+            return
+        }
+
+        try await execute(
+            path: "user_card_progress",
+            method: .delete,
+            queryItems: [
+                URLQueryItem(name: "user_id", value: "eq.\(session.user.id)"),
+                URLQueryItem(name: "card_id", value: "eq.\(cardId)")
+            ],
+            accessToken: session.accessToken
+        )
     }
 
     func fetchLearningProgress(cardId: Int, session: AuthSession) async throws -> LearningProgress? {
