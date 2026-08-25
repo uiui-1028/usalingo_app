@@ -6,13 +6,20 @@ final class AppState: ObservableObject {
     @Published var isRestoringSession = true
     @Published var isResettingPassword = false
     @Published var isShellChromeHidden = false
+    @Published private(set) var initialLearningProfile: InitialLearningProfile?
     @Published private(set) var studyDataVersion = 0
 
     let designSettings = DesignSettings()
 
     private let authService = AuthService()
+    private let initialLearningProfileStore: any InitialLearningProfileStoring
 
-    init(restoresSession: Bool = true) {
+    init(
+        restoresSession: Bool = true,
+        initialLearningProfileStore: any InitialLearningProfileStoring = InitialLearningProfileStore()
+    ) {
+        self.initialLearningProfileStore = initialLearningProfileStore
+        initialLearningProfile = initialLearningProfileStore.load()
         guard restoresSession else {
             isRestoringSession = false
             return
@@ -62,6 +69,11 @@ final class AppState: ObservableObject {
 
     func markStudyDataChanged() {
         studyDataVersion += 1
+    }
+
+    func completeInitialLearningProfile(_ profile: InitialLearningProfile) throws {
+        try initialLearningProfileStore.save(profile)
+        initialLearningProfile = profile
     }
 
     private func restoreSession() async {
