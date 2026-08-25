@@ -1,0 +1,4 @@
+interface:
+  display_name: "Usalingo Git Cleanup"
+  short_description: "マージ後と週次のGit残り物を安全に点検・整理する"
+  default_prompt: "$usalingo-git-cleanup を使い、main・branch・worktreeを監査し、取り込み済みだけを安全に整理してください。"
