@@ -34,9 +34,12 @@
 		A1000000000000000000001C /* DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* DesignSettings.swift */; };
 		A1000000000000000000001D /* InitialLearningProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001D /* InitialLearningProfile.swift */; };
 		A1000000000000000000001E /* InitialLearningProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001E /* InitialLearningProfileView.swift */; };
+		A1000000000000000000001F /* SwipeTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001F /* SwipeTutorialView.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
 		B10000000000000000000003 /* InitialLearningProfileTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000004 /* InitialLearningProfileTests.swift */; };
+		B10000000000000000000004 /* AuthTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* AuthTransportTests.swift */; };
+		B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* AuthConfirmationTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -80,10 +83,13 @@
 		A2000000000000000000001C /* DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
 		A2000000000000000000001D /* InitialLearningProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/InitialLearningProfile.swift; sourceTree = "<group>"; };
 		A2000000000000000000001E /* InitialLearningProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Onboarding/InitialLearningProfileView.swift; sourceTree = "<group>"; };
+		A2000000000000000000001F /* SwipeTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/SwipeTutorialView.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000004 /* InitialLearningProfileTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialLearningProfileTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000005 /* AuthTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTransportTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000006 /* AuthConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfirmationTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -144,6 +150,7 @@
 				A2000000000000000000001A /* WordEditSheet.swift */,
 				A2000000000000000000001B /* TagSheet.swift */,
 				A2000000000000000000001E /* InitialLearningProfileView.swift */,
+				A2000000000000000000001F /* SwipeTutorialView.swift */,
 				A20000000000000000000012 /* Info.plist */,
 			);
 			path = UsalingoIOS;
@@ -164,6 +171,8 @@
 				B20000000000000000000001 /* LearningProgressTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
 				B20000000000000000000004 /* InitialLearningProfileTests.swift */,
+				B20000000000000000000005 /* AuthTransportTests.swift */,
+				B20000000000000000000006 /* AuthConfirmationTests.swift */,
 			);
 			path = UsalingoIOSTests;
 			sourceTree = "<group>";
@@ -274,6 +283,7 @@
 				A1000000000000000000001C /* DesignSettings.swift in Sources */,
 				A1000000000000000000001D /* InitialLearningProfile.swift in Sources */,
 				A1000000000000000000001E /* InitialLearningProfileView.swift in Sources */,
+				A1000000000000000000001F /* SwipeTutorialView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -284,6 +294,8 @@
 				B10000000000000000000001 /* LearningProgressTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
 				B10000000000000000000003 /* InitialLearningProfileTests.swift in Sources */,
+				B10000000000000000000004 /* AuthTransportTests.swift in Sources */,
+				B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
