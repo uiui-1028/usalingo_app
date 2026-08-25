@@ -5,6 +5,7 @@ struct ProfileDashboardView: View {
     @State private var stats = StudyStats.empty
     @State private var profile = UserProfile(userId: "", nickname: nil, plan: "free")
     @State private var isEditingProfile = false
+    @State private var isShowingLegalSamples = false
     @State private var message = ""
 
     private let studyService = StudyService()
@@ -26,6 +27,18 @@ struct ProfileDashboardView: View {
                     .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.plain)
+                Button {
+                    isShowingLegalSamples = true
+                } label: {
+                    ProfileTile(
+                        title: "法務・ライセンス",
+                        symbol: "doc.text.magnifyingglass",
+                        color: .blue
+                    )
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.plain)
+                .accessibilityHint("公開前のサンプルを含む法務・ライセンス画面を開きます")
                 ProfileTile(title: "\(stats.studiedCount)", symbol: "sparkles", color: .purple)
                 ProfileTile(title: "\(stats.totalReviews)", symbol: "checkmark.circle.fill", color: .green)
             }
@@ -59,6 +72,9 @@ struct ProfileDashboardView: View {
                 await saveNickname(nickname)
             }
             .presentationDetents([.medium])
+        }
+        .sheet(isPresented: $isShowingLegalSamples) {
+            LegalSamplesView()
         }
     }
 
@@ -100,6 +116,139 @@ struct ProfileDashboardView: View {
         } catch {
             message = "ユーザー名を保存できませんでした。"
         }
+    }
+}
+
+private struct LegalSamplesView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    Label("サンプルデータ・公開前", systemImage: "testtube.2")
+                        .font(.headline)
+                        .foregroundStyle(.orange)
+                    Text("これは画面確認用の見本です。正式な文書、著作者情報、URL、問い合わせ先に置き換えるまで公開しないでください。")
+                        .font(.subheadline)
+                        .foregroundStyle(AppStyle.muted)
+                        .accessibilityLabel("サンプルデータ、公開前です。正式な文書に置き換えるまで公開しないでください。")
+                }
+
+                Section("文書とクレジットの見本") {
+                    ForEach(LegalSample.editableSamples) { sample in
+                        LegalSampleRow(sample: sample)
+                    }
+                }
+
+                Section("問い合わせ先の見本") {
+                    VStack(alignment: .leading, spacing: 5) {
+                        Text("サンプル問い合わせ先（公開前）")
+                            .foregroundStyle(AppStyle.ink)
+                        Text("support@example.invalid")
+                            .font(.footnote.monospaced())
+                            .foregroundStyle(AppStyle.muted)
+                        Text("実際のメールは送信しません。正式な窓口へ差し替えてください。")
+                            .font(.footnote)
+                            .foregroundStyle(AppStyle.muted)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+
+                Section {
+                    Text("編集場所: ProfileDashboardView.swift の LegalSample.editableSamples。公開前にサンプルを削除し、法務承認済みの値へ置き換えます。")
+                        .font(.footnote)
+                        .foregroundStyle(AppStyle.muted)
+                }
+            }
+            .navigationTitle("法務・ライセンス")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("閉じる") { dismiss() }
+                        .accessibilityLabel("法務・ライセンス画面を閉じる")
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Sample data only
+// Replace every value below with legal-approved records before release.
+private struct LegalSample: Identifiable {
+    let id: String
+    let title: String
+    let version: String
+    let effectiveDate: String
+    let author: String
+    let work: String
+    let license: String
+    let linkStatus: String
+
+    static let editableSamples: [LegalSample] = [
+        .init(
+            id: "sample-terms",
+            title: "利用規約（サンプル・公開前）",
+            version: "v0.0-sample",
+            effectiveDate: "YYYY-MM-DD に置き換え",
+            author: "法務承認後の事業者名に置き換え",
+            work: "正式な利用規約",
+            license: "該当する公開条件に置き換え",
+            linkStatus: "正式URL: 未公開（この行はリンクではありません）"
+        ),
+        .init(
+            id: "sample-privacy",
+            title: "プライバシー（サンプル・公開前）",
+            version: "v0.0-sample",
+            effectiveDate: "YYYY-MM-DD に置き換え",
+            author: "個人情報取扱責任者に置き換え",
+            work: "正式なプライバシーポリシー",
+            license: "公開条件に置き換え",
+            linkStatus: "正式URL: 未公開（この行はリンクではありません）"
+        ),
+        .init(
+            id: "sample-license",
+            title: "ライセンス（サンプル・公開前）",
+            version: "v0.0-sample",
+            effectiveDate: "YYYY-MM-DD に置き換え",
+            author: "コンテンツ提供者名に置き換え",
+            work: "デッキまたはアセット名に置き換え",
+            license: "ライセンス名と条件に置き換え",
+            linkStatus: "ライセンスURL: 未公開（この行はリンクではありません）"
+        ),
+        .init(
+            id: "sample-credit",
+            title: "クレジット（サンプル・公開前）",
+            version: "v0.0-sample",
+            effectiveDate: "YYYY-MM-DD に置き換え",
+            author: "著作者名に置き換え",
+            work: "作品名・素材名に置き換え",
+            license: "利用許諾またはライセンスに置き換え",
+            linkStatus: "出典URL: 未公開（この行はリンクではありません）"
+        )
+    ]
+}
+
+private struct LegalSampleRow: View {
+    let sample: LegalSample
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(sample.title)
+                .font(.headline)
+                .foregroundStyle(AppStyle.ink)
+            Text("版: \(sample.version) ・施行日: \(sample.effectiveDate)")
+                .font(.footnote)
+                .foregroundStyle(AppStyle.muted)
+            Text("著作者・提供者: \(sample.author)")
+            Text("作品・対象: \(sample.work)")
+            Text("ライセンス: \(sample.license)")
+            Text(sample.linkStatus)
+                .font(.footnote)
+                .foregroundStyle(.orange)
+        }
+        .font(.subheadline)
+        .accessibilityElement(children: .combine)
     }
 }
 
