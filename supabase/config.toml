@@ -278,6 +278,11 @@ skip_nonce_check = false
 [auth.web3.solana]
 enabled = false
 
+[functions.delete-user-account]
+# The handler validates either the caller JWT with Auth or the server secret for
+# the expiry purge path. This also supports current non-JWT secret keys.
+verify_jwt = false
+
 # Use Firebase Auth as a third-party provider alongside Supabase Auth.
 [auth.third_party.firebase]
 enabled = false
