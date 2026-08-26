@@ -43,7 +43,7 @@ Usalingoは、忘却曲線アルゴリズムを活用した効率的な英語学
 1. リポジトリをクローン
 
 ```bash
-git clone https://github.com/uiui-1028/usalingo_app_flutter.git usalingo_app
+git clone https://github.com/uiui-1028/usalingo_app.git usalingo_app
 cd usalingo_app
 ```
 
