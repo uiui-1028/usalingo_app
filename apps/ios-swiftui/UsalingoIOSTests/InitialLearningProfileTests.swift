@@ -193,6 +193,7 @@ final class InitialLearningProfileTests: XCTestCase {
 
 private struct FailingProfileStore: InitialLearningProfileStoring {
     func load() -> InitialLearningProfile? { nil }
+    func clear() {}
 
     func save(_ profile: InitialLearningProfile) throws {
         throw InitialLearningProfileStoreError.couldNotPersist

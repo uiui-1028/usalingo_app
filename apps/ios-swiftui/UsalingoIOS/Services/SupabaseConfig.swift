@@ -15,6 +15,10 @@ enum SupabaseConfig {
         URL(string: "\(supabaseURL)/auth/v1")!
     }
 
+    static var functionsURL: URL {
+        URL(string: "\(supabaseURL)/functions/v1")!
+    }
+
     static func publicStorageURL(for path: String) -> URL? {
         URL(string: "\(supabaseURL)/storage/v1/object/public/\(path)")
     }

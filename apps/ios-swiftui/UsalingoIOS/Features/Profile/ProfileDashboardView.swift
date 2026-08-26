@@ -390,6 +390,7 @@ private struct AccountSecuritySheet: View {
     @State private var newEmail = ""
     @State private var message = ""
     @State private var isLoading = false
+    @State private var isDeletingAccount = false
 
     var body: some View {
         NavigationStack {
@@ -423,6 +424,17 @@ private struct AccountSecuritySheet: View {
                         .foregroundStyle(AppStyle.muted)
                 }
 
+                Section("退会") {
+                    Button(role: .destructive) {
+                        isDeletingAccount = true
+                    } label: {
+                        Label("アカウントを削除", systemImage: "person.crop.circle.badge.minus")
+                    }
+                    Text("退会後はログインできなくなります。課金中のサービスがある場合、解約は別の操作です。")
+                        .font(.footnote)
+                        .foregroundStyle(AppStyle.muted)
+                }
+
                 if !message.isEmpty {
                     Section {
                         Text(message)
@@ -437,6 +449,10 @@ private struct AccountSecuritySheet: View {
                     Button("閉じる") { dismiss() }
                 }
             }
+        }
+        .sheet(isPresented: $isDeletingAccount) {
+            AccountDeletionSheet()
+                .environmentObject(appState)
         }
     }
 
@@ -472,6 +488,90 @@ private struct AccountSecuritySheet: View {
             try await appState.updateEmail(newEmail, currentPassword: currentPassword)
             message = "2つのメールアドレスに確認メールを送りました。両方を開いてください。"
             newEmail = ""
+        } catch {
+            message = error.localizedDescription
+        }
+    }
+}
+
+struct AccountDeletionSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var appState: AppState
+    @State private var password = ""
+    @State private var confirmation = ""
+    @State private var acknowledged = false
+    @State private var message = ""
+    @State private var requestID = UUID()
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("退会前に確認してください") {
+                    Text("退会すると、すべての端末でログインできなくなり、学習記録・プロフィール・単語設定は通常の画面から見られなくなります。")
+                    Text("データは復元のため365日間停止状態で保持され、その後に削除されます。最終削除後は元に戻せません。")
+                    Text("App Storeなどの課金契約がある場合、退会だけでは解約されません。課金元で別に解約してください。")
+                        .font(.footnote)
+                        .foregroundStyle(AppStyle.muted)
+                }
+
+                Section("本人確認") {
+                    SecureField("現在のパスワード", text: $password)
+                        .textContentType(.password)
+                    TextField("確認のため「退会」と入力", text: $confirmation)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    Toggle("削除内容と元に戻せない条件を確認しました", isOn: $acknowledged)
+                }
+
+                Section {
+                    Button(role: .destructive) {
+                        Task { await submit() }
+                    } label: {
+                        HStack {
+                            if appState.isDeletingAccount {
+                                ProgressView()
+                            }
+                            Text(appState.isDeletingAccount ? "退会手続き中…" : "最終確認して退会する")
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                    .disabled(!canSubmit)
+                    .accessibilityHint("本人確認後に退会状態へ変更します。最終削除までは365日間保持されます。")
+                }
+
+                if !message.isEmpty {
+                    Section("結果") {
+                        Text(message)
+                            .foregroundStyle(.red)
+                            .accessibilityLabel("退会手続きの結果。\(message)")
+                    }
+                }
+            }
+            .navigationTitle("アカウントを削除")
+            .navigationBarTitleDisplayMode(.inline)
+            .interactiveDismissDisabled(appState.isDeletingAccount)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("閉じる") { dismiss() }
+                        .disabled(appState.isDeletingAccount)
+                }
+            }
+        }
+    }
+
+    private var canSubmit: Bool {
+        !appState.isDeletingAccount && !password.isEmpty && confirmation == "退会" && acknowledged
+    }
+
+    @MainActor
+    private func submit() async {
+        message = ""
+        do {
+            try await appState.deleteAccount(
+                password: password,
+                confirmation: confirmation,
+                requestID: requestID
+            )
         } catch {
             message = error.localizedDescription
         }

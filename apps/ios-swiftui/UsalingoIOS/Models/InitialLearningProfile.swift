@@ -157,6 +157,7 @@ enum InitialLearningProfileStoreError: LocalizedError {
 protocol InitialLearningProfileStoring {
     func load() -> InitialLearningProfile?
     func save(_ profile: InitialLearningProfile) throws
+    func clear()
 }
 
 struct InitialLearningProfileStore: InitialLearningProfileStoring {
@@ -179,5 +180,9 @@ struct InitialLearningProfileStore: InitialLearningProfileStoring {
         let data = try JSONEncoder().encode(profile)
         defaults.set(data, forKey: Keys.profile)
         guard load() == profile else { throw InitialLearningProfileStoreError.couldNotPersist }
+    }
+
+    func clear() {
+        defaults.removeObject(forKey: Keys.profile)
     }
 }
