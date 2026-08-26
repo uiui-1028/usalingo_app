@@ -45,6 +45,14 @@ struct RootView: View {
                 .zIndex(1)
             }
         }
+        .alert("退会手続きが完了しました", isPresented: Binding(
+            get: { appState.accountDeletionNotice != nil },
+            set: { if !$0 { appState.clearAccountDeletionNotice() } }
+        )) {
+            Button("確認") { appState.clearAccountDeletionNotice() }
+        } message: {
+            Text(appState.accountDeletionNotice ?? "")
+        }
     }
 }
 
