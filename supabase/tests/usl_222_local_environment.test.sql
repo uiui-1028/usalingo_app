@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(34);
+select plan(35);
 
 select ok(to_regclass('auth.users') is not null, 'Auth schema is available');
 select ok(to_regclass('public.users') is not null, 'users exists');
@@ -127,6 +127,11 @@ select is(
   ),
   array['audio/mpeg']::text[],
   'content-audio accepts only MPEG audio'
+);
+
+select is_empty(
+  $$select id from storage.objects$$,
+  'local DB tests contain no image or audio objects'
 );
 
 select results_eq(

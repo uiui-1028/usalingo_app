@@ -1,5 +1,5 @@
 > [!WARNING]
-> これは旧DB・SQLite・旧学習進捗を含む履歴資料です。現行仕様として使用しません。現行の正本は [Anki型データモデルと移行設計](../../architecture/anki-data-model.md)、[公式コンテンツのDB・Storage契約](../../architecture/official-content-contract.md)、[Supabase運用](../../supabase/README.md)、[`supabase/migrations/`](../../../supabase/migrations/) です。旧テーブル、移行元、切り戻しを調査できるよう本文を残しています。
+> これは旧DB・SQLite・旧学習進捗を含む履歴資料です。現行仕様として使用しません。現行の正本は [Anki型データモデルと移行設計](../../architecture/anki-data-model.md)、[公式コンテンツのDB・Storage契約](../../architecture/official-content-contract.md)、[Supabase運用](../../README.md)、[`supabase/migrations/`](../../../supabase/migrations/) です。旧テーブル、移行元、切り戻しを調査できるよう本文を残しています。
 
 ## ***【 usalingo_04_03｜データベース設計 】***
 

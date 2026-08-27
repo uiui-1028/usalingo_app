@@ -156,7 +156,7 @@ LIMIT 100
 
 完了後の2回目も同じSQLを使い、次候補と待機中の`will`を同時に取得する。
 レビュー途中の次候補照会は行わない。3回目以降が必要な例外は
-`docs/rules/codex-credit-optimization.md`の「TaskspaceのSQL予算」に従う。
+`docs/operations/credit-optimization.md`の「TaskspaceのSQL予算」に従う。
 
 ### 作業権を取るプロパティ
 

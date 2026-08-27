@@ -48,7 +48,7 @@ xcodebuild -project UsalingoIOS.xcodeproj -scheme UsalingoIOS -destination 'plat
 ## Quality gate
 
 Before calling a build ready for release, record the applicable evidence in
-[the quality gate](../../docs/release-quality-gate.md). The checklist separates
+[the quality gate](../../docs/operations/release-quality-gate.md). The checklist separates
 ordinary development checks from human-owned release and production checks.
 
 ## Auth Note
