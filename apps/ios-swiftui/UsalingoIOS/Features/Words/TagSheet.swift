@@ -11,8 +11,6 @@ struct TagSheet: View {
     @State private var isLoading = false
     @State private var isSaving = false
 
-    private let studyService = StudyService()
-
     init(word: WordCard, onSaved: ((WordCard) -> Void)? = nil) {
         self.word = word
         self.onSaved = onSaved
@@ -109,11 +107,12 @@ struct TagSheet: View {
     }
 
     private func load() async {
-        guard let session = appState.session else { return }
         isLoading = true
         defer { isLoading = false }
         do {
-            selectedTags = Set(try await studyService.fetchTags(wordId: word.wordId, session: session))
+            if let savedTags = try await appState.studyDataSource.fetchTags(wordId: word.wordId) {
+                selectedTags = Set(savedTags)
+            }
             message = ""
         } catch {
             message = "タグの読み込みに失敗しました。"
@@ -121,11 +120,10 @@ struct TagSheet: View {
     }
 
     private func save() async {
-        guard let session = appState.session else { return }
         isSaving = true
         defer { isSaving = false }
         do {
-            try await studyService.saveTags(selectedTags, wordId: word.wordId, session: session)
+            try await appState.studyDataSource.saveTags(selectedTags, wordId: word.wordId)
             onSaved?(word.withTags(selectedTags.sorted()))
             dismiss()
         } catch {

@@ -15,8 +15,6 @@ struct WordEditSheet: View {
     @State private var message = ""
     @State private var isSaving = false
 
-    private let studyService = StudyService()
-
     init(word: WordCard, onSaved: ((WordCard) -> Void)? = nil) {
         self.word = word
         self.onSaved = onSaved
@@ -77,7 +75,6 @@ struct WordEditSheet: View {
     }
 
     private func save() async {
-        guard let session = appState.session else { return }
         let trimmedText = text.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedMeaning = meaning.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedText.isEmpty, !trimmedMeaning.isEmpty else {
@@ -88,8 +85,7 @@ struct WordEditSheet: View {
         isSaving = true
         defer { isSaving = false }
 
-        let override = UserWordOverride(
-            userId: session.user.id,
+        let payload = WordOverridePayload(
             wordId: word.wordId,
             wordText: trimmedText,
             definitionJapanese: trimmedMeaning,
@@ -99,7 +95,7 @@ struct WordEditSheet: View {
         )
 
         do {
-            let saved = try await studyService.saveWordOverride(override, session: session)
+            let saved = try await appState.studyDataSource.saveWordOverride(payload)
             onSaved?(saved)
             dismiss()
         } catch {
