@@ -117,10 +117,10 @@
 
 ## 影響する場所
 
-- [`usalingo-simple-product-plan.md`](../usalingo-simple-product-plan.md)
+- [`usalingo-simple-product-plan.md`](plan.md)
 - [`anki-aligned-spec.md`](../architecture/anki-aligned-spec.md)
-- [`usl-247-first-experience.md`](usl-247-first-experience.md)
-- [`03-shortest-success-flow.md`](../workflow-records/03-shortest-success-flow.md)
+- [`usl-247-first-experience.md`](../decisions/usl-247-first-experience.md)
+- [`03-shortest-success-flow.md`](../archive/workflow-records/03-shortest-success-flow.md)
 - `apps/ios-swiftui/UsalingoIOS/Features/Onboarding/`
 - `apps/ios-swiftui/UsalingoIOS/Features/Study/`
 

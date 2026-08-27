@@ -28,7 +28,7 @@ Usalingoは、忘却曲線アルゴリズムを活用した効率的な英語学
 - [Anki型学習コア仕様](docs/architecture/anki-aligned-spec.md)
 - [Anki型データモデル](docs/architecture/anki-data-model.md)
 - [公式コンテンツ契約](docs/architecture/official-content-contract.md)
-- [Supabase運用](docs/supabase/README.md)
+- [Supabase運用](docs/README.md)
 
 ## 🚀 セットアップ
 
@@ -89,7 +89,7 @@ xcodebuild -project UsalingoIOS.xcodeproj \
 
 ### コーディング規約
 
-詳細は `docs/rules/` を参照してください。
+詳細は `docs/operations/` を参照してください。
 
 ## 🤝 貢献
 

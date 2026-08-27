@@ -15,7 +15,7 @@ UsalingoのGit残り物を、完成済みの機能や人の作業を失わずに
 
 ## 監査
 
-変更する前に `docs/rules/codex-credit-optimization.md` を読み、次を確認する。
+変更する前に `docs/operations/credit-optimization.md` を読み、次を確認する。
 
 ```bash
 git status --short --branch

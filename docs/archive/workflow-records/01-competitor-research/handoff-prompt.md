@@ -1,7 +1,7 @@
 # 競合追加調査 AI引き継ぎプロンプト
 
 > [!WARNING]
-> このプロンプトは2026-08-27の決定前に作成した調査用履歴です。現在の決定は[`usalingo-core-workflow-requirements.md`](../../decisions/usalingo-core-workflow-requirements.md)を優先してください。
+> このプロンプトは2026-08-27の決定前に作成した調査用履歴です。現在の決定は[`usalingo-core-workflow-requirements.md`](../../../product/workflow.md)を優先してください。
 
 > [!TIP]
 > 下のコードブロックを別AIへそのまま貼り、可能なら「読む資料」に挙げたMarkdownファイルも添付してください。
@@ -47,12 +47,12 @@ Usalingoという「イラスト付き英単語帳」アプリのワークフロ
 
 1. docs/usalingo-simple-product-plan.md
 2. docs/usalingo-workflow-planning-execution-plan.md
-3. docs/workflow-records/01-competitor-research/README.md
-4. docs/workflow-records/01-competitor-research/anki.md
-5. docs/workflow-records/01-competitor-research/quizlet.md
-6. docs/workflow-records/01-competitor-research/tanzam.md
-7. docs/workflow-records/01-competitor-research/mikan.md
-8. docs/workflow-records/02-patterns.md
+3. docs/archive/workflow-records/01-competitor-research/README.md
+4. docs/archive/workflow-records/01-competitor-research/anki.md
+5. docs/archive/workflow-records/01-competitor-research/quizlet.md
+6. docs/archive/workflow-records/01-competitor-research/tanzam.md
+7. docs/archive/workflow-records/01-competitor-research/mikan.md
+8. docs/archive/workflow-records/02-patterns.md
 
 資料を読めない場合は、上の「変えない方向」と「既存調査の要約」を基準に進めてください。
 

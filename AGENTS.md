@@ -5,7 +5,10 @@
 Before substantial repository exploration, project planning, or using Notion,
 web search, GitHub, or another external connector, read:
 
-- `docs/rules/codex-credit-optimization.md`
+- `docs/README.md` — 文書の入口。どの棚に何があるか
+- `docs/operations/credit-optimization.md` — 調査と出力のルール
+
+この2つ以外の文書は、必要になったときだけ開きます。
 
 For a simple self-contained question, the summary in this file is sufficient.
 Use the smallest reliable amount of context, but never trade away correctness,

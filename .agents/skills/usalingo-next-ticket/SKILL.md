@@ -9,7 +9,7 @@ description: UsalingoのVer.2.0 Taskspaceから着手可能な1件を取得し�
 
 ## 優先するルール
 
-1. リポジトリの共通指示を最初に読む。Codexは `AGENTS.md`、Claude Codeは `CLAUDE.md` を読み、`CLAUDE.md` が `AGENTS.md` をimportしている場合は同じ内容を重複して読まない。続けて `docs/rules/codex-credit-optimization.md` を読む。
+1. リポジトリの共通指示を最初に読む。Codexは `AGENTS.md`、Claude Codeは `CLAUDE.md` を読み、`CLAUDE.md` が `AGENTS.md` をimportしている場合は同じ内容を重複して読まない。続けて `docs/operations/credit-optimization.md` を読む。
 2. Notionの現在のスキーマ、ユーザーの最新決定、このスキル、`../usalingo-project-manager/SKILL.md` の順に優先する。project-managerはNotion設定と文書テンプレートに使い、削除済みの `approval` など古い記述は採用しない。
 3. Supabase、GitHub、文書など別スキルの対象に入ったら、利用可能な該当スキルも使う。
 4. 現行アプリは `apps/ios-swiftui/` とし、Flutter資料を実装の正本にしない。

@@ -3,7 +3,7 @@
 ## 正本
 
 - 実行可能なSQLは `supabase/migrations/` に置く。
-- 運用案内は `docs/supabase/README.md` に置く。
+- 運用案内は `docs/operations/supabase-local-development.md` に置く。
 - SQL本文を `docs/` に複製しない。
 
 ## 変更手順

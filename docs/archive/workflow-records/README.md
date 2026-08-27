@@ -5,8 +5,8 @@
 
 ## このフォルダーの役割
 
-- [`../usalingo-simple-product-plan.md`](../usalingo-simple-product-plan.md): 変えない大きな方向
-- [`../usalingo-workflow-planning-execution-plan.md`](../usalingo-workflow-planning-execution-plan.md): 決める順番と方法
+- [`../usalingo-simple-product-plan.md`](../../product/plan.md): 変えない大きな方向
+- [`../usalingo-workflow-planning-execution-plan.md`](00-execution-plan.md): 決める順番と方法
 - このフォルダー: 調査した事実、感想、候補、決定、未確認事項
 
 > [!NOTE]
@@ -50,7 +50,7 @@ AIは記録を整理して2〜3案を出し、人間は大切な入口だけを�
 
 ### 2〜7. Usalingoの決定
 
-- [`../decisions/usalingo-core-workflow-requirements.md`](../decisions/usalingo-core-workflow-requirements.md) — 採用した学習ワークフローと初期機能要件
+- [`../decisions/usalingo-core-workflow-requirements.md`](../../product/workflow.md) — 採用した学習ワークフローと初期機能要件
 - [`02-patterns.md`](02-patterns.md)
 - [`03-shortest-success-flow.md`](03-shortest-success-flow.md)
 - [`04-mvp-branches.md`](04-mvp-branches.md)

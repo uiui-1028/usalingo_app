@@ -43,6 +43,6 @@
 ## 現在の根拠と範囲
 
 - 現行アプリの対象は `apps/ios-swiftui/`。テストの基本コマンドは同ディレクトリのREADMEを参照する。
-- 現行の学習コアは、公式コンテンツの閲覧、デッキ学習、`user_id + card_id` の進捗保存、重要処理の自動テストまでである。正式なUIUX、オフライン、App Store対応は未実施の別フェーズである。詳細は [Anki型学習コア仕様](architecture/anki-aligned-spec.md) を参照する。
-- SupabaseのSQLとRLSの正本は `supabase/migrations/`。適用と検証の運用は [Supabase運用](supabase/README.md) を参照する。
+- 現行の学習コアは、公式コンテンツの閲覧、デッキ学習、`user_id + card_id` の進捗保存、重要処理の自動テストまでである。正式なUIUX、オフライン、App Store対応は未実施の別フェーズである。詳細は [Anki型学習コア仕様](../architecture/anki-aligned-spec.md) を参照する。
+- SupabaseのSQLとRLSの正本は `supabase/migrations/`。適用と検証の運用は [Supabase運用](../README.md) を参照する。
 - このチェックリストは公開可否を自動で決めない。未確認項目がある現在の状態を「公開可能」と表示してはならない。

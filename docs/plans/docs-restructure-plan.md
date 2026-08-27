@@ -37,7 +37,7 @@
 
 3. **パスに全角記号と空白が入っている。** `Usalingo｜Specification Ver.2.0`、`Fo｜02｜Terms of Use`、`Usalingo 英単語原本データベース V5 設計書.md`。`｜` と空白は、検索、シェル、相対リンク、将来のCIで壊れます。この調査中も、実際に行数を数えるコマンドが一度失敗しました。
 
-4. **終わった作業の記録が、現行の棚に置いてある。** `workflow-records/` と `usalingo-workflow-planning-execution-plan.md` は、ワークフローを決めるための作業記録です。結論は [`decisions/usalingo-core-workflow-requirements.md`](../decisions/usalingo-core-workflow-requirements.md) に出ています。役目は終わっています。
+4. **終わった作業の記録が、現行の棚に置いてある。** `workflow-records/` と `usalingo-workflow-planning-execution-plan.md` は、ワークフローを決めるための作業記録です。結論は [`decisions/usalingo-core-workflow-requirements.md`](../product/workflow.md) に出ています。役目は終わっています。
 
 5. **成果物と文書が混ざっている。** `Fo｜02｜Terms of Use/` のPDF 5点は「読むための文書」ではなく「公開する成果物」です。
 

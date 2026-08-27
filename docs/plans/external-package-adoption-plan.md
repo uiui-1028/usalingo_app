@@ -11,7 +11,7 @@
 
 ## 前提の変更
 
-「外部パッケージへ依存せず、Apple標準フレームワークで構成する」という方針は撤回しました。新しい方針は [`technology-stack.md`](../development/technology-stack.md#外部パッケージの方針) にあります。
+「外部パッケージへ依存せず、Apple標準フレームワークで構成する」という方針は撤回しました。新しい方針は [`technology-stack.md`](../operations/technology-stack.md#外部パッケージの方針) にあります。
 
 ## 全体像
 
@@ -54,7 +54,7 @@
 
 - [`ProfileDashboardView.swift`](../../apps/ios-swiftui/UsalingoIOS/Features/Profile/ProfileDashboardView.swift) の `LegalView` は**すでに完成しています**。利用規約・プライバシー・ライセンス・クレジットの4行、公開済み文書の一覧、`ContentUnavailableView` まであります。
 - ただし `LegalDocument.publishedDocuments` が空配列のため、いま全部が「正式版は公開準備中です。」と表示されます。
-- 文面のPDFは `docs/Fo｜02｜Terms of Use/` に5点あります（利用規約、プライバシーポリシー、AIGCガイドライン、特定商取引法、著作権について）。
+- 文面のPDFは [`docs/legal/source/`](../legal/source/) に5点あります（利用規約、プライバシーポリシー、AIGCガイドライン、特定商取引法、著作権について）。
 - 問い合わせ先は未実装。アプリバージョンは `Info.plist` にキーがあるだけで、画面に出していません。
 
 つまり**この領域で新しく書くコードはごくわずか**です。残っているのは主に「決めること」と「置くこと」です。
@@ -63,7 +63,7 @@
 
 | # | 作業 | 誰が |
 |---|---|---|
-| 1 | PDF 5点を現行実装に合わせて直す。課金、ユーザー投稿・共有、プロフィール画像、13歳基準、端末識別IDの収集は現行コードに存在しないため削る。収集項目は [USL-249の表1](../research/usl-249-legal-privacy-license-inventory.md) をそのまま使う | 人間（責任者） |
+| 1 | PDF 5点を現行実装に合わせて直す。課金、ユーザー投稿・共有、プロフィール画像、13歳基準、端末識別IDの収集は現行コードに存在しないため削る。収集項目は [USL-249の表1](../legal/asset-and-privacy-inventory.md) をそのまま使う | 人間（責任者） |
 | 2 | 会社名・住所・問い合わせ窓口・配信国・対象年齢を確定する | 人間（責任者） |
 | 3 | 公開先を決めて置く。App Store Connect はプライバシーポリシーの**URL**を求めるため、アプリ内表示だけでは足りない。Supabase Storage の公開バケット、またはGitHub Pagesなどの静的ページに置く | 人間＋AI |
 | 4 | `LegalDocument.publishedDocuments` に版・施行日・URLを入れる | AI |
@@ -85,7 +85,7 @@
 
 ### 注意
 
-法的な適否は専門家が判断します。[USL-249](../research/usl-249-legal-privacy-license-inventory.md) の「公開前の確認リスト」7項目がそろうまで、旧草案をそのまま公開版として出しません。
+法的な適否は専門家が判断します。[USL-249](../legal/asset-and-privacy-inventory.md) の「公開前の確認リスト」7項目がそろうまで、旧草案をそのまま公開版として出しません。
 
 ## 領域2: 画像キャッシュ
 
@@ -188,7 +188,7 @@ SwiftDataはiOS 17標準なので、依存は増えません。SQLを直接書�
 
 学習結果をローカルへ順番に積み、通信できるようになったら順に送ります。1人が1台で使う前提なら衝突しません。守るのは順序と、二重送信しないことだけです。領域3で入れた `client_review_id` がここで効きます。
 
-同期状態は画面に常時表示しません（[core-workflow-requirements](../decisions/usalingo-core-workflow-requirements.md) で対象外と決めています）。失敗が続いたときだけ知らせます。
+同期状態は画面に常時表示しません（[core-workflow-requirements](../product/workflow.md) で対象外と決めています）。失敗が続いたときだけ知らせます。
 
 ### 4-3 本格的な双方向同期（今回やらない）
 
@@ -232,8 +232,8 @@ SwiftDataはiOS 17標準なので、依存は増えません。SQLを直接書�
 
 ## 影響する場所
 
-- [`docs/development/technology-stack.md`](../development/technology-stack.md)
-- [`docs/research/usl-249-legal-privacy-license-inventory.md`](../research/usl-249-legal-privacy-license-inventory.md)
+- [`docs/operations/technology-stack.md`](../operations/technology-stack.md)
+- [`docs/legal/asset-and-privacy-inventory.md`](../legal/asset-and-privacy-inventory.md)
 - `apps/ios-swiftui/UsalingoIOS/Features/Profile/`
 - `apps/ios-swiftui/UsalingoIOS/Features/Study/`
 - `apps/ios-swiftui/UsalingoIOS/Features/Words/`
