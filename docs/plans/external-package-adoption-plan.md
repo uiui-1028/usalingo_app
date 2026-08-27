@@ -1,6 +1,6 @@
 # 既製品採用 実行計画書（法務表示・画像キャッシュ・学習記録・オフライン）
 
-状態: **計画（未着手）**
+状態: **領域0 実装済み（開発機での実行確認待ち）。領域1以降は未着手**
 
 作成日: 2026-08-27
 
@@ -47,6 +47,23 @@
 
 - パッケージを1つ追加してコミットすると、`Package.resolved` が差分に現れる。
 - ライセンス一覧の生成コマンドが `apps/ios-swiftui/README.md` に書かれている。
+
+### 進捗（2026-08-27）
+
+| 項目 | 状態 |
+|---|---|
+| `Package.resolved` がGitへ入るか | `git check-ignore` で無視されないことを確認済み。追加設定なし |
+| LicensePlist の設定 | `apps/ios-swiftui/license_plist.yml` を追加 |
+| 生成コマンド | `scripts/generate-licenses.sh`（`--check` で古さの検出も可） |
+| 出力先 | `apps/ios-swiftui/UsalingoIOS/Resources/Licenses/Acknowledgements.md` |
+| 手順の記載 | `apps/ios-swiftui/README.md` の Dependencies と Licenses |
+| ラッパ規約 | [`technology-stack.md` の「薄いラッパの置き方」](../operations/technology-stack.md#薄いラッパの置き方) |
+
+**開発機（macOS）でやること。** LicensePlist を入れて `sh scripts/generate-licenses.sh` を1回実行し、生成された `Acknowledgements.md` をコミットします。いま依存はゼロなので、生成される一覧は空です。それが正しい状態です。
+
+1つ目の完了のしるしは、依存がまだ無いため確認できていません。領域2でNukeを追加するときに、同じコミットへ `Package.resolved` と `Acknowledgements.md` の両方が現れることで確認します。
+
+生成物をアプリ内の「ライセンス」画面から読む配線は、計画どおり領域1で行います。`Resources/Licenses/` をバンドルへ入れるための `project.pbxproj` の変更も、そのときにまとめて行います。
 
 ## 領域1: 法務・ライセンス・問い合わせ・バージョン
 
