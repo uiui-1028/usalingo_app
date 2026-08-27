@@ -46,11 +46,12 @@ struct AppShellView: View {
             HStack(spacing: 10) {
                 Image(systemName: "sparkles")
                     .font(.system(size: 18, weight: .black))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(AppStyle.ink)
                     .frame(width: 34, height: 34)
-                    .background(AppStyle.accent(designSettings))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                    .shadow(color: AppStyle.shadow, radius: 0, y: 3)
+                    .background(AppStyle.surface)
+                    .overlay {
+                        Rectangle().stroke(AppStyle.line, lineWidth: 1)
+                    }
 
                 VStack(alignment: .leading, spacing: 0) {
                     Text("Usalingo")
@@ -83,8 +84,7 @@ struct AppShellView: View {
                     .foregroundStyle(selectedTab == index ? .white : AppStyle.muted)
                     .frame(width: 48, height: 48)
                     .background(selectedTab == index ? tab.color : Color.clear)
-                    .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                    .shadow(color: selectedTab == index ? tab.color.opacity(0.28) : .clear, radius: 0, y: 4)
+                    .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel(tab.title)
@@ -92,12 +92,11 @@ struct AppShellView: View {
         }
         .padding(12)
         .background(AppStyle.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 28, style: .continuous)
+            RoundedRectangle(cornerRadius: 3, style: .continuous)
                 .stroke(AppStyle.line, lineWidth: 1)
         }
-        .shadow(color: AppStyle.shadow, radius: 18, y: 8)
         .padding(.horizontal, 16)
         .padding(.bottom, 20)
     }

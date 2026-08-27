@@ -9,6 +9,8 @@ struct UsalingoIOSApp: App {
             RootView()
                 .environmentObject(appState)
                 .environmentObject(appState.designSettings)
+                .tint(AppStyle.ink)
+                .preferredColorScheme(.light)
                 .onOpenURL { url in
                     appState.handleIncomingURL(url)
                 }

@@ -160,7 +160,10 @@ struct DashboardTile: View {
                         .foregroundStyle(.white)
                         .frame(width: 58, height: 58)
                         .background(color)
-                        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
+                        .overlay {
+                            Rectangle().stroke(AppStyle.line, lineWidth: 1)
+                        }
                     Text(title)
                         .font(.headline.weight(.black))
                         .foregroundStyle(AppStyle.ink)
@@ -411,42 +414,7 @@ private enum LearningDashboardWidget {
     }
 
     var color: Color {
-        switch self {
-        case .deck:
-            return AppStyle.accent
-        case .reviewReminder:
-            return AppStyle.sun
-        case .wordCounter:
-            return AppStyle.accent
-        case .studyStats:
-            return AppStyle.secondary
-        case .progressTracker:
-            return .blue
-        case .toeicScore:
-            return .red
-        case .toeicWords:
-            return .yellow
-        case .toeicTest:
-            return .indigo
-        case .toeicPlan:
-            return .teal
-        case .dailyPhrase:
-            return .cyan
-        case .situationWords:
-            return .green
-        case .pronunciation:
-            return .pink
-        case .conversation:
-            return .blue
-        case .customWords:
-            return .brown
-        case .favoriteWords:
-            return .orange
-        case .studyMemo:
-            return .gray
-        case .studyHistory:
-            return .secondary
-        }
+        AppStyle.ink
     }
 
     var gallerySubtitle: String {
