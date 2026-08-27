@@ -25,9 +25,21 @@
 		<dict>
 			<key>CFBundleTypeRole</key>
 			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.usalingo.ios.auth-callback</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>com.usalingo.ios</string>
+			</array>
+		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>com.usalingo.ios.deeplink</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>usalingo</string>
 			</array>
 		</dict>
 	</array>
@@ -35,13 +47,6 @@
 	<string>public.app-category.education</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLSchemes</key>
-			<array><string>usalingo</string></array>
-		</dict>
-	</array>
 	<key>SUPABASE_ANON_KEY</key>
 	<string>$(SUPABASE_ANON_KEY)</string>
 	<key>SUPABASE_PROJECT_REF</key>
