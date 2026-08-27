@@ -7,10 +7,24 @@ struct DesignDashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                DesignSettingRow(title: "UIテーマ設定", subtitle: "アプリ全体のテーマを変更", symbol: "paintpalette.fill") {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("ワイヤーフレーム開発モード", systemImage: "square.dashed")
+                        .font(.headline.bold())
+                    Text("機能と画面構成を固める間は、白黒・枠線中心の仮デザインで表示します。")
+                        .font(.subheadline)
+                        .foregroundStyle(AppStyle.muted)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(16)
+                .background(AppStyle.surface)
+                .overlay {
+                    Rectangle().stroke(AppStyle.ink, lineWidth: 2)
+                }
+
+                DesignSettingRow(title: "UIテーマ設定", subtitle: "現在は白黒ワイヤーフレームに固定", symbol: "paintpalette.fill") {
                     activeSheet = .theme
                 }
-                DesignSettingRow(title: "カードUI設定", subtitle: "フラッシュカードのデザインを調整", symbol: "rectangle.stack.fill") {
+                DesignSettingRow(title: "カードUI設定", subtitle: "現在は細い枠線と小さい角丸に固定", symbol: "rectangle.stack.fill") {
                     activeSheet = .card
                 }
                 DesignSettingRow(title: "アプリ挙動設定", subtitle: "フォントや触覚などを変更", symbol: "gearshape.fill") {
@@ -106,35 +120,34 @@ private struct DesignOptionSheet: View {
     }
 
     private var accentOptions: some View {
-        VStack(spacing: 12) {
-            settingButton("ピンク", "paintpalette.fill", "標準カラー", id: "pink", current: designSettings.accentName) {
-                designSettings.accentName = "pink"
+        HStack(spacing: 14) {
+            Image(systemName: "checkmark.square.fill")
+                .font(.title2)
+            VStack(alignment: .leading, spacing: 4) {
+                Text("白黒ワイヤーフレーム")
+                    .font(.headline)
+                Text("色や装飾は、画面の流れが固まってから決めます。")
+                    .font(.footnote)
+                    .foregroundStyle(AppStyle.muted)
             }
-            settingButton("ブルー", "circle.fill", "落ち着いた学習向け", id: "blue", current: designSettings.accentName) {
-                designSettings.accentName = "blue"
-            }
-            settingButton("グリーン", "circle.fill", "達成感を強める", id: "green", current: designSettings.accentName) {
-                designSettings.accentName = "green"
-            }
-            settingButton("オレンジ", "circle.fill", "あたたかく親しみやすい印象", id: "orange", current: designSettings.accentName) {
-                designSettings.accentName = "orange"
-            }
+            Spacer()
         }
+        .padding(14)
+        .background(AppStyle.surface)
+        .overlay { Rectangle().stroke(AppStyle.line) }
     }
 
     private var cardOptions: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("カード角丸")
+            Text("ワイヤーフレーム用カード")
                 .font(.headline)
-            Slider(value: $designSettings.cardCornerRadius, in: 8...30, step: 1)
-                .tint(AppStyle.accent(designSettings))
-            Text("\(Int(designSettings.cardCornerRadius)) px")
+            Text("細い黒枠・影なし・小さい角丸で固定しています。")
                 .font(.footnote)
                 .foregroundStyle(AppStyle.muted)
         }
         .padding(14)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background(AppStyle.surface)
+        .overlay { Rectangle().stroke(AppStyle.line) }
     }
 
     private var staticOptions: some View {

@@ -300,7 +300,7 @@ private struct HeatmapTile: View {
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(9), spacing: 3), count: 7), spacing: 3) {
                 ForEach(recentDays, id: \.self) { day in
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(reviewedDaySet.contains(day) ? Color.green : Color.gray.opacity(0.25))
+                        .fill(reviewedDaySet.contains(day) ? AppStyle.ink : Color.gray.opacity(0.25))
                         .frame(width: 9, height: 9)
                 }
             }
@@ -542,7 +542,7 @@ struct AccountDeletionSheet: View {
                 if !message.isEmpty {
                     Section("結果") {
                         Text(message)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(AppStyle.ink)
                             .accessibilityLabel("退会手続きの結果。\(message)")
                     }
                 }

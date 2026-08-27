@@ -20,12 +20,12 @@ struct TagSheet: View {
     }
 
     private let tags = [
-        ("重要", "star.fill", Color.yellow),
-        ("復習", "arrow.clockwise", Color.orange),
-        ("苦手", "exclamationmark.circle.fill", Color.red),
-        ("お気に入り", "heart.fill", Color.pink),
-        ("例文確認", "text.quote", Color.blue),
-        ("発音確認", "waveform", Color.green)
+        ("重要", "star.fill", AppStyle.ink),
+        ("復習", "arrow.clockwise", AppStyle.ink),
+        ("苦手", "exclamationmark.circle.fill", AppStyle.ink),
+        ("お気に入り", "heart.fill", AppStyle.ink),
+        ("例文確認", "text.quote", AppStyle.ink),
+        ("発音確認", "waveform", AppStyle.ink)
     ]
 
     var body: some View {
