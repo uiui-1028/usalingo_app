@@ -73,6 +73,30 @@ CI/CDは将来の公開準備で整備します。現在確認できる正本は
 
 採用したパッケージと採用理由は、この文書の「iOS側の主要技術」表へ追記します。
 
+### 薄いラッパの置き方
+
+外部パッケージの型を `View` から直接使わないこと、これが唯一の約束です。差し替えや撤去のとき、直す場所がラッパ1枚で済みます。
+
+| 決めごと | 内容 |
+|---|---|
+| 置き場所 | `apps/ios-swiftui/UsalingoIOS/Services/` 直下。関連ファイルが増えるならその下にフォルダを作る |
+| 公開する型 | Usalingo側で決めた名前と型だけを出す。パッケージの型を戻り値や引数に出さない |
+| 設定 | 上限、有効期限、再試行などの設定はラッパの中の1か所へ集める。呼び出し側へ散らさない |
+| import | パッケージの `import` はラッパのファイルだけに書く |
+
+判断に迷ったら「このパッケージをやめるとき、消すファイルはどれか」を数えます。1枚で済まないなら、まだ包み方が足りません。
+
+### ライセンス表示の集め方
+
+依存のライセンス一覧は手で書かず、[LicensePlist](https://github.com/mono0926/LicensePlist)（MIT）で生成します。手書きの一覧は依存を足すたびに古くなり、表示義務を満たせなくなるためです。
+
+- 設定は `apps/ios-swiftui/license_plist.yml`
+- 生成は `sh scripts/generate-licenses.sh`
+- 出力は `apps/ios-swiftui/UsalingoIOS/Resources/Licenses/Acknowledgements.md`。生成物ですがGitへ登録します
+- 生成物が古くないかは `sh scripts/generate-licenses.sh --check` で確かめます
+
+LicensePlist は開発機で動かすコマンドであり、アプリへ同梱する依存ではありません。Swift Package以外の素材（フォント、イラスト、音声）は `license_plist.yml` の `manual` へ足します。素材の出典台帳は [`docs/legal/asset-and-privacy-inventory.md`](../legal/asset-and-privacy-inventory.md) が正本です。
+
 ## 現在含めないもの
 
 - 通知

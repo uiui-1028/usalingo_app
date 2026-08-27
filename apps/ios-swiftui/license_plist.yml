@@ -1,0 +1,25 @@
+# LicensePlist の設定。実行方法は scripts/generate-licenses.sh を見てください。
+#
+# 依存のライセンス一覧は「生成物」として扱います。手で書いた一覧は必ず古くなるためです。
+# LicensePlist は同じ階層の UsalingoIOS.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+# を自動で見つけて、そこに並ぶ Swift Package のライセンスを集めます。
+
+options:
+  # plist 形式の出力先。アプリが読むのは Markdown なので、この出力は捨ててよい中間物です。
+  # .gitignore で無視しています。
+  outputPath: ".licenseplist-output"
+  # 版が分かると、ライセンス条件が変わったときに気づけます。
+  addVersionNumbers: true
+  # CI と非対話実行で Finder が開かないようにします。
+  suppressOpeningDirectory: true
+
+# 採用したパッケージが増えて、表示名を整えたくなったらここへ書きます。
+# rename:
+#   Nuke: Nuke / NukeUI
+
+# Swift Package 以外の素材（フォント、イラスト、音声など）のライセンスは manual に足します。
+# 素材の出典台帳は docs/legal/asset-and-privacy-inventory.md が正本です。
+# manual:
+#   - name: "素材名"
+#     file: "path/to/LICENSE.txt"
+#     licenseType: MIT

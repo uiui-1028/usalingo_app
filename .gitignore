@@ -25,3 +25,7 @@ migrate_working_dir/
 DerivedData/
 
 .codex/config.toml
+
+# LicensePlist の中間出力。アプリが読むのは
+# apps/ios-swiftui/UsalingoIOS/Resources/Licenses/Acknowledgements.md だけです。
+apps/ios-swiftui/.licenseplist-output/
