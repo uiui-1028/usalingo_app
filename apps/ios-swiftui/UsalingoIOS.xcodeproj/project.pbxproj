@@ -36,12 +36,16 @@
 		A10000000000000000000020 /* AccountDeletionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AccountDeletionService.swift */; };
 		A10000000000000000000021 /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* AppInfo.swift */; };
 		A10000000000000000000022 /* Licenses in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* Licenses */; };
+		A10000000000000000000023 /* DeckFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* DeckFile.swift */; };
+		A10000000000000000000024 /* StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* StudyDataSource.swift */; };
+		A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* LocalStudyDataSource.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
 		B10000000000000000000004 /* AuthTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* AuthTransportTests.swift */; };
 		B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* AuthConfirmationTests.swift */; };
 		B10000000000000000000006 /* AccountDeletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000007 /* AccountDeletionTests.swift */; };
 		B10000000000000000000007 /* AppInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000008 /* AppInfoTests.swift */; };
+		B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000009 /* LocalStudyDataSourceTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -87,6 +91,9 @@
 		A20000000000000000000020 /* AccountDeletionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AccountDeletionService.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AppInfo.swift; sourceTree = "<group>"; };
 		A20000000000000000000022 /* Licenses */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Licenses; sourceTree = "<group>"; };
+		A20000000000000000000023 /* DeckFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DeckFile.swift; sourceTree = "<group>"; };
+		A20000000000000000000024 /* StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
+		A20000000000000000000025 /* LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
@@ -94,6 +101,7 @@
 		B20000000000000000000006 /* AuthConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfirmationTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000007 /* AccountDeletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDeletionTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000008 /* AppInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfoTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000009 /* LocalStudyDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStudyDataSourceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -132,6 +140,7 @@
 				A20000000000000000000003 /* Deck.swift */,
 				A20000000000000000000004 /* WordCard.swift */,
 				A20000000000000000000005 /* LearningProgress.swift */,
+				A20000000000000000000023 /* DeckFile.swift */,
 				A2000000000000000000001C /* DesignSettings.swift */,
 				A20000000000000000000006 /* SupabaseConfig.swift */,
 				A20000000000000000000007 /* SupabaseClient.swift */,
@@ -140,6 +149,8 @@
 				A20000000000000000000021 /* AppInfo.swift */,
 				A20000000000000000000009 /* DeckService.swift */,
 				A2000000000000000000000A /* StudyService.swift */,
+				A20000000000000000000024 /* StudyDataSource.swift */,
+				A20000000000000000000025 /* LocalStudyDataSource.swift */,
 				A20000000000000000000017 /* SessionStore.swift */,
 				A20000000000000000000019 /* AudioPlaybackService.swift */,
 				A2000000000000000000000B /* AppStyle.swift */,
@@ -179,6 +190,7 @@
 				B20000000000000000000006 /* AuthConfirmationTests.swift */,
 				B20000000000000000000007 /* AccountDeletionTests.swift */,
 				B20000000000000000000008 /* AppInfoTests.swift */,
+				B20000000000000000000009 /* LocalStudyDataSourceTests.swift */,
 			);
 			path = UsalingoIOSTests;
 			sourceTree = "<group>";
@@ -284,6 +296,9 @@
 				A10000000000000000000008 /* AuthService.swift in Sources */,
 				A10000000000000000000009 /* DeckService.swift in Sources */,
 				A1000000000000000000000A /* StudyService.swift in Sources */,
+				A10000000000000000000023 /* DeckFile.swift in Sources */,
+				A10000000000000000000024 /* StudyDataSource.swift in Sources */,
+				A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */,
 				A1000000000000000000000B /* AppStyle.swift in Sources */,
 				A1000000000000000000000C /* AuthView.swift in Sources */,
 				A1000000000000000000000D /* DeckListView.swift in Sources */,
@@ -315,6 +330,7 @@
 				B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */,
 				B10000000000000000000006 /* AccountDeletionTests.swift in Sources */,
 				B10000000000000000000007 /* AppInfoTests.swift in Sources */,
+				B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

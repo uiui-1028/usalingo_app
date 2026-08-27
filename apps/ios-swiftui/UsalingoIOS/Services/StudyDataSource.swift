@@ -1,0 +1,75 @@
+import Foundation
+
+/// 単語編集の保存内容。ユーザーIDを持たず、誰の変更として保存するかは実装側の関心事にする。
+struct WordOverridePayload {
+    let wordId: Int
+    let wordText: String
+    let definitionJapanese: String
+    let sentenceEnglish: String?
+    let sentenceJapanese: String?
+    let imageAssetPath: String?
+}
+
+/// 学習画面が必要とする操作だけを並べたデータ層の入口。
+/// 認証の有無は実装側の関心事とし、引数に AuthSession を渡さない。
+protocol StudyDataSource {
+    func fetchStudyQueue(deckId: Int, mode: StudyMode) async throws -> [WordCard]
+    @discardableResult
+    func saveAnswer(card: WordCard, isCorrect: Bool) async throws -> LearningProgress
+    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool) async throws -> SavedAnswer
+    func restoreLearningProgress(cardId: Int, previousProgress: LearningProgress?) async throws
+    /// 保存済みのユーザータグ。ユーザーがまだ一度も保存していない場合は nil を返す。
+    func fetchTags(wordId: Int) async throws -> [String]?
+    func saveTags(_ tags: Set<String>, wordId: Int) async throws
+    func saveWordOverride(_ payload: WordOverridePayload) async throws -> WordCard
+}
+
+/// 既存 StudyService を StudyDataSource に準拠させる形で残すためのラッパー。
+/// 将来ログイン時に LocalStudyDataSource と差し替えるために置いてあり、今回は使わない。
+final class RemoteStudyDataSource: StudyDataSource {
+    private let service: StudyService
+    private let session: AuthSession
+
+    init(service: StudyService = StudyService(), session: AuthSession) {
+        self.service = service
+        self.session = session
+    }
+
+    func fetchStudyQueue(deckId: Int, mode: StudyMode) async throws -> [WordCard] {
+        try await service.fetchStudyQueue(deckId: deckId, mode: mode, session: session)
+    }
+
+    @discardableResult
+    func saveAnswer(card: WordCard, isCorrect: Bool) async throws -> LearningProgress {
+        try await service.saveAnswer(card: card, isCorrect: isCorrect, session: session)
+    }
+
+    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool) async throws -> SavedAnswer {
+        try await service.saveAnswerWithUndo(card: card, isCorrect: isCorrect, session: session)
+    }
+
+    func restoreLearningProgress(cardId: Int, previousProgress: LearningProgress?) async throws {
+        try await service.restoreLearningProgress(cardId: cardId, previousProgress: previousProgress, session: session)
+    }
+
+    func fetchTags(wordId: Int) async throws -> [String]? {
+        try await service.fetchTags(wordId: wordId, session: session)
+    }
+
+    func saveTags(_ tags: Set<String>, wordId: Int) async throws {
+        try await service.saveTags(tags, wordId: wordId, session: session)
+    }
+
+    func saveWordOverride(_ payload: WordOverridePayload) async throws -> WordCard {
+        let override = UserWordOverride(
+            userId: session.user.id,
+            wordId: payload.wordId,
+            wordText: payload.wordText,
+            definitionJapanese: payload.definitionJapanese,
+            sentenceEnglish: payload.sentenceEnglish,
+            sentenceJapanese: payload.sentenceJapanese,
+            imageAssetPath: payload.imageAssetPath
+        )
+        return try await service.saveWordOverride(override, session: session)
+    }
+}

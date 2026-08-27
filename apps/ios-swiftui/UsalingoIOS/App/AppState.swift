@@ -18,6 +18,14 @@ final class AppState: ObservableObject {
 
     let designSettings: DesignSettings
 
+    /// ローカル同梱データ層（D-1）。デッキ一覧・入出力はこの実体を直接使う。
+    let localStudy: LocalStudyDataSource
+
+    /// 学習画面が使うデータ層。将来ログイン時に RemoteStudyDataSource へ差し替える。
+    var studyDataSource: any StudyDataSource {
+        localStudy
+    }
+
     private let authService: AuthService
     private let accountDeletionService: any AccountDeletionServicing
     private let defaults: UserDefaults
@@ -30,8 +38,10 @@ final class AppState: ObservableObject {
         restoresSession: Bool = true,
         defaults: UserDefaults = .standard,
         authService: AuthService = AuthService(),
-        accountDeletionService: any AccountDeletionServicing = AccountDeletionService()
+        accountDeletionService: any AccountDeletionServicing = AccountDeletionService(),
+        localStudy: LocalStudyDataSource = LocalStudyDataSource()
     ) {
+        self.localStudy = localStudy
         self.defaults = defaults
         self.authService = authService
         self.accountDeletionService = accountDeletionService
