@@ -98,6 +98,8 @@ port = 54324
 # sender_name = "Admin"
 
 [storage]
+# Keep Storage schema migrations available. DB-only tests exclude the
+# storage-api container in scripts/test-local-db.sh and never load objects.
 enabled = true
 # The maximum file size allowed (e.g. "5MB", "500KB").
 file_size_limit = "50MiB"

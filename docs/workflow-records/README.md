@@ -17,8 +17,8 @@
 | 段階 | 作る記録 | 完了のしるし | 状態 |
 |---|---|---|---|
 | 1 | 競合4アプリの調査 | 公式Webの事実、仮説、未確認を分離 | Web調査済み |
-| 2 | パターン整理 | 採用候補と不採用候補に理由がある | 仮説あり・未決定 |
-| 3 | 最短成功フロー | 一本の流れを決定 | 未着手 |
+| 2 | パターン整理 | 採用候補と不採用候補に理由がある | 決定済み |
+| 3 | 最短成功フロー | 一本の流れを決定 | 決定済み |
 | 4 | MVP分岐 | 必須の分かれ道と失敗時の戻り先を決定 | 未着手 |
 | 5 | 表側一覧 | 必要な画面・情報・操作を決定 | 未着手 |
 | 6 | 裏側状態図 | 状態・出来事・保存・失敗時の動きを決定 | 未着手 |
@@ -50,6 +50,7 @@ AIは記録を整理して2〜3案を出し、人間は大切な入口だけを�
 
 ### 2〜7. Usalingoの決定
 
+- [`../decisions/usalingo-core-workflow-requirements.md`](../decisions/usalingo-core-workflow-requirements.md) — 採用した学習ワークフローと初期機能要件
 - [`02-patterns.md`](02-patterns.md)
 - [`03-shortest-success-flow.md`](03-shortest-success-flow.md)
 - [`04-mvp-branches.md`](04-mvp-branches.md)

@@ -5,6 +5,7 @@
 ## 方向づけ
 
 - [Usalingoのいちばん大きな計画](usalingo-simple-product-plan.md)
+- [学習ワークフローと初期機能要件の決定](decisions/usalingo-core-workflow-requirements.md)
 - [ワークフロー設計 実行計画書](usalingo-workflow-planning-execution-plan.md)
 - [ワークフロー策定の記録](workflow-records/README.md)
 
