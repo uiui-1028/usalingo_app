@@ -91,4 +91,12 @@ usalingo_app/
 
 ファイル名は半角の英小文字とハイフンにします。全角の `｜` や空白は、検索、シェル、相対リンク、CIで壊れます。
 
-整理の経緯は [`docs/plans/docs-restructure-plan.md`](../plans/docs-restructure-plan.md) と [`docs/plans/docs-restructure-execution.md`](../plans/docs-restructure-execution.md) にあります。
+### 計画書が終わったら
+
+`docs/plans/` は「これから行う作業」の棚です。作業が終わった計画書は、**捨てずに `docs/archive/` へ移します。** 計画書には「なぜその形にしたか」が書いてあり、捨てると同じ議論をやり直すことになります。
+
+移すときは、先頭の「状態」を **完了**（実施日、あればPR番号）に直し、現在の正本がどれかを1行で示します。
+
+終わった計画書を `docs/plans/` に残さないでください。棚の意味がくずれます。
+
+整理の経緯は [`docs/archive/docs-restructure/plan.md`](../archive/docs-restructure/plan.md)（なぜ）と [`docs/archive/docs-restructure/execution.md`](../archive/docs-restructure/execution.md)（どう進めたか）にあります。

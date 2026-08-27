@@ -1,8 +1,11 @@
 # `docs/` 整理 実行計画書
 
-状態: **計画（未着手・実施の合図待ち）**
+状態: **完了**（2026-08-27実施）
 
 作成日: 2026-08-27
+
+> [!NOTE]
+> この計画は実施済みです。現在の棚の構成と置き場所のルールは [`docs/operations/repository-layout.md`](../../operations/repository-layout.md) が正本です。この文書は「なぜその形にしたか」の記録として残しています。
 
 対象: `docs/` 配下すべて
 
@@ -37,7 +40,7 @@
 
 3. **パスに全角記号と空白が入っている。** `Usalingo｜Specification Ver.2.0`、`Fo｜02｜Terms of Use`、`Usalingo 英単語原本データベース V5 設計書.md`。`｜` と空白は、検索、シェル、相対リンク、将来のCIで壊れます。この調査中も、実際に行数を数えるコマンドが一度失敗しました。
 
-4. **終わった作業の記録が、現行の棚に置いてある。** `workflow-records/` と `usalingo-workflow-planning-execution-plan.md` は、ワークフローを決めるための作業記録です。結論は [`decisions/usalingo-core-workflow-requirements.md`](../product/workflow.md) に出ています。役目は終わっています。
+4. **終わった作業の記録が、現行の棚に置いてある。** `workflow-records/` と `usalingo-workflow-planning-execution-plan.md` は、ワークフローを決めるための作業記録です。結論は [`decisions/usalingo-core-workflow-requirements.md`](../../product/workflow.md) に出ています。役目は終わっています。
 
 5. **成果物と文書が混ざっている。** `Fo｜02｜Terms of Use/` のPDF 5点は「読むための文書」ではなく「公開する成果物」です。
 
@@ -184,7 +187,7 @@ git mv "docs/usalingo-simple-product-plan.md" "docs/product/plan.md"
 
 ## いつやるか
 
-[`external-package-adoption-plan.md`](external-package-adoption-plan.md) の領域0より**先**に、単独のプルリクエストで行うことを勧めます。理由は2つです。
+[`external-package-adoption-plan.md`](../../plans/external-package-adoption-plan.md) の領域0より**先**に、単独のプルリクエストで行うことを勧めます。理由は2つです。
 
 - 整理してから作業を始めた方が、以後の毎回の読み込みが軽くなります。
 - コードを触る作業と同時に動かすと、どちらが原因で何が壊れたのか分からなくなります。
