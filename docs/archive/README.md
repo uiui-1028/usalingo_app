@@ -34,6 +34,13 @@
 
 結論は [`docs/product/workflow.md`](../product/workflow.md) に出ています。作業記録の方は判断の材料として残しています。
 
+## 終わった計画書
+
+- [`docs/` 整理の計画](docs-restructure/plan.md) — なぜ棚を8つに分けたか
+- [`docs/` 整理の手順](docs-restructure/execution.md) — 実際に行った作業（2026-08-27）
+
+現在の棚の構成と置き場所のルールは [`docs/operations/repository-layout.md`](../operations/repository-layout.md) が正本です。
+
 ## 旧パス対応表
 
 2026-08-27の整理より前のパスから来た場合は、次を参照してください。旧パスに置いていた移動案内ファイルは、この表に置き換えました。
@@ -71,3 +78,5 @@
 | `docs/supabase/Usalingo 英単語原本データベース V5 設計書.md` | [`docs/content/source-database-v5.md`](../content/source-database-v5.md) |
 | `docs/research/usl-249-legal-privacy-license-inventory.md` | [`docs/legal/asset-and-privacy-inventory.md`](../legal/asset-and-privacy-inventory.md) |
 | `docs/release-quality-gate.md` | [`docs/operations/release-quality-gate.md`](../operations/release-quality-gate.md) |
+| `docs/plans/docs-restructure-plan.md` | [docs-restructure/plan.md](docs-restructure/plan.md) |
+| `docs/plans/docs-restructure-execution.md` | [docs-restructure/execution.md](docs-restructure/execution.md) |

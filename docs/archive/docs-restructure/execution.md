@@ -1,10 +1,13 @@
 # `docs/` 整理 実施計画書（作業手順）
 
-状態: **実施待ち**
+状態: **完了**（2026-08-27実施、[PR #24](https://github.com/uiui-1028/usalingo_app/pull/24)）
 
 作成日: 2026-08-27
 
-前提: [`docs-restructure-plan.md`](docs-restructure-plan.md)（なぜ整理するか）
+> [!NOTE]
+> この手順は実施済みです。現在の構成は [`docs/operations/repository-layout.md`](../../operations/repository-layout.md) が正本です。この文書は実際に行った作業の記録です。
+
+前提: [`docs-restructure-plan.md`](plan.md)（なぜ整理するか）
 
 > [!IMPORTANT]
 > この作業では**動かす・消す・リンクを直す**の3つだけを行います。文章の中身は1文字も書き直しません。
@@ -229,7 +232,7 @@ Step 1 で消した10個の移動案内の代わりです。「昔のこのパ�
 
 ### 5-C. `docs/operations/repository-layout.md` を更新
 
-`docs/` のツリーを新しい形に直し、「新しい文書をどこに置くか」の節を足します。中身は [`docs-restructure-plan.md`](docs-restructure-plan.md) の原則3つをそのまま書きます。
+`docs/` のツリーを新しい形に直し、「新しい文書をどこに置くか」の節を足します。中身は [`docs-restructure-plan.md`](plan.md) の原則3つをそのまま書きます。
 
 ### 5-D. `AGENTS.md` の「毎回読む文書」を2つに固定
 
@@ -277,7 +280,7 @@ git revert <コミットのID>
 
 - 1つのプルリクエストでまとめて行います。分けると、リンクが切れている期間が長くなります。
 - Step 1 から Step 5 まで通しで行い、途中でコードには触りません。
-- [`external-package-adoption-plan.md`](external-package-adoption-plan.md) の作業は、この整理が終わってから始めます。
+- [`external-package-adoption-plan.md`](../../plans/external-package-adoption-plan.md) の作業は、この整理が終わってから始めます。
 
 ## この作業でやらないこと
 
