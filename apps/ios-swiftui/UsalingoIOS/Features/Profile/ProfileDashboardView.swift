@@ -60,7 +60,12 @@ struct ProfileDashboardView: View {
             }
             .buttonStyle(.bordered)
             .padding(.horizontal, 16)
-            .padding(.bottom, 24)
+
+            Text(AppInfo.versionLabel())
+                .font(.footnote)
+                .foregroundStyle(AppStyle.muted)
+                .padding(.top, 16)
+                .padding(.bottom, 24)
         }
         .task { await load() }
         .task(id: appState.studyDataVersion) { await refreshStats() }
@@ -139,15 +144,33 @@ private struct LegalInformationView: View {
                 }
 
                 Section("ライセンスとクレジット") {
-                    legalRow(.licenses)
+                    NavigationLink {
+                        OpenSourceLicenseView()
+                    } label: {
+                        LegalTextRow(
+                            title: LegalDocument.Kind.licenses.title,
+                            detail: "このアプリが使っているオープンソースの一覧"
+                        )
+                    }
+                    .accessibilityHint("オープンソースライセンスの一覧をアプリ内で開きます。")
                     legalRow(.credits)
                 }
 
                 Section("お問い合わせ") {
-                    LegalUnavailableRow(
-                        title: "問い合わせ先",
-                        detail: "正式な連絡先は公開準備中です。"
-                    )
+                    if let mailURL = AppInfo.contactMailURL() {
+                        Link(destination: mailURL) {
+                            LegalTextRow(
+                                title: "問い合わせ先",
+                                detail: AppInfo.supportEmail
+                            )
+                        }
+                        .accessibilityHint("メールアプリが開きます。本文にアプリの版と機種があらかじめ入ります。送信前に消せます。")
+                    } else {
+                        LegalTextRow(
+                            title: "問い合わせ先",
+                            detail: AppInfo.supportEmail
+                        )
+                    }
                 }
 
                 if documents.isEmpty {
@@ -193,7 +216,7 @@ private struct LegalInformationView: View {
             }
             .accessibilityHint("Safariで正式文書を開きます。リンクを開けない場合は、もう一度接続を確認してください。")
         } else {
-            LegalUnavailableRow(title: kind.title, detail: "正式版は公開準備中です。")
+            LegalTextRow(title: kind.title, detail: "正式版は公開準備中です。")
         }
     }
 }
@@ -223,7 +246,74 @@ private struct LegalDocument: Identifiable {
     let url: URL
 
     // Add only legal-approved documents here. Drafts and unverified asset records stay hidden.
-    static let publishedDocuments: [LegalDocument] = []
+    // 正本は docs/legal/published/ にある。版と施行日を上げたら、ここも合わせる。
+    // ライセンスは外部URLではなくアプリ内画面なので、ここには入れない。
+    static let publishedDocuments: [LegalDocument] = [
+        published(.terms, path: "terms"),
+        published(.privacy, path: "privacy"),
+        published(.credits, path: "credits")
+    ].compactMap { $0 }
+
+    private static let publishedBaseURL = "https://imagicraft-power.bubbleapps.io/version-test"
+    private static let publishedVersion = "第1.0版"
+    private static let publishedEffectiveDate = "2026年9月1日"
+
+    /// URLを組み立てられなかった行は一覧から落とす。落ちた行は「公開準備中」に戻るだけで、
+    /// 壊れたリンクをタップさせるより安全。
+    private static func published(_ kind: Kind, path: String) -> LegalDocument? {
+        guard let url = URL(string: "\(publishedBaseURL)/\(path)") else { return nil }
+        return LegalDocument(
+            kind: kind,
+            title: kind.title,
+            version: publishedVersion,
+            effectiveDate: publishedEffectiveDate,
+            url: url
+        )
+    }
+}
+
+/// 生成されたオープンソースライセンス一覧を表示する。
+private struct OpenSourceLicenseView: View {
+    private let text = OpenSourceLicenseCatalog.load()
+
+    var body: some View {
+        Group {
+            if let text, !text.isEmpty {
+                ScrollView {
+                    Text(text)
+                        .font(.footnote.monospaced())
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(16)
+                }
+            } else {
+                ContentUnavailableView(
+                    "ライセンス一覧はまだありません",
+                    systemImage: "shippingbox",
+                    description: Text("外部パッケージを追加すると、生成された一覧がここに表示されます。")
+                )
+            }
+        }
+        .navigationTitle("ライセンス")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// バンドルへ同梱したライセンス一覧を読む。
+///
+/// 一覧は `scripts/generate-licenses.sh` の生成物であり、依存がゼロのあいだは存在しない。
+/// それが正しい状態なので、見つからないことを異常として扱わない。
+private enum OpenSourceLicenseCatalog {
+    static func load(bundle: Bundle = .main) -> String? {
+        guard let url = bundle.url(
+            forResource: "Acknowledgements",
+            withExtension: "md",
+            subdirectory: "Licenses"
+        ) else {
+            return nil
+        }
+        return try? String(contentsOf: url, encoding: .utf8)
+    }
 }
 
 private struct LegalDocumentRow: View {
@@ -240,7 +330,7 @@ private struct LegalDocumentRow: View {
     }
 }
 
-private struct LegalUnavailableRow: View {
+private struct LegalTextRow: View {
     let title: String
     let detail: String
 

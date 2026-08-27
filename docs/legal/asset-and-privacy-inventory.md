@@ -4,6 +4,8 @@
 対象: 現行 SwiftUI (`apps/ios-swiftui/`) とリポジトリ内の migration・仕様・旧草案。
 目的: 公開文書を作る前に、実装と根拠がそろっていること・不足していることを分ける。これは法的助言や公開規約ではない。
 
+公開文書そのものの正本は [`published/`](published/) にあります。この文書はその根拠と不足を整理した調査結果です。
+
 > [!NOTE]
 > **2026-08-27 追記**: 「外部パッケージへ依存しない」という技術方針を撤回しました（[technology-stack.md](../operations/technology-stack.md)）。今後は画像キャッシュ等でSwift Packageを採用するため、OSSライセンス表示は「不要かもしれない項目」ではなく**公開前の必須項目**になります。収集の仕組みは [external-package-adoption-plan.md](../plans/external-package-adoption-plan.md) の領域1で扱います。この追記より下の本文は2026-08-22時点の調査結果です。
 
