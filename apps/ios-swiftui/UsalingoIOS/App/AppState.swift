@@ -14,20 +14,28 @@ final class AppState: ObservableObject {
     @Published private(set) var isSwipeTutorialPresented: Bool
     @Published var authMessage = ""
     @Published private(set) var studyDataVersion = 0
+    @Published private(set) var isDeletingAccount = false
+    @Published var accountDeletionNotice: String?
 
-    let designSettings = DesignSettings()
+    let designSettings: DesignSettings
 
-    private let authService = AuthService()
+    private let authService: AuthService
+    private let accountDeletionService: any AccountDeletionServicing
     private let initialLearningProfileStore: any InitialLearningProfileStoring
     private let defaults: UserDefaults
 
     init(
         restoresSession: Bool = true,
         initialLearningProfileStore: any InitialLearningProfileStoring = InitialLearningProfileStore(),
-        defaults: UserDefaults = .standard
+        defaults: UserDefaults = .standard,
+        authService: AuthService = AuthService(),
+        accountDeletionService: any AccountDeletionServicing = AccountDeletionService()
     ) {
         self.initialLearningProfileStore = initialLearningProfileStore
         self.defaults = defaults
+        self.authService = authService
+        self.accountDeletionService = accountDeletionService
+        designSettings = DesignSettings(defaults: defaults)
         initialLearningProfile = initialLearningProfileStore.load()
         isSwipeTutorialPresented = !defaults.bool(forKey: TutorialKey.hasCompletedSwipeTutorial)
         guard restoresSession else {
@@ -80,6 +88,46 @@ final class AppState: ObservableObject {
         try await authService.updateEmail(email, currentEmail: session.user.email ?? "", currentPassword: currentPassword, accessToken: session.accessToken)
     }
 
+    func deleteAccount(password: String, confirmation: String, requestID: UUID) async throws {
+        guard !isDeletingAccount else { throw AccountDeletionClientError.alreadyInProgress }
+        guard confirmation == "退会" else { throw AccountDeletionClientError.invalidConfirmation }
+        guard let session else { throw AuthError.sessionRestoreFailed }
+
+        isDeletingAccount = true
+        defer { isDeletingAccount = false }
+        let receipt = try await accountDeletionService.withdraw(
+            password: password,
+            confirmation: confirmation,
+            requestID: requestID,
+            accessToken: session.accessToken
+        )
+
+        var resetError: Error?
+        do {
+            try authService.signOut()
+        } catch {
+            resetError = error
+        }
+        initialLearningProfileStore.clear()
+        defaults.removeObject(forKey: TutorialKey.hasCompletedSwipeTutorial)
+        designSettings.reset()
+        self.session = nil
+        initialLearningProfile = nil
+        isSwipeTutorialPresented = true
+        isResettingPassword = false
+        isShellChromeHidden = false
+        studyDataVersion = 0
+        accountDeletionNotice = "退会手続きが完了しました。\(formattedRestorationNotice(receipt.restorableUntil))"
+
+        if resetError != nil {
+            throw AccountDeletionClientError.localResetFailed
+        }
+    }
+
+    func clearAccountDeletionNotice() {
+        accountDeletionNotice = nil
+    }
+
     func handleAuthCallback(_ url: URL) async {
         do {
             session = try await authService.sessionFromConfirmationCallback(url: url)
@@ -118,6 +166,17 @@ final class AppState: ObservableObject {
         } catch {
             session = nil
         }
+    }
+
+    private func formattedRestorationNotice(_ value: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        guard let date = formatter.date(from: value) else {
+            return "365日以内は本人確認後に復元できます。"
+        }
+        let display = DateFormatter()
+        display.locale = Locale(identifier: "ja_JP")
+        display.dateFormat = "yyyy年M月d日"
+        return "\(display.string(from: date))までは本人確認後に復元できます。"
     }
 }
 

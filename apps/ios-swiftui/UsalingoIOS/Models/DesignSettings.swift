@@ -2,19 +2,28 @@ import SwiftUI
 
 @MainActor
 final class DesignSettings: ObservableObject {
+    private let defaults: UserDefaults
+
     @Published var accentName: String {
-        didSet { UserDefaults.standard.set(accentName, forKey: Keys.accentName) }
+        didSet { defaults.set(accentName, forKey: Keys.accentName) }
     }
 
     @Published var cardCornerRadius: Double {
-        didSet { UserDefaults.standard.set(cardCornerRadius, forKey: Keys.cardCornerRadius) }
+        didSet { defaults.set(cardCornerRadius, forKey: Keys.cardCornerRadius) }
     }
 
-    init() {
-        let defaults = UserDefaults.standard
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
         accentName = defaults.string(forKey: Keys.accentName) ?? "green"
         let storedRadius = defaults.double(forKey: Keys.cardCornerRadius)
         cardCornerRadius = storedRadius == 0 ? 18 : storedRadius
+    }
+
+    func reset() {
+        accentName = "green"
+        cardCornerRadius = 18
+        defaults.removeObject(forKey: Keys.accentName)
+        defaults.removeObject(forKey: Keys.cardCornerRadius)
     }
 
     var accentColor: Color {
