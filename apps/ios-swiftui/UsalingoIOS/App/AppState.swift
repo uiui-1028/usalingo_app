@@ -10,7 +10,6 @@ final class AppState: ObservableObject {
     @Published var isRestoringSession = true
     @Published var isResettingPassword = false
     @Published var isShellChromeHidden = false
-    @Published private(set) var initialLearningProfile: InitialLearningProfile?
     @Published private(set) var isSwipeTutorialPresented: Bool
     @Published var authMessage = ""
     @Published private(set) var studyDataVersion = 0
@@ -21,22 +20,22 @@ final class AppState: ObservableObject {
 
     private let authService: AuthService
     private let accountDeletionService: any AccountDeletionServicing
-    private let initialLearningProfileStore: any InitialLearningProfileStoring
     private let defaults: UserDefaults
+
+    var isGuest: Bool {
+        session == nil
+    }
 
     init(
         restoresSession: Bool = true,
-        initialLearningProfileStore: any InitialLearningProfileStoring = InitialLearningProfileStore(),
         defaults: UserDefaults = .standard,
         authService: AuthService = AuthService(),
         accountDeletionService: any AccountDeletionServicing = AccountDeletionService()
     ) {
-        self.initialLearningProfileStore = initialLearningProfileStore
         self.defaults = defaults
         self.authService = authService
         self.accountDeletionService = accountDeletionService
         designSettings = DesignSettings(defaults: defaults)
-        initialLearningProfile = initialLearningProfileStore.load()
         isSwipeTutorialPresented = !defaults.bool(forKey: TutorialKey.hasCompletedSwipeTutorial)
         guard restoresSession else {
             isRestoringSession = false
@@ -108,11 +107,9 @@ final class AppState: ObservableObject {
         } catch {
             resetError = error
         }
-        initialLearningProfileStore.clear()
         defaults.removeObject(forKey: TutorialKey.hasCompletedSwipeTutorial)
         designSettings.reset()
         self.session = nil
-        initialLearningProfile = nil
         isSwipeTutorialPresented = true
         isResettingPassword = false
         isShellChromeHidden = false
@@ -139,11 +136,6 @@ final class AppState: ObservableObject {
 
     func markStudyDataChanged() {
         studyDataVersion += 1
-    }
-
-    func completeInitialLearningProfile(_ profile: InitialLearningProfile) throws {
-        try initialLearningProfileStore.save(profile)
-        initialLearningProfile = profile
     }
 
     func showSwipeTutorial() {
