@@ -23,8 +23,6 @@ struct StudySessionView: View {
     @State private var answerHistory: [AnswerCheckpoint] = []
     @StateObject private var audioPlaybackService = AudioPlaybackService()
 
-    private let studyService = StudyService()
-
     init(deck: Deck, studyMode: StudyMode = .all) {
         self.deck = deck
         self.studyMode = studyMode
@@ -289,11 +287,10 @@ struct StudySessionView: View {
     }
 
     private func load() async {
-        guard let session = appState.session else { return }
         isLoading = true
         loadErrorMessage = nil
         do {
-            cards = try await studyService.fetchStudyQueue(deckId: deck.id, mode: studyMode, session: session)
+            cards = try await appState.studyDataSource.fetchStudyQueue(deckId: deck.id, mode: studyMode)
             audioPlaybackService.stop()
             index = 0
             sessionAnswers = []
@@ -323,17 +320,15 @@ struct StudySessionView: View {
 
     private func persistPendingAnswer() async {
         guard let isCorrect = answerAttempt.pendingAnswer,
-              let session = appState.session,
               index < cards.count else {
             answerAttempt.cancel()
             return
         }
         do {
             let originalCard = cards[index]
-            let savedAnswer = try await studyService.saveAnswerWithUndo(
+            let savedAnswer = try await appState.studyDataSource.saveAnswerWithUndo(
                 card: originalCard,
-                isCorrect: isCorrect,
-                session: session
+                isCorrect: isCorrect
             )
             cards[index] = originalCard.withLearningProgress(savedAnswer.progress)
             sessionAnswers.append(isCorrect)
@@ -385,21 +380,19 @@ struct StudySessionView: View {
 
     private func undo() {
         guard let checkpoint = answerHistory.last,
-              let session = appState.session,
               !answerAttempt.isSaving,
               !isUndoingAnswer else { return }
-        Task { await restore(checkpoint, session: session) }
+        Task { await restore(checkpoint) }
     }
 
-    private func restore(_ checkpoint: AnswerCheckpoint, session: AuthSession) async {
+    private func restore(_ checkpoint: AnswerCheckpoint) async {
         isUndoingAnswer = true
         defer { isUndoingAnswer = false }
         do {
             guard let cardId = checkpoint.originalCard.cardId else { return }
-            try await studyService.restoreLearningProgress(
+            try await appState.studyDataSource.restoreLearningProgress(
                 cardId: cardId,
-                previousProgress: checkpoint.previousProgress,
-                session: session
+                previousProgress: checkpoint.previousProgress
             )
 
             audioPlaybackService.stop()

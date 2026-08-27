@@ -45,10 +45,8 @@ final class AccountDeletionTests: XCTestCase {
             client: DeletionSupabaseClient(),
             session: CapturingDeletionNetworkSession(data: Data(), statusCode: 200)
         )
-        let profileStore = InitialLearningProfileStore(defaults: defaults)
         let appState = AppState(
             restoresSession: false,
-            initialLearningProfileStore: profileStore,
             defaults: defaults,
             authService: authService,
             accountDeletionService: SuccessfulDeletionService()
@@ -56,7 +54,6 @@ final class AccountDeletionTests: XCTestCase {
         let session = testSession
         try sessionStore.save(session)
         appState.setSession(session)
-        try appState.completeInitialLearningProfile(testProfile)
         appState.completeSwipeTutorial()
         appState.designSettings.accentName = "orange"
         appState.designSettings.cardCornerRadius = 30
@@ -69,7 +66,6 @@ final class AccountDeletionTests: XCTestCase {
 
         XCTAssertNil(appState.session)
         XCTAssertNil(sessionStore.savedSession)
-        XCTAssertNil(appState.initialLearningProfile)
         XCTAssertTrue(appState.isSwipeTutorialPresented)
         XCTAssertEqual(appState.designSettings.accentName, "green")
         XCTAssertEqual(appState.designSettings.cardCornerRadius, 18)
@@ -89,14 +85,12 @@ final class AccountDeletionTests: XCTestCase {
             )
             let appState = AppState(
                 restoresSession: false,
-                initialLearningProfileStore: InitialLearningProfileStore(defaults: defaults),
                 defaults: defaults,
                 authService: auth,
                 accountDeletionService: FailingDeletionService(error: expectedError)
             )
             try store.save(testSession)
             appState.setSession(testSession)
-            try appState.completeInitialLearningProfile(testProfile)
 
             do {
                 try await appState.deleteAccount(password: "password123", confirmation: "退会", requestID: UUID())
@@ -106,7 +100,6 @@ final class AccountDeletionTests: XCTestCase {
             }
             XCTAssertNotNil(appState.session)
             XCTAssertNotNil(store.savedSession)
-            XCTAssertNotNil(appState.initialLearningProfile)
         }
     }
 
@@ -123,7 +116,6 @@ final class AccountDeletionTests: XCTestCase {
         )
         let appState = AppState(
             restoresSession: false,
-            initialLearningProfileStore: InitialLearningProfileStore(defaults: defaults),
             defaults: defaults,
             authService: auth,
             accountDeletionService: service
@@ -172,10 +164,6 @@ final class AccountDeletionTests: XCTestCase {
 
     private var testSession: AuthSession {
         AuthSession(accessToken: "access", refreshToken: "refresh", expiresAt: nil, user: AuthUser(id: "user-1", email: "user@example.com"))
-    }
-
-    private var testProfile: InitialLearningProfile {
-        InitialLearningProfile(purpose: .toeic, level: .beginner, dailyStudyDuration: .threeMinutes, initialDeckID: 1, initialDeckName: "基礎", ruleVersion: 1)
     }
 
     private var defaultsSuiteName: String { suiteName(suffix: "default") }

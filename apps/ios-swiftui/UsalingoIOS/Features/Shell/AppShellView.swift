@@ -16,10 +16,6 @@ struct AppShellView: View {
             GridBackground()
 
             VStack(spacing: 0) {
-                if !appState.isShellChromeHidden {
-                    header
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
                 Group {
                     switch selectedTab {
                     case 0:
@@ -39,35 +35,6 @@ struct AppShellView: View {
             }
         }
         .animation(.spring(response: 0.28, dampingFraction: 0.86), value: appState.isShellChromeHidden)
-    }
-
-    private var header: some View {
-        HStack {
-            HStack(spacing: 10) {
-                Image(systemName: "sparkles")
-                    .font(.system(size: 18, weight: .black))
-                    .foregroundStyle(AppStyle.ink)
-                    .frame(width: 34, height: 34)
-                    .background(AppStyle.surface)
-                    .overlay {
-                        Rectangle().stroke(AppStyle.line, lineWidth: 1)
-                    }
-
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("Usalingo")
-                        .font(.system(size: 24, weight: .black))
-                        .foregroundStyle(AppStyle.ink)
-                    Text("今日も1セット進めよう")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(AppStyle.muted)
-                }
-            }
-
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 14)
-        .padding(.bottom, 10)
     }
 
     private var floatingTabBar: some View {

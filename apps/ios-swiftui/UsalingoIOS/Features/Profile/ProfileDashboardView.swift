@@ -5,6 +5,7 @@ struct ProfileDashboardView: View {
     @State private var stats = StudyStats.empty
     @State private var profile = UserProfile(userId: "", nickname: nil, plan: "free")
     @State private var isEditingProfile = false
+    @State private var isShowingAuth = false
     @State private var isShowingLegalInformation = false
     @State private var message = ""
 
@@ -17,7 +18,11 @@ struct ProfileDashboardView: View {
                 HeatmapTile(reviewedDays: stats.reviewedDays)
                 ProfileTile(title: "実績サマリー", symbol: "trophy.fill", color: .yellow)
                 Button {
-                    isEditingProfile = true
+                    if appState.isGuest {
+                        isShowingAuth = true
+                    } else {
+                        isEditingProfile = true
+                    }
                 } label: {
                     ProfileTile(
                         title: displayName,
@@ -78,12 +83,23 @@ struct ProfileDashboardView: View {
             }
             .presentationDetents([.medium])
         }
+        .sheet(isPresented: $isShowingAuth) {
+            AuthView()
+        }
         .sheet(isPresented: $isShowingLegalInformation) {
             LegalInformationView()
+        }
+        .onChange(of: appState.isGuest) { _, isGuest in
+            if !isGuest {
+                isShowingAuth = false
+            }
         }
     }
 
     private var displayName: String {
+        if appState.isGuest {
+            return "ログイン"
+        }
         let nickname = profile.nickname?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let nickname, !nickname.isEmpty {
             return nickname
