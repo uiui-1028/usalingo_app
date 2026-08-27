@@ -1,6 +1,6 @@
 # 現行リポジトリ構成
 
-最終更新日: 2026-08-16
+最終更新日: 2026-08-27
 対象: 現行SwiftUIアプリとSupabase migration
 
 現行アプリは `apps/ios-swiftui/` にあります。旧Flutter構成の `lib/`、`android/`、`web/`、`pubspec.yaml` などは現行構造ではありません。
@@ -42,6 +42,7 @@ usalingo_app/
 │   │   └── official-content-contract.md
 │   ├── development/                  # 現行の開発環境と構成
 │   ├── archive/                      # 現行仕様ではない履歴・検討資料
+│   ├── plans/                        # これから行う作業の計画書
 │   ├── rules/                        # SQL、Codexなどの運用ルール
 │   ├── supabase/                     # Supabase文書の入口
 │   └── Usalingo｜Specification Ver.2.0/ # 旧パス案内と対象外の履歴
@@ -57,6 +58,7 @@ usalingo_app/
 - 実行可能なDB変更は `supabase/migrations/` に置く。
 - 現行アーキテクチャの判断は `docs/architecture/` に置く。
 - 現行の開発環境とリポジトリ構成は `docs/development/` に置く。
+- これから行う作業の計画書は `docs/plans/` に置く。
 - 現行仕様ではない資料は、先頭に案内を付けて `docs/archive/` に置く。
 - `Config/Local.xcconfig` は端末固有の秘密設定としてGitへ登録しない。
 - Xcodeの `xcuserdata`、DerivedData、ビルド生成物は仕様や共有コードとして扱わない。

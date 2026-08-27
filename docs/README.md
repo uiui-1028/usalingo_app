@@ -9,6 +9,12 @@
 - [ワークフロー設計 実行計画書](usalingo-workflow-planning-execution-plan.md)
 - [ワークフロー策定の記録](workflow-records/README.md)
 
+## これからの計画
+
+- [既製品採用 実行計画書](plans/external-package-adoption-plan.md) — 法務表示、画像キャッシュ、学習記録、オフライン
+- [`docs/` 整理 実行計画書](plans/docs-restructure-plan.md) — 文書の置き場所の作り直し
+- [`docs/` 整理 実施計画書](plans/docs-restructure-execution.md) — 上の計画を実行するための手順
+
 ## 現行資料
 
 1. [Anki型学習コア仕様](architecture/anki-aligned-spec.md)

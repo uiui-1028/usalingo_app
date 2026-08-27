@@ -1,6 +1,6 @@
 ---
 name: usalingo-next-ticket
-description: UsalingoのVer.2.0 Taskspaceから着手可能な1件を取得し、readyなwillがなければ依存グラフからAIが安全に進められる障害チケットを1件選ぶ。最新origin/mainから分離して調査、実装、テスト、AIレビュー、commit、push、GitHub PR作成、通常マージ、main最新化、そのチケット専用branch/worktreeの安全な整理、Notion完了報告まで自律的に進める。「次のチケットを進めて」「Notionから取って作業して」「同じ作業を繰り返して」または $usalingo-next-ticket / /usalingo-next-ticket と依頼されたときに使う。force push、強制削除、公開済み履歴の書き換え、本番変更は含まない。
+description: UsalingoのVer.2.0 Taskspaceから着手可能な1件を取得し、readyなwillがなければ依存グラフからAIが安全に進められる障害チケットを1件選ぶ。Codex、Claude Code、Cursorなどのクライアント間でlease、branch、worktreeを分離し、最新origin/mainから調査、実装、テスト、AIレビュー、commit、push、GitHub PR作成、通常マージ、安全な整理、Notion完了報告まで進める。「次のチケットを進めて」「Notionから取って作業して」「同じ作業を繰り返して」または $usalingo-next-ticket / /usalingo-next-ticket と依頼されたときに使う。force push、強制削除、公開済み履歴の書き換え、本番変更は含まない。
 ---
 
 # Usalingo Next Ticket
@@ -9,10 +9,21 @@ description: UsalingoのVer.2.0 Taskspaceから着手可能な1件を取得し�
 
 ## 優先するルール
 
-1. リポジトリの `AGENTS.md` と `docs/rules/codex-credit-optimization.md` を最初に読む。
+1. リポジトリの共通指示を最初に読む。Codexは `AGENTS.md`、Claude Codeは `CLAUDE.md` を読み、`CLAUDE.md` が `AGENTS.md` をimportしている場合は同じ内容を重複して読まない。続けて `docs/rules/codex-credit-optimization.md` を読む。
 2. Notionの現在のスキーマ、ユーザーの最新決定、このスキル、`../usalingo-project-manager/SKILL.md` の順に優先する。project-managerはNotion設定と文書テンプレートに使い、削除済みの `approval` など古い記述は採用しない。
 3. Supabase、GitHub、文書など別スキルの対象に入ったら、利用可能な該当スキルも使う。
 4. 現行アプリは `apps/ios-swiftui/` とし、Flutter資料を実装の正本にしない。
+
+## 実行クライアントと衝突防止
+
+1. 実際に動いているクライアント名を小文字で決める。Codexは `codex`、Claude Codeは `claude`、Cursorは `cursor` とする。別クライアントでは、その製品を一意に表す短い名前を使う。
+2. `worker_id` は `<client>-<一意なセッション値>`、新規branchは `<client>/usl-<番号>-<短い名前>` とする。他AIの `worker_id`、branch名、worktreeを再利用しない。
+3. 同じcheckoutまたはworktreeを複数AIで同時に編集しない。別AIが動いている可能性、既存のdirty差分、別チケットのcheckoutのいずれかがあれば、AIごとに別worktreeを使う。
+4. 候補を選んだら、作成予定のbranch名を決めるだけに留め、まだbranchやworktreeを作らない。`worker_id`、30分後の `lease_until`、予定branch名、`status=active` をNotionへまとめて書き、直後の再取得で自分の値が残っていることを確認する。
+5. 作業権を確認できたAIだけがbranch/worktreeの作成と編集を始める。競合に負けたAIはbranch、worktree、ローカル差分を新たに作らず、別候補を勝手に取得せず停止する。
+6. 作業中は20分以内ごとと、commit、push、PR、merge、Notion更新の直前に `worker_id` と `lease_until` を再確認する。別AIへ移っていたら、commitや外部更新を行わず現在のローカル状態を保持して停止する。
+7. leaseの延長・解放、進捗更新、完了更新は、再取得時点で自分が作業権を持つ場合だけ行う。他AIの値を上書きしない。
+8. 期限切れ作業の引き継ぎは、既存branch、worktree、差分、PR、直近記録を確認し、このスキルの引き継ぎ条件を満たす場合だけ行う。新しいbranchを重ねない。
 
 ## この呼び出しで許可されること
 
@@ -75,21 +86,21 @@ Ver.2.0 Taskspace `collection://7c0c3d1f-59e8-83f8-8958-07b0b1cf4a03` だけを�
 4. `will` が0件ならその事実を報告して何も変更しない。`ready=1` があれば先頭の通常候補を選ぶ。`will` はあるが `ready=1` が0件なら「障害チケット取得モード」で安全に進められる依存を1件選ぶ。依存候補もなければ解除条件だけを報告して停止する。
 5. 選んだ通常候補または障害候補のページ本文をfetchし、受け入れ条件、依存経路、危険操作を確認する。
 6. `git fetch origin` を実行し、開始点を最新の `origin/main` にする。ローカル `main` が古くても、その上から作業branchを作らない。
-7. 通常の `will` または新たに再開する `blocked` では、クライアント名を小文字にした接頭辞を使い、チケットごとに `<client>/usl-<番号>-<短い名前>` の新規専用branchを作る。Cursorは `cursor/`、Codexは `codex/` を使う。同名が存在する場合は一意な接尾辞を付ける。期限切れ `active` または `review` の引き継ぎだけは、確認済みの既存 `work_branch` とPRを継続し、同じチケットの別branchを重ねない。
-8. 通常は現在のcheckoutを使う。checkoutがcleanで、別の作業に使用中でなければ、最新の `origin/main` から専用branchを作って切り替える。
-9. `main` へ直接変更・commitしない。既存checkoutがdirty、別チケットを作業中、または複数AIが並行作業中の場合だけ、既存状態を守るため別worktreeを使う。その場でpull、rebase、reset、stashして既存作業を動かさない。
-10. worktreeが必要な場合はリポジトリ外、原則 `/private/tmp/usalingo-<番号>-<一意値>` に作る。リポジトリ内の `.codex-worktrees/` を作成・stageしない。
-11. 分離先にignoredな `Config/Local.xcconfig` が必要なら、秘密値をコピーせず `Local.xcconfig.example` 相当の一時設定を使う。一時設定、DerivedData、Simulator成果物をcommitしない。
-12. `<client>-<一意な文字列>` の `worker_id`、30分後のタイムゾーン付き `lease_until`、`work_branch`、`status=active` を1回で更新する。`review` を引き継ぐ場合だけstatusは `review` のままにする。
-13. 直後にページを再取得し、`worker_id`、`lease_until`、`work_branch` が自分の値であることを確認する。競合したら編集せず停止する。
+7. 実行クライアントを判定し、通常の `will` または新たに再開する `blocked` では `<client>/usl-<番号>-<短い名前>` の予定branch名と `<client>-<一意なセッション値>` の `worker_id` を決める。同名branchが存在する場合は一意な接尾辞を付ける。期限切れ `active` または `review` の引き継ぎだけは、確認済みの既存 `work_branch` とPRを予定値として使う。
+8. branchやworktreeを作る前に、`worker_id`、30分後のタイムゾーン付き `lease_until`、予定 `work_branch`、`status=active` を1回で更新する。`review` を引き継ぐ場合だけstatusは `review` のままにする。
+9. 直後にページを再取得し、`worker_id`、`lease_until`、`work_branch` が自分の値であることを確認する。競合したらbranch、worktree、差分を作らず停止する。
+10. 通常は現在のcheckoutを使う。checkoutがcleanで、別の作業やAIに使用中でなければ、最新の `origin/main` から確認済みの専用branchを作って切り替える。
+11. `main` へ直接変更・commitしない。既存checkoutがdirty、別チケットを作業中、または複数AIが並行作業中の場合は、既存状態を守るためAIごとに別worktreeを使う。その場でpull、rebase、reset、stashして既存作業を動かさない。
+12. worktreeが必要な場合はリポジトリ外、原則 `/private/tmp/usalingo-<番号>-<client>-<一意値>` に作る。別AIの既存worktreeへ入らない。リポジトリ内の `.codex-worktrees/` を作成・stageしない。
+13. 分離先にignoredな `Config/Local.xcconfig` が必要なら、秘密値をコピーせず `Local.xcconfig.example` 相当の一時設定を使う。一時設定、DerivedData、Simulator成果物をcommitしない。
 
 ## 最小Notionフロー
 
 1. Notion接続とTaskspaceスキーマを確認する。
 2. 着手前の1回のSQLで通常候補を取得する。readyな候補が0件なら、同じ結果の `unresolved_blockers` から必要な依存ページだけをfetchし、「障害チケット取得モード」を実行する。
 3. 選んだ候補の本文、受け入れ条件、最新決定、危険操作を確認する。チケットが最新の人間決定と矛盾する場合は取得せず、別の依存経路を探す。
-4. 専用branchを作った後、一意な `worker_id`、30分後の `lease_until`、`work_branch`、`status=active` を1回で更新する。`review` の引き継ぎだけはstatusを `review` のままにする。
-5. 直後に再取得し、自分の作業権であることを確認する。競合したら編集せず撤退する。
+4. 予定branch名を決めた後、branchやworktreeを作る前に、一意な `worker_id`、30分後の `lease_until`、予定 `work_branch`、`status=active` を1回で更新する。`review` の引き継ぎだけはstatusを `review` のままにする。
+5. 直後に再取得し、自分の作業権であることを確認する。競合したらbranch、worktree、差分を作らず撤退する。確認後だけ分離した作業場所を作る。
 6. 20分以内ごと、commit、push、PR、Notion状態変更の直前に作業権を再確認・延長する。
 7. 完了または外部要因による停止では、自分が作業権を持つことを確認してから `lease_until` を空にする。作業権が別AIへ移っていたら上書きしない。
 8. チケットの対象だけを調査・変更する。現行アプリは `apps/ios-swiftui/` を基準にする。
