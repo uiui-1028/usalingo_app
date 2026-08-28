@@ -204,3 +204,76 @@ final class LocalStudyDataSourceTests: XCTestCase {
         """.utf8)
     }
 }
+
+// MARK: - バックアップ（G-1）
+
+extension LocalStudyDataSourceTests {
+    func testSnapshotRoundTripsToAnotherDevice() async throws {
+        let source = makeDataSource()
+        let deck = try source.importDeck(from: sampleDeckData(cardCount: 3))
+        let queue = try await source.fetchStudyQueue(deckId: deck.id, mode: .all)
+        let card = try XCTUnwrap(queue.first)
+        let saved = try await source.saveAnswerWithUndo(card: card, isCorrect: true)
+        try await source.saveTags(["重要"], wordId: card.wordId)
+
+        let data = try source.encodedSnapshot()
+
+        // 別端末に相当する空のディレクトリへ取り込む。
+        let otherDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("LocalStudyDataSourceTests-other-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: otherDirectory) }
+        let restored = LocalStudyDataSource(directoryURL: otherDirectory, bundle: Bundle(for: Self.self))
+        XCTAssertFalse(restored.hasStudyRecord)
+
+        try restored.restore(LocalStudyDataSource.decodeSnapshot(from: data))
+
+        XCTAssertTrue(restored.hasStudyRecord)
+        let restoredDeck = try XCTUnwrap(restored.decks().first { $0.key == deck.key })
+        XCTAssertEqual(restoredDeck.name, deck.name)
+        XCTAssertEqual(try restored.counts(deckId: restoredDeck.id), LocalDeckCounts(newCount: 2, dueCount: 0))
+        let restoredCards = try await restored.fetchStudyQueue(deckId: restoredDeck.id, mode: .all)
+        let studied = try XCTUnwrap(restoredCards.first { $0.id == card.id })
+        XCTAssertEqual(studied.learning?.nextReviewDate, saved.progress.nextReviewDate)
+        XCTAssertEqual(studied.learning?.repetitions, 1)
+        let restoredTags = try await restored.fetchTags(wordId: card.wordId)
+        XCTAssertEqual(restoredTags, ["重要"])
+    }
+
+    func testRestoreReplacesExistingContent() async throws {
+        let source = makeDataSource()
+        _ = try source.importDeck(from: sampleDeckData(cardCount: 2, deckId: "kept"))
+        let snapshot = try source.snapshot()
+
+        _ = try source.importDeck(from: sampleDeckData(cardCount: 1, deckId: "added-later"))
+        XCTAssertEqual(source.decks().count, 2)
+
+        try source.restore(snapshot)
+
+        // 取り込みは全置き換え。あとから足したデッキは残らない。
+        XCTAssertEqual(source.decks().map(\.key), ["kept"])
+    }
+
+    func testRestoreRejectsUnknownSchemaVersion() throws {
+        let source = makeDataSource()
+        let data = try source.encodedSnapshot()
+        var object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: data) as? [String: Any]
+        )
+        object["schemaVersion"] = LocalStudySnapshot.currentSchemaVersion + 1
+        let futureData = try JSONSerialization.data(withJSONObject: object)
+
+        let snapshot = try LocalStudyDataSource.decodeSnapshot(from: futureData)
+        XCTAssertThrowsError(try source.restore(snapshot)) { error in
+            XCTAssertEqual(
+                error as? LocalStudyError,
+                .unsupportedSnapshotVersion(LocalStudySnapshot.currentSchemaVersion + 1)
+            )
+        }
+    }
+
+    func testDecodeSnapshotRejectsBrokenData() {
+        XCTAssertThrowsError(try LocalStudyDataSource.decodeSnapshot(from: Data("not json".utf8))) { error in
+            XCTAssertEqual(error as? LocalStudyError, .snapshotUnreadable)
+        }
+    }
+}

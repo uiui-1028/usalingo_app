@@ -21,11 +21,40 @@ struct LocalDeckCounts: Equatable {
     let dueCount: Int
 }
 
+/// 端末に保存しているデッキ一覧とカードIDの対応表。
+/// バックアップへそのまま入れるため、内部だけの型にしない。
+struct LocalStudyLibrary: Codable {
+    var decks: [LocalDeck] = []
+    var removedBundledKeys: [String] = []
+    var nextDeckId = 1
+    var nextCardId = 1
+    /// "デッキkey#JSON内カードid" → アプリ全体で一意なカードID。
+    /// デッキの中身を差し替えても既存IDが動かないよう、初見時に採番して保存する。
+    var cardIds: [String: Int] = [:]
+}
+
+/// 端末の学習記録をまるごと1つにまとめたもの（G-1）。
+/// サーバへはこの形のまま預け、復元時にそのまま書き戻す。
+struct LocalStudySnapshot: Codable {
+    static let currentSchemaVersion = 1
+
+    let schemaVersion: Int
+    let library: LocalStudyLibrary
+    let progress: [String: LearningProgress]
+    let tags: [String: [String]]
+    let overrides: [String: UserWordOverride]
+    /// 読み込みで追加したデッキの中身。同梱デッキはアプリに入っているため含めない（G-D5）。
+    let importedDecks: [String: DeckFile]
+    let createdAt: String
+}
+
 enum LocalStudyError: LocalizedError, Equatable {
     case deckNotFound
     case deckFileMissing(String)
     case missingCardId
     case duplicateDeckKey(String)
+    case unsupportedSnapshotVersion(Int)
+    case snapshotUnreadable
 
     var errorDescription: String? {
         switch self {
@@ -37,6 +66,10 @@ enum LocalStudyError: LocalizedError, Equatable {
             return "カードIDがないため進捗を保存できませんでした。"
         case .duplicateDeckKey(let key):
             return "同じ deckId「\(key)」のデッキが既に登録されています。"
+        case .unsupportedSnapshotVersion(let version):
+            return "このアプリが対応していないバックアップ形式です（版 \(version)、対応している版は \(LocalStudySnapshot.currentSchemaVersion)）。アプリを更新してください。"
+        case .snapshotUnreadable:
+            return "バックアップの形式が正しくありません。"
         }
     }
 }
@@ -50,16 +83,6 @@ final class LocalStudyDataSource: StudyDataSource {
 
     /// 「全単語」を表す既存の擬似デッキID。ローカルでは登録済みの全デッキを対象にする。
     static let allDecksId = -1
-
-    private struct Library: Codable {
-        var decks: [LocalDeck] = []
-        var removedBundledKeys: [String] = []
-        var nextDeckId = 1
-        var nextCardId = 1
-        /// "デッキkey#JSON内カードid" → アプリ全体で一意なカードID。
-        /// デッキの中身を差し替えても既存IDが動かないよう、初見時に採番して保存する。
-        var cardIds: [String: Int] = [:]
-    }
 
     private enum FileName {
         static let library = "library.json"
@@ -81,7 +104,7 @@ final class LocalStudyDataSource: StudyDataSource {
     private let directoryURL: URL
     private let bundle: Bundle
 
-    private var library: Library
+    private var library: LocalStudyLibrary
     private var progressByCardId: [String: LearningProgress]
     private var tagsByWordId: [String: [String]]
     private var overridesByWordId: [String: UserWordOverride]
@@ -90,7 +113,7 @@ final class LocalStudyDataSource: StudyDataSource {
         self.fileManager = fileManager
         self.bundle = bundle
         self.directoryURL = directoryURL ?? Self.defaultDirectoryURL(fileManager: fileManager)
-        library = Self.loadJSON(Library.self, from: self.directoryURL.appendingPathComponent(FileName.library)) ?? Library()
+        library = Self.loadJSON(LocalStudyLibrary.self, from: self.directoryURL.appendingPathComponent(FileName.library)) ?? LocalStudyLibrary()
         progressByCardId = Self.loadJSON([String: LearningProgress].self, from: self.directoryURL.appendingPathComponent(FileName.progress)) ?? [:]
         tagsByWordId = Self.loadJSON([String: [String]].self, from: self.directoryURL.appendingPathComponent(FileName.tags)) ?? [:]
         overridesByWordId = Self.loadJSON([String: UserWordOverride].self, from: self.directoryURL.appendingPathComponent(FileName.overrides)) ?? [:]
@@ -265,6 +288,73 @@ final class LocalStudyDataSource: StudyDataSource {
             throw LocalStudyError.deckNotFound
         }
         return card
+    }
+
+    // MARK: - バックアップ（G-1）
+
+    /// 学習記録が1件でもあるか。復元前の確認（G-D4）で使う。
+    var hasStudyRecord: Bool {
+        !progressByCardId.isEmpty
+    }
+
+    func snapshot(now: Date = Date()) throws -> LocalStudySnapshot {
+        var importedDecks: [String: DeckFile] = [:]
+        for deck in library.decks where !deck.isBundled {
+            importedDecks[deck.key] = try deckFile(for: deck)
+        }
+        return LocalStudySnapshot(
+            schemaVersion: LocalStudySnapshot.currentSchemaVersion,
+            library: library,
+            progress: progressByCardId,
+            tags: tagsByWordId,
+            overrides: overridesByWordId,
+            importedDecks: importedDecks,
+            createdAt: ISO8601DateFormatter().string(from: now)
+        )
+    }
+
+    /// 端末の内容をスナップショットで**全置き換え**する。
+    /// 置き換え前の状態は戻せないため、呼び出す前に確認を取ること（G-D3）。
+    func restore(_ snapshot: LocalStudySnapshot) throws {
+        guard snapshot.schemaVersion == LocalStudySnapshot.currentSchemaVersion else {
+            throw LocalStudyError.unsupportedSnapshotVersion(snapshot.schemaVersion)
+        }
+
+        let importedDirectory = importedDirectoryURL()
+        if fileManager.fileExists(atPath: importedDirectory.path) {
+            try fileManager.removeItem(at: importedDirectory)
+        }
+        if !snapshot.importedDecks.isEmpty {
+            try ensureDirectory(importedDirectory)
+            for (key, file) in snapshot.importedDecks {
+                try file.encoded().write(to: importedFileURL(key: key), options: .atomic)
+            }
+        }
+
+        library = snapshot.library
+        progressByCardId = snapshot.progress
+        tagsByWordId = snapshot.tags
+        overridesByWordId = snapshot.overrides
+
+        try persistLibrary()
+        try persist(progressByCardId, to: FileName.progress)
+        try persist(tagsByWordId, to: FileName.tags)
+        try persist(overridesByWordId, to: FileName.overrides)
+
+        // このビルドに入っている同梱デッキを、復元後の一覧へ合わせ直す。
+        syncBundledDecks()
+    }
+
+    func encodedSnapshot(now: Date = Date()) throws -> Data {
+        try JSONEncoder().encode(try snapshot(now: now))
+    }
+
+    static func decodeSnapshot(from data: Data) throws -> LocalStudySnapshot {
+        do {
+            return try JSONDecoder().decode(LocalStudySnapshot.self, from: data)
+        } catch {
+            throw LocalStudyError.snapshotUnreadable
+        }
     }
 
     // MARK: - カードの読み込み
