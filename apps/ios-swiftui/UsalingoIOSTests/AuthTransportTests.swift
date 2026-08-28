@@ -39,6 +39,42 @@ final class AuthTransportTests: XCTestCase {
         }
     }
 
+    func testReauthenticateUsesSupabaseGetEndpoint() async throws {
+        let transport = StubNetworkSession(data: Data("{}".utf8), statusCode: 200)
+        let service = AuthService(
+            sessionStore: FakeSessionStore(),
+            client: FakeAuthSupabaseClient(),
+            session: transport
+        )
+
+        try await service.reauthenticate(accessToken: "test-access")
+
+        XCTAssertEqual(transport.requests.count, 1)
+        XCTAssertEqual(transport.requests.first?.url?.path, "/auth/v1/reauthenticate")
+        XCTAssertEqual(transport.requests.first?.httpMethod, "GET")
+        XCTAssertEqual(transport.requests.first?.value(forHTTPHeaderField: "Authorization"), "Bearer test-access")
+    }
+
+    func testPasswordRecoverySendsAppRedirectAsQueryItem() async throws {
+        let transport = StubNetworkSession(data: Data("{}".utf8), statusCode: 200)
+        let service = AuthService(
+            sessionStore: FakeSessionStore(),
+            client: FakeAuthSupabaseClient(),
+            session: transport
+        )
+
+        try await service.requestPasswordRecovery(email: "learner@example.com")
+
+        let request = try XCTUnwrap(transport.requests.first)
+        let components = try XCTUnwrap(URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false))
+        XCTAssertEqual(components.queryItems, [URLQueryItem(name: "redirect_to", value: "usalingo://auth/recovery")])
+        XCTAssertEqual(request.httpMethod, "POST")
+        XCTAssertEqual(
+            try JSONSerialization.jsonObject(with: try XCTUnwrap(request.httpBody)) as? [String: String],
+            ["email": "learner@example.com"]
+        )
+    }
+
     func testSupabaseClientReportsUnauthorizedResponseWithoutNetwork() async {
         let client = SupabaseClient(session: StubNetworkSession(data: Data("expired token".utf8), statusCode: 401))
 

@@ -164,7 +164,11 @@ final class AuthService {
     }
 
     func requestPasswordRecovery(email: String) async throws {
-        try await executeAuthRequest(path: "recover", body: ["email": email, "redirect_to": "usalingo://auth/recovery"])
+        try await executeAuthRequest(
+            path: "recover",
+            queryItems: [URLQueryItem(name: "redirect_to", value: "usalingo://auth/recovery")],
+            body: ["email": email]
+        )
     }
 
     func recoverSession(from url: URL) async throws -> AuthSession? {
@@ -193,7 +197,7 @@ final class AuthService {
     }
 
     func reauthenticate(accessToken: String) async throws {
-        try await executeAuthRequest(path: "reauthenticate", accessToken: accessToken, body: EmptyPayload())
+        try await executeAuthRequest(path: "reauthenticate", method: "GET", accessToken: accessToken, body: EmptyPayload())
     }
 
     func updatePassword(_ password: String, currentPassword: String?, nonce: String?, accessToken: String) async throws {
@@ -273,8 +277,13 @@ final class AuthService {
         )
     }
 
-    private func executeAuthRequest(path: String, method: String = "POST", accessToken: String? = nil, body: Encodable) async throws {
-        var request = URLRequest(url: SupabaseConfig.authURL.appendingPathComponent(path))
+    private func executeAuthRequest(path: String, method: String = "POST", queryItems: [URLQueryItem] = [], accessToken: String? = nil, body: Encodable) async throws {
+        var components = URLComponents(url: SupabaseConfig.authURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)
+        components?.queryItems = queryItems.isEmpty ? nil : queryItems
+        guard let url = components?.url else {
+            throw SupabaseError.badResponse("Invalid Auth URL")
+        }
+        var request = URLRequest(url: url)
         request.httpMethod = method
         request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
