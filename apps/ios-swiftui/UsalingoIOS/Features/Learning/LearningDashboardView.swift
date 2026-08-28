@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// 学習タブ。1列のデッキリスト（D-4）。行をタップしたら確認を挟まずに学習画面へ入る（D-8）。
 struct LearningDashboardView: View {
@@ -10,6 +11,8 @@ struct LearningDashboardView: View {
     @State private var isEditing = false
     @State private var isShowingLibrary = false
     @State private var errorMessage: String?
+    @State private var exportDocument: DeckDocument?
+    @State private var exportFileName = "deck"
 
     var body: some View {
         NavigationStack {
@@ -30,6 +33,9 @@ struct LearningDashboardView: View {
             Section {
                 ForEach(decks) { deck in
                     deckRow(deck)
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            Button("書き出す") { prepareExport(deck) }
+                        }
                 }
                 .onMove(perform: isEditing ? move : nil)
                 .onDelete(perform: isEditing ? delete : nil)
@@ -63,6 +69,19 @@ struct LearningDashboardView: View {
         .overlay {
             if decks.isEmpty {
                 emptyState
+            }
+        }
+        .fileExporter(
+            isPresented: Binding(
+                get: { exportDocument != nil },
+                set: { if !$0 { exportDocument = nil } }
+            ),
+            document: exportDocument,
+            contentType: .json,
+            defaultFilename: exportFileName
+        ) { result in
+            if case .failure(let error) = result {
+                errorMessage = "デッキを書き出せませんでした。（\(error.localizedDescription)）"
             }
         }
         .toolbar {
@@ -131,6 +150,16 @@ struct LearningDashboardView: View {
         errorMessage = failed.isEmpty ? nil : "\(failed.joined(separator: "、")) のカードを読み込めませんでした。"
         if decks.isEmpty {
             isEditing = false
+        }
+    }
+
+    private func prepareExport(_ deck: LocalDeck) {
+        do {
+            exportFileName = deck.key
+            exportDocument = DeckDocument(data: try appState.localStudy.exportData(deckId: deck.id))
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 
