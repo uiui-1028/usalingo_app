@@ -82,6 +82,10 @@ case "$API_URL" in
   http://127.0.0.1:*|http://localhost:*) ;;
   *) fail "refusing non-local API URL" ;;
 esac
+case "$INBUCKET_URL" in
+  http://127.0.0.1:*|http://localhost:*) ;;
+  *) fail "refusing non-local Mailpit URL" ;;
+esac
 
 supabase functions serve delete-user-account >"$tmp_dir/function.log" 2>&1 &
 function_pid=$!
@@ -172,10 +176,10 @@ case "$anon_profile_code" in 401|403) printf 'PASS: anonymous profile access is 
 anon_delete_code=$(request POST "$API_URL/functions/v1/delete-user-account" "$tmp_dir/anon-delete.json" "$ANON_KEY" "" '{}')
 assert_status "anonymous account deletion is rejected" "$anon_delete_code" 401
 
-recovery_body=$(jq -nc --arg email "$email_a" --arg redirect_to 'usalingo://auth/recovery' '{email:$email,redirect_to:$redirect_to}')
-code=$(request POST "$API_URL/auth/v1/recover" "$tmp_dir/recovery.json" "$ANON_KEY" "" "$recovery_body")
+recovery_body=$(jq -nc --arg email "$email_a" '{email:$email}')
+code=$(request POST "$API_URL/auth/v1/recover?redirect_to=usalingo%3A%2F%2Fauth%2Frecovery" "$tmp_dir/recovery.json" "$ANON_KEY" "" "$recovery_body")
 assert_status "password recovery request accepts the app link" "$code" 200
-code=$(request POST "$API_URL/auth/v1/reauthenticate" "$tmp_dir/reauth.json" "$ANON_KEY" "$token_a" '{}')
+code=$(request GET "$API_URL/auth/v1/reauthenticate" "$tmp_dir/reauth.json" "$ANON_KEY" "$token_a" '{}')
 assert_status "reauthentication request succeeds" "$code" 200
 
 wrong_signin=$(jq -nc --arg email "$email_a" '{email:$email,password:"wrong-local-password"}')
@@ -184,6 +188,44 @@ assert_status "wrong current password is rejected" "$code" 400
 email_change=$(jq -nc --arg email "$email_a_new" '{email:$email}')
 code=$(request PUT "$API_URL/auth/v1/user" "$tmp_dir/email-change.json" "$ANON_KEY" "$token_a" "$email_change")
 assert_status "email change request succeeds" "$code" 200
+
+mail_ready=0
+attempt=0
+while [ "$attempt" -lt 20 ]; do
+  messages=$(curl -sS "$INBUCKET_URL/api/v1/messages")
+  recovery_count=$(printf '%s' "$messages" | jq --arg email "$email_a" '[.messages[] | select(.Subject == "Reset Your Password" and (.To | any(.Address == $email)))] | length')
+  reauth_count=$(printf '%s' "$messages" | jq --arg email "$email_a" '[.messages[] | select(.Subject == "Confirm reauthentication" and (.To | any(.Address == $email)))] | length')
+  email_change_count=$(printf '%s' "$messages" | jq --arg old "$email_a" --arg new "$email_a_new" '[.messages[] | select(.Subject == "Confirm Email Change" and (.To | any(.Address == $old or .Address == $new)))] | length')
+  if [ "$recovery_count" -ge 1 ] && [ "$reauth_count" -ge 1 ] && [ "$email_change_count" -ge 2 ]; then
+    mail_ready=1
+    break
+  fi
+  attempt=$((attempt + 1))
+  sleep 1
+done
+[ "$mail_ready" = "1" ] || fail "local Mailpit did not receive recovery, reauthentication, and email-change messages"
+printf 'PASS: recovery, reauthentication, and email-change messages reach local Mailpit\n'
+
+recovery_message_id=$(printf '%s' "$messages" | jq -er --arg email "$email_a" '.messages[] | select(.Subject == "Reset Your Password" and (.To | any(.Address == $email))) | .ID' | head -1)
+recovery_link=$(curl -sS "$INBUCKET_URL/api/v1/message/$recovery_message_id" \
+  | jq -er '.HTML' \
+  | sed -n 's/.*href="\([^"]*\)".*/\1/p' \
+  | sed 's/&amp;/\&/g')
+case "$recovery_link" in
+  "$API_URL"/auth/v1/verify?*) ;;
+  *) fail "recovery message did not contain a local Auth verification link" ;;
+esac
+recovery_verify_code=$(curl -sS -D "$tmp_dir/recovery-verify.headers" -o /dev/null -w '%{http_code}' "$recovery_link")
+case "$recovery_verify_code" in
+  302|303) ;;
+  *) fail "recovery link returned HTTP $recovery_verify_code, expected 302 or 303" ;;
+esac
+recovery_location=$(sed -n 's/^[Ll]ocation: //p' "$tmp_dir/recovery-verify.headers" | tr -d '\r')
+case "$recovery_location" in
+  usalingo://auth/recovery?*|usalingo://auth/recovery#*) ;;
+  *) fail "recovery link did not redirect to the app recovery URL" ;;
+esac
+printf 'PASS: recovery link redirects to the app recovery URL\n'
 
 code=$(request GET "$API_URL/rest/v1/words?select=id&limit=100" "$tmp_dir/official-before.json" "$ANON_KEY" "$token_b")
 assert_status "B reads official content before A withdrawal" "$code" 200
