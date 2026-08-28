@@ -35,6 +35,7 @@
 		A10000000000000000000020 /* AccountDeletionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AccountDeletionService.swift */; };
 		A10000000000000000000021 /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* AppInfo.swift */; };
 		A10000000000000000000022 /* Licenses in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* Licenses */; };
+		A10000000000000000000027 /* SampleDecks in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* SampleDecks */; };
 		A10000000000000000000023 /* DeckFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* DeckFile.swift */; };
 		A10000000000000000000024 /* StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* StudyDataSource.swift */; };
 		A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* LocalStudyDataSource.swift */; };
@@ -90,6 +91,7 @@
 		A20000000000000000000020 /* AccountDeletionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AccountDeletionService.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AppInfo.swift; sourceTree = "<group>"; };
 		A20000000000000000000022 /* Licenses */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Licenses; sourceTree = "<group>"; };
+		A20000000000000000000027 /* SampleDecks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/SampleDecks; sourceTree = "<group>"; };
 		A20000000000000000000023 /* DeckFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DeckFile.swift; sourceTree = "<group>"; };
 		A20000000000000000000024 /* StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				A2000000000000000000001B /* TagSheet.swift */,
 				A2000000000000000000001F /* SwipeTutorialView.swift */,
 				A20000000000000000000022 /* Licenses */,
+				A20000000000000000000027 /* SampleDecks */,
 				A20000000000000000000012 /* Info.plist */,
 			);
 			path = UsalingoIOS;
@@ -276,6 +279,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000022 /* Licenses in Resources */,
+				A10000000000000000000027 /* SampleDecks in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

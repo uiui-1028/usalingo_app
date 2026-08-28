@@ -1,0 +1,1308 @@
+{
+  "cards": [
+    {
+      "audioAssetPath": null,
+      "id": 1,
+      "imageAssetPath": null,
+      "meaning": "収益、歳入",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The company reported record revenue this quarter.",
+      "sentenceJapanese": "その会社は今四半期に過去最高の収益を報告した。",
+      "tags": [
+        "finance"
+      ],
+      "text": "revenue"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 2,
+      "imageAssetPath": null,
+      "meaning": "請求書",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Please send the invoice by Friday.",
+      "sentenceJapanese": "金曜日までに請求書を送ってください。",
+      "tags": [
+        "finance"
+      ],
+      "text": "invoice"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 3,
+      "imageAssetPath": null,
+      "meaning": "予算",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "We need to cut the marketing budget.",
+      "sentenceJapanese": "マーケティング予算を削る必要がある。",
+      "tags": [
+        "finance"
+      ],
+      "text": "budget"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 4,
+      "imageAssetPath": null,
+      "meaning": "経費、支出",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Travel expenses must be approved in advance.",
+      "sentenceJapanese": "出張費は事前に承認が必要だ。",
+      "tags": [
+        "finance"
+      ],
+      "text": "expense"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 5,
+      "imageAssetPath": null,
+      "meaning": "利益",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Profits rose by ten percent last year.",
+      "sentenceJapanese": "昨年、利益は10パーセント増えた。",
+      "tags": [
+        "finance"
+      ],
+      "text": "profit"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 6,
+      "imageAssetPath": null,
+      "meaning": "交渉する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "They will negotiate the contract terms tomorrow.",
+      "sentenceJapanese": "彼らは明日、契約条件を交渉する。",
+      "tags": [
+        "business"
+      ],
+      "text": "negotiate"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 7,
+      "imageAssetPath": null,
+      "meaning": "契約、契約書",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Both parties signed the contract.",
+      "sentenceJapanese": "両者が契約書に署名した。",
+      "tags": [
+        "business"
+      ],
+      "text": "contract"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 8,
+      "imageAssetPath": null,
+      "meaning": "顧客、依頼人",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Our client requested a earlier deadline.",
+      "sentenceJapanese": "顧客はより早い納期を求めた。",
+      "tags": [
+        "business"
+      ],
+      "text": "client"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 9,
+      "imageAssetPath": null,
+      "meaning": "販売業者、仕入先",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "We selected a new vendor for office supplies.",
+      "sentenceJapanese": "事務用品の新しい仕入先を選んだ。",
+      "tags": [
+        "business"
+      ],
+      "text": "vendor"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 10,
+      "imageAssetPath": null,
+      "meaning": "供給業者",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The supplier delayed the shipment.",
+      "sentenceJapanese": "供給業者が出荷を遅らせた。",
+      "tags": [
+        "business"
+      ],
+      "text": "supplier"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 11,
+      "imageAssetPath": null,
+      "meaning": "出荷、積み荷",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The shipment arrived two days late.",
+      "sentenceJapanese": "積み荷は2日遅れで到着した。",
+      "tags": [
+        "logistics"
+      ],
+      "text": "shipment"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 12,
+      "imageAssetPath": null,
+      "meaning": "倉庫",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The goods are stored in the warehouse.",
+      "sentenceJapanese": "商品は倉庫に保管されている。",
+      "tags": [
+        "logistics"
+      ],
+      "text": "warehouse"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 13,
+      "imageAssetPath": null,
+      "meaning": "在庫",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "We check inventory at the end of each month.",
+      "sentenceJapanese": "毎月末に在庫を確認する。",
+      "tags": [
+        "logistics"
+      ],
+      "text": "inventory"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 14,
+      "imageAssetPath": null,
+      "meaning": "配達、納品",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Delivery is scheduled for Monday morning.",
+      "sentenceJapanese": "納品は月曜の午前に予定されている。",
+      "tags": [
+        "logistics"
+      ],
+      "text": "delivery"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 15,
+      "imageAssetPath": null,
+      "meaning": "貨物、運送料",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Freight costs increased this year.",
+      "sentenceJapanese": "今年は運送料が上がった。",
+      "tags": [
+        "logistics"
+      ],
+      "text": "freight"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 16,
+      "imageAssetPath": null,
+      "meaning": "議題、予定表",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The agenda was sent to all attendees.",
+      "sentenceJapanese": "議題は出席者全員に送られた。",
+      "tags": [
+        "meeting"
+      ],
+      "text": "agenda"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 17,
+      "imageAssetPath": null,
+      "meaning": "出席する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "Please attend the meeting at nine.",
+      "sentenceJapanese": "9時の会議に出席してください。",
+      "tags": [
+        "meeting"
+      ],
+      "text": "attend"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 18,
+      "imageAssetPath": null,
+      "meaning": "延期する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "We had to postpone the presentation.",
+      "sentenceJapanese": "発表を延期しなければならなかった。",
+      "tags": [
+        "meeting"
+      ],
+      "text": "postpone"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 19,
+      "imageAssetPath": null,
+      "meaning": "予定、予定を組む",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The schedule changed at the last minute.",
+      "sentenceJapanese": "予定が直前に変わった。",
+      "tags": [
+        "meeting"
+      ],
+      "text": "schedule"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 20,
+      "imageAssetPath": null,
+      "meaning": "会議、学会",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "She spoke at an industry conference.",
+      "sentenceJapanese": "彼女は業界の会議で講演した。",
+      "tags": [
+        "meeting"
+      ],
+      "text": "conference"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 21,
+      "imageAssetPath": null,
+      "meaning": "応募者",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Each applicant must submit a resume.",
+      "sentenceJapanese": "応募者は履歴書を提出しなければならない。",
+      "tags": [
+        "hr"
+      ],
+      "text": "applicant"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 22,
+      "imageAssetPath": null,
+      "meaning": "履歴書",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Attach your resume to the email.",
+      "sentenceJapanese": "履歴書をメールに添付してください。",
+      "tags": [
+        "hr"
+      ],
+      "text": "resume"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 23,
+      "imageAssetPath": null,
+      "meaning": "候補者",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Three candidates were invited for interviews.",
+      "sentenceJapanese": "3名の候補者が面接に招かれた。",
+      "tags": [
+        "hr"
+      ],
+      "text": "candidate"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 24,
+      "imageAssetPath": null,
+      "meaning": "採用する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "We plan to recruit five engineers.",
+      "sentenceJapanese": "エンジニアを5名採用する予定だ。",
+      "tags": [
+        "hr"
+      ],
+      "text": "recruit"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 25,
+      "imageAssetPath": null,
+      "meaning": "昇進、販売促進",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "He received a promotion last spring.",
+      "sentenceJapanese": "彼は昨春に昇進した。",
+      "tags": [
+        "hr"
+      ],
+      "text": "promotion"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 26,
+      "imageAssetPath": null,
+      "meaning": "同僚",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "My colleague will cover my shift.",
+      "sentenceJapanese": "同僚が私のシフトを代わる。",
+      "tags": [
+        "hr"
+      ],
+      "text": "colleague"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 27,
+      "imageAssetPath": null,
+      "meaning": "上司、監督者",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Ask your supervisor for approval.",
+      "sentenceJapanese": "上司に承認をもらってください。",
+      "tags": [
+        "hr"
+      ],
+      "text": "supervisor"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 28,
+      "imageAssetPath": null,
+      "meaning": "部署、部門",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "She transferred to the sales department.",
+      "sentenceJapanese": "彼女は営業部へ異動した。",
+      "tags": [
+        "hr"
+      ],
+      "text": "department"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 29,
+      "imageAssetPath": null,
+      "meaning": "従業員",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "All employees must complete the training.",
+      "sentenceJapanese": "全従業員が研修を修了する必要がある。",
+      "tags": [
+        "hr"
+      ],
+      "text": "employee"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 30,
+      "imageAssetPath": null,
+      "meaning": "雇用主",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The employer offers flexible hours.",
+      "sentenceJapanese": "雇用主は柔軟な勤務時間を提供している。",
+      "tags": [
+        "hr"
+      ],
+      "text": "employer"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 31,
+      "imageAssetPath": null,
+      "meaning": "賃金",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The company raised the minimum wage.",
+      "sentenceJapanese": "会社は最低賃金を引き上げた。",
+      "tags": [
+        "hr"
+      ],
+      "text": "wage"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 32,
+      "imageAssetPath": null,
+      "meaning": "給与",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The salary is negotiable.",
+      "sentenceJapanese": "給与は交渉可能だ。",
+      "tags": [
+        "hr"
+      ],
+      "text": "salary"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 33,
+      "imageAssetPath": null,
+      "meaning": "福利厚生、利益",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The job includes excellent benefits.",
+      "sentenceJapanese": "その仕事には手厚い福利厚生が付く。",
+      "tags": [
+        "hr"
+      ],
+      "text": "benefit"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 34,
+      "imageAssetPath": null,
+      "meaning": "退職する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "He will retire at the end of March.",
+      "sentenceJapanese": "彼は3月末で退職する。",
+      "tags": [
+        "hr"
+      ],
+      "text": "retire"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 35,
+      "imageAssetPath": null,
+      "meaning": "辞職する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "She decided to resign from her position.",
+      "sentenceJapanese": "彼女は職を辞することにした。",
+      "tags": [
+        "hr"
+      ],
+      "text": "resign"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 36,
+      "imageAssetPath": null,
+      "meaning": "方針、規定",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The refund policy has been updated.",
+      "sentenceJapanese": "返金規定が更新された。",
+      "tags": [
+        "office"
+      ],
+      "text": "policy"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 37,
+      "imageAssetPath": null,
+      "meaning": "手順",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Follow the standard procedure.",
+      "sentenceJapanese": "標準の手順に従ってください。",
+      "tags": [
+        "office"
+      ],
+      "text": "procedure"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 38,
+      "imageAssetPath": null,
+      "meaning": "書類",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Please review the attached document.",
+      "sentenceJapanese": "添付の書類を確認してください。",
+      "tags": [
+        "office"
+      ],
+      "text": "document"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 39,
+      "imageAssetPath": null,
+      "meaning": "提出する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "Submit the form before the deadline.",
+      "sentenceJapanese": "締切前に用紙を提出してください。",
+      "tags": [
+        "office"
+      ],
+      "text": "submit"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 40,
+      "imageAssetPath": null,
+      "meaning": "承認する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "The manager approved the request.",
+      "sentenceJapanese": "部長がその要望を承認した。",
+      "tags": [
+        "office"
+      ],
+      "text": "approve"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 41,
+      "imageAssetPath": null,
+      "meaning": "確認する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "Please confirm your reservation.",
+      "sentenceJapanese": "予約を確認してください。",
+      "tags": [
+        "office"
+      ],
+      "text": "confirm"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 42,
+      "imageAssetPath": null,
+      "meaning": "知らせる",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "We will notify you by email.",
+      "sentenceJapanese": "メールでお知らせします。",
+      "tags": [
+        "office"
+      ],
+      "text": "notify"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 43,
+      "imageAssetPath": null,
+      "meaning": "思い出させる",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "Remind me about the call at three.",
+      "sentenceJapanese": "3時の電話を思い出させてください。",
+      "tags": [
+        "office"
+      ],
+      "text": "remind"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 44,
+      "imageAssetPath": null,
+      "meaning": "割り当てる",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "She was assigned to the new project.",
+      "sentenceJapanese": "彼女は新しい案件に割り当てられた。",
+      "tags": [
+        "office"
+      ],
+      "text": "assign"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 45,
+      "imageAssetPath": null,
+      "meaning": "締切",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The deadline was moved up a week.",
+      "sentenceJapanese": "締切が1週間早まった。",
+      "tags": [
+        "office"
+      ],
+      "text": "deadline"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 46,
+      "imageAssetPath": null,
+      "meaning": "草案、下書き",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "I sent you a draft of the report.",
+      "sentenceJapanese": "報告書の草案を送りました。",
+      "tags": [
+        "office"
+      ],
+      "text": "draft"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 47,
+      "imageAssetPath": null,
+      "meaning": "修正する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "Please revise the second paragraph.",
+      "sentenceJapanese": "第2段落を修正してください。",
+      "tags": [
+        "office"
+      ],
+      "text": "revise"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 48,
+      "imageAssetPath": null,
+      "meaning": "添付する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "Attach the receipt to your report.",
+      "sentenceJapanese": "領収書を報告書に添付してください。",
+      "tags": [
+        "office"
+      ],
+      "text": "attach"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 49,
+      "imageAssetPath": null,
+      "meaning": "領収書",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Keep the receipt for reimbursement.",
+      "sentenceJapanese": "精算のため領収書を保管してください。",
+      "tags": [
+        "office"
+      ],
+      "text": "receipt"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 50,
+      "imageAssetPath": null,
+      "meaning": "払い戻す",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "The company will reimburse travel costs.",
+      "sentenceJapanese": "会社が出張費を払い戻す。",
+      "tags": [
+        "finance"
+      ],
+      "text": "reimburse"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 51,
+      "imageAssetPath": null,
+      "meaning": "購入する、購入",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "We purchased new laptops for the team.",
+      "sentenceJapanese": "チーム用に新しいノートPCを購入した。",
+      "tags": [
+        "business"
+      ],
+      "text": "purchase"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 52,
+      "imageAssetPath": null,
+      "meaning": "注文、注文する",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Your order has been shipped.",
+      "sentenceJapanese": "ご注文は発送されました。",
+      "tags": [
+        "business"
+      ],
+      "text": "order"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 53,
+      "imageAssetPath": null,
+      "meaning": "返金",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "She requested a full refund.",
+      "sentenceJapanese": "彼女は全額返金を求めた。",
+      "tags": [
+        "business"
+      ],
+      "text": "refund"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 54,
+      "imageAssetPath": null,
+      "meaning": "割引",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Members receive a ten percent discount.",
+      "sentenceJapanese": "会員は10パーセントの割引を受けられる。",
+      "tags": [
+        "business"
+      ],
+      "text": "discount"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 55,
+      "imageAssetPath": null,
+      "meaning": "保証",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The product comes with a two-year warranty.",
+      "sentenceJapanese": "その製品には2年の保証が付く。",
+      "tags": [
+        "business"
+      ],
+      "text": "warranty"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 56,
+      "imageAssetPath": null,
+      "meaning": "客、顧客",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Customer satisfaction improved this year.",
+      "sentenceJapanese": "今年は顧客満足度が向上した。",
+      "tags": [
+        "business"
+      ],
+      "text": "customer"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 57,
+      "imageAssetPath": null,
+      "meaning": "苦情",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "We received a complaint about the delay.",
+      "sentenceJapanese": "遅延について苦情を受けた。",
+      "tags": [
+        "business"
+      ],
+      "text": "complaint"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 58,
+      "imageAssetPath": null,
+      "meaning": "調査、アンケート",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Please complete the short survey.",
+      "sentenceJapanese": "短いアンケートにご回答ください。",
+      "tags": [
+        "business"
+      ],
+      "text": "survey"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 59,
+      "imageAssetPath": null,
+      "meaning": "意見、反応",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Your feedback helps us improve.",
+      "sentenceJapanese": "ご意見が改善に役立ちます。",
+      "tags": [
+        "business"
+      ],
+      "text": "feedback"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 60,
+      "imageAssetPath": null,
+      "meaning": "品質",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "We never compromise on quality.",
+      "sentenceJapanese": "品質では決して妥協しない。",
+      "tags": [
+        "business"
+      ],
+      "text": "quality"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 61,
+      "imageAssetPath": null,
+      "meaning": "発売する、開始する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "They will launch the product in June.",
+      "sentenceJapanese": "彼らは6月に製品を発売する。",
+      "tags": [
+        "marketing"
+      ],
+      "text": "launch"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 62,
+      "imageAssetPath": null,
+      "meaning": "広告する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "The store advertised a weekend sale.",
+      "sentenceJapanese": "店は週末のセールを広告した。",
+      "tags": [
+        "marketing"
+      ],
+      "text": "advertise"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 63,
+      "imageAssetPath": null,
+      "meaning": "パンフレット",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Take a brochure from the front desk.",
+      "sentenceJapanese": "受付でパンフレットをお取りください。",
+      "tags": [
+        "marketing"
+      ],
+      "text": "brochure"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 64,
+      "imageAssetPath": null,
+      "meaning": "キャンペーン、運動",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The campaign increased online traffic.",
+      "sentenceJapanese": "そのキャンペーンでアクセスが増えた。",
+      "tags": [
+        "marketing"
+      ],
+      "text": "campaign"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 65,
+      "imageAssetPath": null,
+      "meaning": "ブランド、銘柄",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The brand is popular among students.",
+      "sentenceJapanese": "そのブランドは学生に人気がある。",
+      "tags": [
+        "marketing"
+      ],
+      "text": "brand"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 66,
+      "imageAssetPath": null,
+      "meaning": "競合他社",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Our competitor lowered its prices.",
+      "sentenceJapanese": "競合他社が価格を下げた。",
+      "tags": [
+        "marketing"
+      ],
+      "text": "competitor"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 67,
+      "imageAssetPath": null,
+      "meaning": "見積もり、見積もる",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Could you send us an estimate?",
+      "sentenceJapanese": "見積もりを送っていただけますか。",
+      "tags": [
+        "business"
+      ],
+      "text": "estimate"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 68,
+      "imageAssetPath": null,
+      "meaning": "提案、提案書",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The proposal was accepted without changes.",
+      "sentenceJapanese": "提案書は修正なしで受け入れられた。",
+      "tags": [
+        "business"
+      ],
+      "text": "proposal"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 69,
+      "imageAssetPath": null,
+      "meaning": "発表、プレゼン",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "His presentation lasted twenty minutes.",
+      "sentenceJapanese": "彼の発表は20分続いた。",
+      "tags": [
+        "meeting"
+      ],
+      "text": "presentation"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 70,
+      "imageAssetPath": null,
+      "meaning": "参加者",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Each participant received a name tag.",
+      "sentenceJapanese": "参加者全員が名札を受け取った。",
+      "tags": [
+        "meeting"
+      ],
+      "text": "participant"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 71,
+      "imageAssetPath": null,
+      "meaning": "施設、設備",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The facility is closed for repairs.",
+      "sentenceJapanese": "その施設は修理のため閉鎖中だ。",
+      "tags": [
+        "office"
+      ],
+      "text": "facility"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 72,
+      "imageAssetPath": null,
+      "meaning": "保守、整備",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Routine maintenance is done every month.",
+      "sentenceJapanese": "定期保守は毎月行われる。",
+      "tags": [
+        "office"
+      ],
+      "text": "maintenance"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 73,
+      "imageAssetPath": null,
+      "meaning": "機器、設備",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "New equipment arrived this morning.",
+      "sentenceJapanese": "今朝、新しい機器が届いた。",
+      "tags": [
+        "office"
+      ],
+      "text": "equipment"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 74,
+      "imageAssetPath": null,
+      "meaning": "設置する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "A technician will install the software.",
+      "sentenceJapanese": "技術者がソフトウェアを設置する。",
+      "tags": [
+        "office"
+      ],
+      "text": "install"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 75,
+      "imageAssetPath": null,
+      "meaning": "修理する、修理",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "The elevator is being repaired.",
+      "sentenceJapanese": "エレベーターは修理中だ。",
+      "tags": [
+        "office"
+      ],
+      "text": "repair"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 76,
+      "imageAssetPath": null,
+      "meaning": "改装する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "They plan to renovate the lobby.",
+      "sentenceJapanese": "彼らはロビーを改装する予定だ。",
+      "tags": [
+        "office"
+      ],
+      "text": "renovate"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 77,
+      "imageAssetPath": null,
+      "meaning": "一時的な",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "This is a temporary solution.",
+      "sentenceJapanese": "これは一時的な解決策だ。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "temporary"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 78,
+      "imageAssetPath": null,
+      "meaning": "永続的な、常勤の",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "She accepted a permanent position.",
+      "sentenceJapanese": "彼女は常勤の職を受け入れた。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "permanent"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 79,
+      "imageAssetPath": null,
+      "meaning": "利用できる、都合がつく",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "The room is available at two.",
+      "sentenceJapanese": "その部屋は2時に利用できる。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "available"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 80,
+      "imageAssetPath": null,
+      "meaning": "効率的な",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "The new process is more efficient.",
+      "sentenceJapanese": "新しい工程はより効率的だ。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "efficient"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 81,
+      "imageAssetPath": null,
+      "meaning": "信頼できる",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "We need a reliable supplier.",
+      "sentenceJapanese": "信頼できる仕入先が必要だ。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "reliable"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 82,
+      "imageAssetPath": null,
+      "meaning": "正確な",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "Please keep the records accurate.",
+      "sentenceJapanese": "記録は正確に保ってください。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "accurate"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 83,
+      "imageAssetPath": null,
+      "meaning": "必須の",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "The safety training is mandatory.",
+      "sentenceJapanese": "安全研修は必須だ。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "mandatory"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 84,
+      "imageAssetPath": null,
+      "meaning": "資格のある",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "Employees are eligible after six months.",
+      "sentenceJapanese": "従業員は6か月後に資格を得る。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "eligible"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 85,
+      "imageAssetPath": null,
+      "meaning": "追加の",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "There is no additional charge.",
+      "sentenceJapanese": "追加料金はかかりません。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "additional"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 86,
+      "imageAssetPath": null,
+      "meaning": "年次の",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "The annual report is published in May.",
+      "sentenceJapanese": "年次報告書は5月に公表される。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "annual"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 87,
+      "imageAssetPath": null,
+      "meaning": "四半期ごとの",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "We hold quarterly review meetings.",
+      "sentenceJapanese": "四半期ごとに見直し会議を開く。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "quarterly"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 88,
+      "imageAssetPath": null,
+      "meaning": "現在の",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "Check the current stock level.",
+      "sentenceJapanese": "現在の在庫水準を確認してください。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "current"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 89,
+      "imageAssetPath": null,
+      "meaning": "以前の",
+      "partOfSpeech": "adjective",
+      "sentenceEnglish": "See the previous version of the file.",
+      "sentenceJapanese": "そのファイルの以前の版を見てください。",
+      "tags": [
+        "adjective"
+      ],
+      "text": "previous"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 90,
+      "imageAssetPath": null,
+      "meaning": "およそ",
+      "partOfSpeech": "adverb",
+      "sentenceEnglish": "The trip takes approximately two hours.",
+      "sentenceJapanese": "その移動はおよそ2時間かかる。",
+      "tags": [
+        "adverb"
+      ],
+      "text": "approximately"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 91,
+      "imageAssetPath": null,
+      "meaning": "直ちに",
+      "partOfSpeech": "adverb",
+      "sentenceEnglish": "Please reply immediately.",
+      "sentenceJapanese": "直ちに返信してください。",
+      "tags": [
+        "adverb"
+      ],
+      "text": "immediately"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 92,
+      "imageAssetPath": null,
+      "meaning": "一時的に",
+      "partOfSpeech": "adverb",
+      "sentenceEnglish": "The line is temporarily out of service.",
+      "sentenceJapanese": "その路線は一時的に運休している。",
+      "tags": [
+        "adverb"
+      ],
+      "text": "temporarily"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 93,
+      "imageAssetPath": null,
+      "meaning": "増加する、増加",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "Sales increased after the campaign.",
+      "sentenceJapanese": "キャンペーン後に売上が増加した。",
+      "tags": [
+        "business"
+      ],
+      "text": "increase"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 94,
+      "imageAssetPath": null,
+      "meaning": "減少する、減少",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "Costs decreased by five percent.",
+      "sentenceJapanese": "費用は5パーセント減少した。",
+      "tags": [
+        "business"
+      ],
+      "text": "decrease"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 95,
+      "imageAssetPath": null,
+      "meaning": "拡大する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "The firm plans to expand overseas.",
+      "sentenceJapanese": "その会社は海外へ拡大する計画だ。",
+      "tags": [
+        "business"
+      ],
+      "text": "expand"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 96,
+      "imageAssetPath": null,
+      "meaning": "合併する",
+      "partOfSpeech": "verb",
+      "sentenceEnglish": "The two banks will merge next year.",
+      "sentenceJapanese": "2つの銀行は来年合併する。",
+      "tags": [
+        "business"
+      ],
+      "text": "merge"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 97,
+      "imageAssetPath": null,
+      "meaning": "支店、支社",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "They opened a branch in Osaka.",
+      "sentenceJapanese": "彼らは大阪に支店を開いた。",
+      "tags": [
+        "business"
+      ],
+      "text": "branch"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 98,
+      "imageAssetPath": null,
+      "meaning": "本社",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Headquarters moved to a new building.",
+      "sentenceJapanese": "本社は新しいビルへ移転した。",
+      "tags": [
+        "business"
+      ],
+      "text": "headquarters"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 99,
+      "imageAssetPath": null,
+      "meaning": "子会社",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "The subsidiary reports to the parent company.",
+      "sentenceJapanese": "子会社は親会社に報告する。",
+      "tags": [
+        "business"
+      ],
+      "text": "subsidiary"
+    },
+    {
+      "audioAssetPath": null,
+      "id": 100,
+      "imageAssetPath": null,
+      "meaning": "株主",
+      "partOfSpeech": "noun",
+      "sentenceEnglish": "Shareholders approved the plan.",
+      "sentenceJapanese": "株主はその計画を承認した。",
+      "tags": [
+        "finance"
+      ],
+      "text": "shareholder"
+    }
+  ],
+  "deckId": "toeic-basic",
+  "deckName": "TOEIC 頻出単語",
+  "description": "TOEICでよく出る単語（暫定データ）",
+  "formatVersion": 1
+}
