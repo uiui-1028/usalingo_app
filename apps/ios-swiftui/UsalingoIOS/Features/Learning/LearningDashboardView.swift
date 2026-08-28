@@ -37,11 +37,24 @@ struct LearningDashboardView: View {
                             Button("書き出す") { prepareExport(deck) }
                         }
                 }
-                .onMove(perform: isEditing ? move : nil)
-                .onDelete(perform: isEditing ? delete : nil)
+                .onMove(perform: moveHandler)
+                .onDelete(perform: deleteHandler)
             }
 
             Section {
+                if isEditing {
+                    Button {
+                        isEditing = false
+                    } label: {
+                        Text("編集を終える")
+                            .font(.headline)
+                            .foregroundStyle(AppStyle.ink)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.plain)
+                }
+
                 Button {
                     isEditing = false
                     isShowingLibrary = true
@@ -82,13 +95,6 @@ struct LearningDashboardView: View {
         ) { result in
             if case .failure(let error) = result {
                 errorMessage = "デッキを書き出せませんでした。（\(error.localizedDescription)）"
-            }
-        }
-        .toolbar {
-            if isEditing {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("完了") { isEditing = false }
-                }
             }
         }
     }
@@ -151,6 +157,14 @@ struct LearningDashboardView: View {
         if decks.isEmpty {
             isEditing = false
         }
+    }
+
+    private var moveHandler: ((IndexSet, Int) -> Void)? {
+        isEditing ? move : nil
+    }
+
+    private var deleteHandler: ((IndexSet) -> Void)? {
+        isEditing ? delete : nil
     }
 
     private func prepareExport(_ deck: LocalDeck) {
