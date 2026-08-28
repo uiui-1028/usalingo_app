@@ -41,6 +41,10 @@
 
 現在の棚の構成と置き場所のルールは [`docs/operations/repository-layout.md`](../operations/repository-layout.md) が正本です。
 
+- [学習タブ ゲストファースト再構築の計画](learning-tab-guest-first/plan.md) — なぜログイン不要にしたか（2026-08-28完了）
+
+学習コアの現行仕様は [`docs/architecture/anki-aligned-spec.md`](../architecture/anki-aligned-spec.md) が正本です。積み残した未決事項（U-1〜U-4）はこの計画書の9章にあります。
+
 ## 旧パス対応表
 
 2026-08-27の整理より前のパスから来た場合は、次を参照してください。旧パスに置いていた移動案内ファイルは、この表に置き換えました。
@@ -80,3 +84,4 @@
 | `docs/release-quality-gate.md` | [`docs/operations/release-quality-gate.md`](../operations/release-quality-gate.md) |
 | `docs/plans/docs-restructure-plan.md` | [docs-restructure/plan.md](docs-restructure/plan.md) |
 | `docs/plans/docs-restructure-execution.md` | [docs-restructure/execution.md](docs-restructure/execution.md) |
+| `docs/plans/learning-tab-guest-first-plan.md` | [learning-tab-guest-first/plan.md](learning-tab-guest-first/plan.md) |

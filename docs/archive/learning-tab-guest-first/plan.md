@@ -1,12 +1,15 @@
 # 学習タブ ゲストファースト再構築 実行計画書
 
-状態: **未着手**（決定事項は確定済み）
+状態: **完了**（2026-08-28実施、[PR #31](https://github.com/uiui-1028/usalingo_app/pull/31)・[PR #32](https://github.com/uiui-1028/usalingo_app/pull/32)）
 
 作成日: 2026-08-27
 
-対象: `apps/ios-swiftui/UsalingoIOS/`（フロントエンドのみ。`supabase/` は変更しない）
+> [!NOTE]
+> この計画は実施済みです。学習コアの現行仕様は
+> [`docs/architecture/anki-aligned-spec.md`](../../architecture/anki-aligned-spec.md) が正本です。
+> この文書は「なぜその形にしたか」と、積み残した未決事項の記録として残しています。
 
-実装担当: Fable 5
+対象: `apps/ios-swiftui/UsalingoIOS/`（フロントエンドのみ。`supabase/` は変更しない）
 
 ---
 
@@ -315,3 +318,32 @@ T-6 デッキデータ（独立・並行可）
 - `AppShellView` の `header`
 
 `InitialDeckResolver` はデッキ名の定数を持っているため、T-6 のサンプルデッキ定義へ吸収するか、まるごと削除するかを実装時に判断する。
+
+---
+
+## 9. 実施結果（2026-08-28）
+
+| チケット | 状態 | PR |
+|---|---|---|
+| T-1 ゲスト起動 | 完了 | [#31](https://github.com/uiui-1028/usalingo_app/pull/31) |
+| T-2 ローカルデータ層 | 完了 | [#31](https://github.com/uiui-1028/usalingo_app/pull/31) |
+| T-5 学習画面・ヘッダー廃止 | 完了 | [#31](https://github.com/uiui-1028/usalingo_app/pull/31) |
+| T-3 デッキリスト | 完了 | [#32](https://github.com/uiui-1028/usalingo_app/pull/32) |
+| T-4 デッキ入出力 | 完了 | [#32](https://github.com/uiui-1028/usalingo_app/pull/32) |
+| T-6 同梱サンプルデッキ | 完了（暫定データ） | [#32](https://github.com/uiui-1028/usalingo_app/pull/32) |
+
+8章の削除対象（オンボーディング一式、`Features/Decks/DeckListView.swift`、ウィジェット機構、
+`AppShellView` の header）はすべて削除済みです。`InitialDeckResolver` は
+`InitialLearningProfile.swift` ごと削除しました。あわせて、参照がゼロになった
+`Services/DeckService.swift` も削除しています。
+
+`Features/Words/WordListView.swift` は参照ゼロのまま残しています（U-4の判断待ち）。
+
+### 未決事項の現状
+
+| # | 内容 | 現状 |
+|---|---|---|
+| U-1 | サンプルデッキを正本データへ差し替える | 未着手。Spreadsheetの書き出し待ち。読み込み側は語数・単語IDに依存しない形にしてある |
+| U-2 | ゲスト学習記録のアカウント引き継ぎ | **次に着手する**。ゲスト学習が回るようになった結果、ログイン時に進捗が引き継がれない状態が残っている |
+| U-3 | デッキごとの設定 | 未着手。デザインタブ着手時に判断 |
+| U-4 | 単語リスト画面の復活 | 未着手。`WordListView.swift` は参照ゼロで残置 |
