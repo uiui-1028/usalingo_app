@@ -1,0 +1,87 @@
+name: iOS CI
+
+# 検査を走らせるのは、mainへ入れようとするときと、main自身が動いたときだけです。
+# 保存のたびに走らせると実行時間を無駄に使うため、対象パスも絞っています。
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/ios-swiftui/**'
+      - '.github/workflows/ios-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'apps/ios-swiftui/**'
+      - '.github/workflows/ios-ci.yml'
+  workflow_dispatch:
+
+# 同じブランチで新しいpushがあったら、古い実行は打ち切ります。
+concurrency:
+  group: ios-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: ビルドとテスト
+    runs-on: macos-15
+    timeout-minutes: 30
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: ローカル設定のダミーを作る
+        # Config/Local.xcconfig は鍵が入るためGitに含めていません。
+        # ビルド設定がこのファイルを参照しているので、CIでは雛形から空の値で作ります。
+        # ここで作るのはダミーであり、実際のSupabaseへは接続しません。
+        working-directory: apps/ios-swiftui
+        run: |
+          sed -e 's/YOUR_PROJECT_REF//' -e 's/YOUR_SUPABASE_ANON_KEY//' \
+            Config/Local.xcconfig.example > Config/Local.xcconfig
+          cat Config/Local.xcconfig
+
+      - name: 使えるシミュレータを選ぶ
+        # 実行環境によって用意されているiPhoneの機種が変わるため、
+        # 名前を決め打ちにせず、その場で使えるものを1台選びます。
+        id: simulator
+        run: |
+          xcrun simctl list devices available > devices.txt
+          udid=$(grep -E '^ +iPhone .*\([0-9A-F-]{36}\) \((Shutdown|Booted)\)' devices.txt \
+            | tail -n 1 \
+            | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          if [ -z "$udid" ]; then
+            echo '使えるiPhoneシミュレータが見つかりませんでした。'
+            cat devices.txt
+            exit 1
+          fi
+          echo "選んだシミュレータ:"
+          grep "$udid" devices.txt
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+
+      - name: テストを実行
+        working-directory: apps/ios-swiftui
+        run: |
+          set -o pipefail
+          # 整形ツールは実行環境にある場合だけ使います。無くてもテストは走ります。
+          if command -v xcbeautify >/dev/null 2>&1; then
+            formatter=xcbeautify
+          elif command -v xcpretty >/dev/null 2>&1; then
+            formatter=xcpretty
+          else
+            formatter=cat
+          fi
+          xcodebuild test \
+            -project UsalingoIOS.xcodeproj \
+            -scheme UsalingoIOS \
+            -destination "id=${{ steps.simulator.outputs.udid }}" \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            | "$formatter"
+
+      - name: 失敗したときの詳細を残す
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: apps/ios-swiftui/TestResults.xcresult
+          retention-days: 7
