@@ -134,10 +134,19 @@ final class AuthServiceTests: XCTestCase {
 
         let request = try XCTUnwrap(network.requests.first)
         XCTAssertEqual(request.url?.path, "/auth/v1/recover")
+        // redirect_to はJSON本文ではなくクエリ項目で送ります。本文へ入れると
+        // Supabaseがローカルのsite URLへ戻してしまうためです。
+        // 経緯は docs/decisions/usl-261-local-account-rls-e2e.md にあります。
+        let components = try XCTUnwrap(
+            URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)
+        )
+        XCTAssertEqual(
+            components.queryItems,
+            [URLQueryItem(name: "redirect_to", value: "usalingo://auth/recovery")]
+        )
         let body = try XCTUnwrap(request.httpBody)
         let values = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: String])
-        XCTAssertEqual(values["email"], "learner@example.com")
-        XCTAssertEqual(values["redirect_to"], "usalingo://auth/recovery")
+        XCTAssertEqual(values, ["email": "learner@example.com"])
     }
 
     func testRecoveredSessionOnlyAcceptsConfiguredRecoveryURL() async throws {
