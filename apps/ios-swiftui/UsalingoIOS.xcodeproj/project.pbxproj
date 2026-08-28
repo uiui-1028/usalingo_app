@@ -38,6 +38,7 @@
 		A10000000000000000000023 /* DeckFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* DeckFile.swift */; };
 		A10000000000000000000024 /* StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* StudyDataSource.swift */; };
 		A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* LocalStudyDataSource.swift */; };
+		A10000000000000000000026 /* DeckLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* DeckLibraryView.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
 		B10000000000000000000004 /* AuthTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* AuthTransportTests.swift */; };
@@ -92,6 +93,7 @@
 		A20000000000000000000023 /* DeckFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DeckFile.swift; sourceTree = "<group>"; };
 		A20000000000000000000024 /* StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
+		A20000000000000000000026 /* DeckLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckLibraryView.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
@@ -157,6 +159,7 @@
 				A2000000000000000000000F /* StudyCardView.swift */,
 				A20000000000000000000013 /* AppShellView.swift */,
 				A20000000000000000000014 /* LearningDashboardView.swift */,
+				A20000000000000000000026 /* DeckLibraryView.swift */,
 				A20000000000000000000015 /* DesignDashboardView.swift */,
 				A20000000000000000000016 /* ProfileDashboardView.swift */,
 				A20000000000000000000018 /* WordListView.swift */,
@@ -302,6 +305,7 @@
 				A1000000000000000000000F /* StudyCardView.swift in Sources */,
 				A10000000000000000000013 /* AppShellView.swift in Sources */,
 				A10000000000000000000014 /* LearningDashboardView.swift in Sources */,
+				A10000000000000000000026 /* DeckLibraryView.swift in Sources */,
 				A10000000000000000000015 /* DesignDashboardView.swift in Sources */,
 				A10000000000000000000016 /* ProfileDashboardView.swift in Sources */,
 				A10000000000000000000017 /* SessionStore.swift in Sources */,
