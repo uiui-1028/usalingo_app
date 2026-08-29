@@ -44,18 +44,6 @@ struct UserProfile: Codable {
     }
 }
 
-struct DeckProgressSummary {
-    let totalCount: Int
-    let studiedCount: Int
-    let dueCount: Int
-    let masteredCount: Int
-    let weakCount: Int
-
-    var newCount: Int {
-        max(0, totalCount - studiedCount)
-    }
-}
-
 struct SavedAnswer {
     let progress: LearningProgress
     let previousProgress: LearningProgress?
@@ -208,22 +196,6 @@ final class StudyService {
         )
 
         return try await applyUserData(to: records.compactMap { $0.toCard() }, session: session)
-    }
-
-    func fetchDeckProgress(deckId: Int, session: AuthSession) async throws -> DeckProgressSummary {
-        let cards = try await fetchCards(deckId: deckId, session: session)
-        let now = Date()
-        return DeckProgressSummary(
-            totalCount: cards.count,
-            studiedCount: cards.filter { $0.learning != nil }.count,
-            dueCount: cards.filter { card in
-                guard let nextReviewDate = card.learning?.nextReviewDate,
-                      let date = Self.parseDate(nextReviewDate) else { return false }
-                return date <= now
-            }.count,
-            masteredCount: cards.filter { $0.learningStatus == "mastered" }.count,
-            weakCount: cards.filter { $0.learning?.isWeak == true }.count
-        )
     }
 
     private func fetchAllCards(session: AuthSession) async throws -> [WordCard] {
