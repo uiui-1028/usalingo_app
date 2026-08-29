@@ -75,7 +75,7 @@ final class AppState: ObservableObject {
                 session = try await authService.sessionFromConfirmationCallback(url: url)
                 authMessage = "メール確認が完了しました。"
             } catch {
-                authMessage = error.localizedDescription
+                authMessage = UserFacingError.message(for: error)
             }
         }
     }
@@ -140,7 +140,7 @@ final class AppState: ObservableObject {
             session = try await authService.sessionFromConfirmationCallback(url: url)
             authMessage = "メール確認が完了しました。"
         } catch {
-            authMessage = error.localizedDescription
+            authMessage = UserFacingError.message(for: error)
         }
     }
 

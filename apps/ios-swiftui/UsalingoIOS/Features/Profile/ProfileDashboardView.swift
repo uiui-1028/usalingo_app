@@ -586,7 +586,7 @@ private struct AccountSecuritySheet: View {
             try await AuthService().reauthenticate(accessToken: token)
             message = "確認コードをメールに送りました。届いたときだけ入力してください。"
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
     }
 
@@ -599,7 +599,7 @@ private struct AccountSecuritySheet: View {
             newPassword = ""
             passwordNonce = ""
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
     }
 
@@ -611,7 +611,7 @@ private struct AccountSecuritySheet: View {
             message = "2つのメールアドレスに確認メールを送りました。両方を開いてください。"
             newEmail = ""
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
     }
 }
@@ -695,7 +695,7 @@ struct AccountDeletionSheet: View {
                 requestID: requestID
             )
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
     }
 }

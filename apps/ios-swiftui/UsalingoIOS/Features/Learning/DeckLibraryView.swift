@@ -118,7 +118,7 @@ struct DeckLibraryView: View {
             reload()
             onChanged()
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
     }
 
@@ -136,11 +136,11 @@ struct DeckLibraryView: View {
             reload()
             onChanged()
         } catch let error as DeckFileError {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         } catch let error as LocalStudyError {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         } catch {
-            message = "ファイルを読み込めませんでした。（\(error.localizedDescription)）"
+            message = "ファイルを読み込めませんでした。\(UserFacingError.advice(for: error))"
         }
     }
 }

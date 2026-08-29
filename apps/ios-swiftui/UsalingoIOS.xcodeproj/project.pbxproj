@@ -13,6 +13,7 @@
 		A10000000000000000000004 /* WordCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* WordCard.swift */; };
 		A10000000000000000000005 /* LearningProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* LearningProgress.swift */; };
 		A10000000000000000000006 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* SupabaseConfig.swift */; };
+		A1000000000000000000002A /* UserFacingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002A /* UserFacingError.swift */; };
 		A10000000000000000000007 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* SupabaseClient.swift */; };
 		A10000000000000000000008 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* AuthService.swift */; };
 		A1000000000000000000000A /* StudyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* StudyService.swift */; };
@@ -42,6 +43,7 @@
 		A10000000000000000000029 /* StudyBackupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* StudyBackupSheet.swift */; };
 		A10000000000000000000028 /* GuestStudyBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* GuestStudyBackupService.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
+		B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000B /* UserFacingErrorTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
 		B10000000000000000000004 /* AuthTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* AuthTransportTests.swift */; };
 		B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* AuthConfirmationTests.swift */; };
@@ -68,6 +70,7 @@
 		A20000000000000000000004 /* WordCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/WordCard.swift; sourceTree = "<group>"; };
 		A20000000000000000000005 /* LearningProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/LearningProgress.swift; sourceTree = "<group>"; };
 		A20000000000000000000006 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseConfig.swift; sourceTree = "<group>"; };
+		A2000000000000000000002A /* UserFacingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/UserFacingError.swift; sourceTree = "<group>"; };
 		A20000000000000000000007 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseClient.swift; sourceTree = "<group>"; };
 		A20000000000000000000008 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AuthService.swift; sourceTree = "<group>"; };
 		A2000000000000000000000A /* StudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyService.swift; sourceTree = "<group>"; };
@@ -100,6 +103,7 @@
 		A20000000000000000000029 /* StudyBackupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/StudyBackupSheet.swift; sourceTree = "<group>"; };
 		A20000000000000000000028 /* GuestStudyBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/GuestStudyBackupService.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
+		B2000000000000000000000B /* UserFacingErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingErrorTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000005 /* AuthTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTransportTests.swift; sourceTree = "<group>"; };
@@ -149,6 +153,7 @@
 				A20000000000000000000023 /* DeckFile.swift */,
 				A2000000000000000000001C /* DesignSettings.swift */,
 				A20000000000000000000006 /* SupabaseConfig.swift */,
+				A2000000000000000000002A /* UserFacingError.swift */,
 				A20000000000000000000007 /* SupabaseClient.swift */,
 				A20000000000000000000008 /* AuthService.swift */,
 				A20000000000000000000020 /* AccountDeletionService.swift */,
@@ -193,6 +198,7 @@
 			isa = PBXGroup;
 			children = (
 				B20000000000000000000001 /* LearningProgressTests.swift */,
+				B2000000000000000000000B /* UserFacingErrorTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
 				B20000000000000000000005 /* AuthTransportTests.swift */,
 				B20000000000000000000006 /* AuthConfirmationTests.swift */,
@@ -302,6 +308,7 @@
 				A10000000000000000000004 /* WordCard.swift in Sources */,
 				A10000000000000000000005 /* LearningProgress.swift in Sources */,
 				A10000000000000000000006 /* SupabaseConfig.swift in Sources */,
+				A1000000000000000000002A /* UserFacingError.swift in Sources */,
 				A10000000000000000000007 /* SupabaseClient.swift in Sources */,
 				A10000000000000000000008 /* AuthService.swift in Sources */,
 				A1000000000000000000000A /* StudyService.swift in Sources */,
@@ -336,6 +343,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B10000000000000000000001 /* LearningProgressTests.swift in Sources */,
+				B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
 				B10000000000000000000004 /* AuthTransportTests.swift in Sources */,
 				B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */,

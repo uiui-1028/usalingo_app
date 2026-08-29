@@ -300,7 +300,7 @@ struct StudySessionView: View {
             saveErrorMessage = nil
         } catch {
             cards = []
-            loadErrorMessage = error.localizedDescription
+            loadErrorMessage = UserFacingError.message(for: error)
         }
         isLoading = false
     }
@@ -349,7 +349,7 @@ struct StudySessionView: View {
             dragOffset = .zero
         } catch {
             answerAttempt.failed()
-            saveErrorMessage = error.localizedDescription
+            saveErrorMessage = UserFacingError.message(for: error)
             withAnimation(.spring(response: 0.3, dampingFraction: 0.78)) {
                 dragOffset = .zero
             }

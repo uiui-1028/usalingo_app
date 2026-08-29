@@ -241,7 +241,7 @@ struct WordListView: View {
             clearMissingTagFilter()
             message = ""
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
     }
 
