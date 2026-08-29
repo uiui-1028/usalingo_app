@@ -139,7 +139,7 @@ struct StudyBackupSheet: View {
         do {
             backup = try await service.fetch(session: session)
         } catch {
-            message = "預けてある記録を確認できませんでした。（\(error.localizedDescription)）"
+            message = "預けてある記録を確認できませんでした。\(UserFacingError.advice(for: error))"
         }
     }
 
@@ -156,7 +156,7 @@ struct StudyBackupSheet: View {
             )
             message = "この端末の記録を預けました。"
         } catch {
-            message = "預けられませんでした。（\(error.localizedDescription)）"
+            message = "預けられませんでした。\(UserFacingError.advice(for: error))"
         }
     }
 
@@ -169,7 +169,7 @@ struct StudyBackupSheet: View {
             appState.markStudyDataChanged()
             message = "預けてある記録で置き換えました。"
         } catch {
-            message = "置き換えられませんでした。（\(error.localizedDescription)）"
+            message = "置き換えられませんでした。\(UserFacingError.advice(for: error))"
         }
     }
 }

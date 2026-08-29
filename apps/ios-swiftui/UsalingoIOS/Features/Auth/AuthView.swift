@@ -100,7 +100,7 @@ struct AuthView: View {
                 appState.setSession(try await authService.signIn(email: email, password: password))
             }
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
         isLoading = false
     }
@@ -112,7 +112,7 @@ struct AuthView: View {
             try await authService.requestPasswordRecovery(email: email)
             message = "メールを確認してください。リンクを開くと、新しいパスワードを設定できます。"
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
     }
 
@@ -124,7 +124,7 @@ struct AuthView: View {
             resendAvailableAt = Date().addingTimeInterval(60)
             message = "確認メールを再送しました。"
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
         isLoading = false
     }

@@ -92,7 +92,7 @@ private struct PasswordResetView: View {
         do {
             try await appState.setRecoveredPassword(password, confirmation: confirmation)
         } catch {
-            message = error.localizedDescription
+            message = UserFacingError.message(for: error)
         }
     }
 }

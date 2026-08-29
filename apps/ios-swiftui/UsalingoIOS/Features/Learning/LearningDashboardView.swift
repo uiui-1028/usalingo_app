@@ -94,7 +94,7 @@ struct LearningDashboardView: View {
             defaultFilename: exportFileName
         ) { result in
             if case .failure(let error) = result {
-                errorMessage = "デッキを書き出せませんでした。（\(error.localizedDescription)）"
+                errorMessage = "デッキを書き出せませんでした。\(UserFacingError.advice(for: error))"
             }
         }
     }
@@ -173,7 +173,7 @@ struct LearningDashboardView: View {
             exportDocument = DeckDocument(data: try appState.localStudy.exportData(deckId: deck.id))
             errorMessage = nil
         } catch {
-            errorMessage = error.localizedDescription
+            errorMessage = UserFacingError.message(for: error)
         }
     }
 
