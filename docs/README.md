@@ -9,7 +9,7 @@
 | [content/](content/) | 教材データの原本設計 |
 | [operations/](operations/) | 開発環境、技術スタック、SQL・クレジットのルール、手順書 |
 | [decisions/](decisions/) | 決めたことの記録。あとから書き換えない |
-| [plans/](plans/) | これからやることの計画書 |
+| [plans/](plans/) | これからやることの計画書。優先順位は [plans/milestones.md](plans/milestones.md) が決める |
 | [legal/](legal/) | 公開する文書と、素材・プライバシーの台帳 |
 | [archive/](archive/) | 昔の資料。いまの判断には使わない |
 
