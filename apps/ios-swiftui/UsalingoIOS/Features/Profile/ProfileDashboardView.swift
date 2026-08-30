@@ -14,77 +14,69 @@ struct ProfileDashboardView: View {
 
     var body: some View {
         ScrollView {
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                ProfileTile(title: "\(stats.currentStreak)", symbol: "flame.fill", color: .orange)
-                HeatmapTile(reviewedDays: stats.reviewedDays)
-                ProfileTile(title: "実績サマリー", symbol: "trophy.fill", color: .yellow)
-                Button {
-                    if appState.isGuest {
-                        isShowingAuth = true
-                    } else {
-                        isEditingProfile = true
+            VStack(spacing: WireMetrics.spacingL) {
+                LazyVGrid(
+                    columns: [GridItem(.flexible()), GridItem(.flexible())],
+                    spacing: WireMetrics.spacingL
+                ) {
+                    ProfileTile(title: "\(stats.currentStreak)", symbol: "flame")
+                    HeatmapTile(reviewedDays: stats.reviewedDays)
+                    ProfileTile(title: "実績サマリー", symbol: "trophy")
+                    Button {
+                        if appState.isGuest {
+                            isShowingAuth = true
+                        } else {
+                            isEditingProfile = true
+                        }
+                    } label: {
+                        ProfileTile(title: displayName, symbol: "person.crop.circle")
                     }
-                } label: {
-                    ProfileTile(
-                        title: displayName,
-                        symbol: "person.crop.circle.fill",
-                        color: AppStyle.accent
-                    )
-                    .frame(maxWidth: .infinity)
+                    .buttonStyle(.plain)
+                    Button {
+                        isShowingStudyBackup = true
+                    } label: {
+                        ProfileTile(title: "学習記録のバックアップ", symbol: "externaldrive")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("この端末の学習記録を預ける、または預けてある記録で置き換えます")
+                    Button {
+                        isShowingLegalInformation = true
+                    } label: {
+                        ProfileTile(title: "法務・ライセンス", symbol: "doc.text.magnifyingglass")
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("利用規約、プライバシー、ライセンス、クレジットの公開状況を開きます")
+                    ProfileTile(title: "\(stats.studiedCount)", symbol: "sparkles")
+                    ProfileTile(title: "\(stats.totalReviews)", symbol: "checkmark.circle")
                 }
-                .buttonStyle(.plain)
+
+                if !message.isEmpty {
+                    // 色相を使わずに異常を示す（破線 + 文言）。
+                    Text(message)
+                        .wireFont(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(WireMetrics.spacingM)
+                        .outlineSurface(
+                            radius: WireMetrics.radiusControl,
+                            shadow: nil,
+                            dashed: true
+                        )
+                }
+
                 Button {
-                    isShowingStudyBackup = true
+                    appState.showSwipeTutorial()
                 } label: {
-                    ProfileTile(
-                        title: "学習記録のバックアップ",
-                        symbol: "externaldrive",
-                        color: AppStyle.accent
-                    )
-                    .frame(maxWidth: .infinity)
+                    Label("操作ガイドをもう一度見る", systemImage: "hand.draw")
                 }
-                .buttonStyle(.plain)
-                .accessibilityHint("この端末の学習記録を預ける、または預けてある記録で置き換えます")
-                Button {
-                    isShowingLegalInformation = true
-                } label: {
-                    ProfileTile(
-                        title: "法務・ライセンス",
-                        symbol: "doc.text.magnifyingglass",
-                        color: .blue
-                    )
-                    .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.plain)
-                .accessibilityHint("利用規約、プライバシー、ライセンス、クレジットの公開状況を開きます")
-                ProfileTile(title: "\(stats.studiedCount)", symbol: "sparkles", color: .purple)
-                ProfileTile(title: "\(stats.totalReviews)", symbol: "checkmark.circle.fill", color: .green)
-            }
-            .padding(16)
+                .buttonStyle(.wireSecondary)
 
-            if !message.isEmpty {
-                Text(message)
-                    .font(.footnote)
-                    .foregroundStyle(AppStyle.muted)
-                    .padding(.horizontal, 16)
+                Text(AppInfo.versionLabel())
+                    .wireFont(.caption)
+                    .padding(.top, WireMetrics.spacingS)
             }
-
-            Button {
-                appState.showSwipeTutorial()
-            } label: {
-                Label("操作ガイドをもう一度見る", systemImage: "hand.draw")
-                    .font(.subheadline.weight(.semibold))
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .padding(.horizontal, 16)
-
-            Text(AppInfo.versionLabel())
-                .font(.footnote)
-                .foregroundStyle(AppStyle.muted)
-                .padding(.top, 16)
-                .padding(.bottom, 24)
+            .padding(WireMetrics.screenPadding)
         }
+        .background(WireColor.background)
         .task { await load() }
         .task(id: appState.studyDataVersion) { await refreshStats() }
         .sheet(isPresented: $isEditingProfile) {
@@ -162,81 +154,100 @@ private struct LegalInformationView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                Section {
-                    Text("正式に公開された文書と、利用しているコンテンツの出典をここで確認できます。公開前の草案は表示しません。")
-                        .font(.subheadline)
-                        .foregroundStyle(AppStyle.muted)
-                        .accessibilityLabel("正式に公開された文書とコンテンツの出典を確認できます。公開前の草案は表示しません。")
-                }
-
-                Section("法務文書") {
-                    legalRow(.terms)
-                    legalRow(.privacy)
-                }
-
-                Section("ライセンスとクレジット") {
-                    NavigationLink {
-                        OpenSourceLicenseView()
-                    } label: {
-                        LegalTextRow(
-                            title: LegalDocument.Kind.licenses.title,
-                            detail: "このアプリが使っているオープンソースの一覧"
-                        )
+            ScrollView {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXL) {
+                    WireCard {
+                        Text("正式に公開された文書と、利用しているコンテンツの出典をここで確認できます。公開前の草案は表示しません。")
+                            .wireFont(.caption)
+                            .accessibilityLabel("正式に公開された文書とコンテンツの出典を確認できます。公開前の草案は表示しません。")
                     }
-                    .accessibilityHint("オープンソースライセンスの一覧をアプリ内で開きます。")
-                    legalRow(.credits)
-                }
 
-                Section("お問い合わせ") {
-                    if let mailURL = AppInfo.contactMailURL() {
-                        Link(destination: mailURL) {
+                    section("法務文書") {
+                        legalRow(.terms)
+                        legalRow(.privacy)
+                    }
+
+                    section("ライセンスとクレジット") {
+                        NavigationLink {
+                            OpenSourceLicenseView()
+                        } label: {
+                            LegalTextRow(
+                                title: LegalDocument.Kind.licenses.title,
+                                detail: "このアプリが使っているオープンソースの一覧"
+                            )
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("オープンソースライセンスの一覧をアプリ内で開きます。")
+                        legalRow(.credits)
+                    }
+
+                    section("お問い合わせ") {
+                        if let mailURL = AppInfo.contactMailURL() {
+                            Link(destination: mailURL) {
+                                LegalTextRow(
+                                    title: "問い合わせ先",
+                                    detail: AppInfo.supportEmail
+                                )
+                            }
+                            .accessibilityHint("メールアプリが開きます。本文にアプリの版と機種があらかじめ入ります。送信前に消せます。")
+                        } else {
                             LegalTextRow(
                                 title: "問い合わせ先",
                                 detail: AppInfo.supportEmail
                             )
                         }
-                        .accessibilityHint("メールアプリが開きます。本文にアプリの版と機種があらかじめ入ります。送信前に消せます。")
-                    } else {
-                        LegalTextRow(
-                            title: "問い合わせ先",
-                            detail: AppInfo.supportEmail
-                        )
                     }
-                }
 
-                if documents.isEmpty {
-                    Section {
+                    if documents.isEmpty {
                         ContentUnavailableView(
                             "公開済みの文書はまだありません",
                             systemImage: "clock",
                             description: Text("版、施行日、外部リンクを確認できる正式文書が登録されるまで、草案は表示しません。")
                         )
-                    }
-                } else {
-                    Section("公開済みの文書") {
-                        ForEach(documents) { document in
-                            Link(destination: document.url) {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(document.title)
-                                    Text("\(document.version) ・施行日 \(document.effectiveDate)")
-                                        .font(.footnote)
-                                        .foregroundStyle(AppStyle.muted)
+                    } else {
+                        section("公開済みの文書") {
+                            ForEach(documents) { document in
+                                Link(destination: document.url) {
+                                    LegalTextRow(
+                                        title: document.title,
+                                        detail: "\(document.version) ・施行日 \(document.effectiveDate)"
+                                    )
                                 }
+                                .accessibilityHint("Safariで正式文書を開きます。リンクを開けない場合は、もう一度接続を確認してください。")
                             }
-                            .accessibilityHint("Safariで正式文書を開きます。リンクを開けない場合は、もう一度接続を確認してください。")
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(WireMetrics.screenPadding)
             }
+            .background(WireColor.background)
             .navigationTitle("法務・ライセンス")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(WireColor.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("閉じる") { dismiss() }
-                        .accessibilityLabel("法務・ライセンス画面を閉じる")
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("閉じる").wireFont(.label)
+                    }
+                    .accessibilityLabel("法務・ライセンス画面を閉じる")
                 }
             }
+        }
+    }
+
+    /// 見出し + 中身のひとかたまり。`Form` の Section に相当する。
+    private func section<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingM) {
+            Text(title)
+                .wireFont(.titleS)
+            content()
         }
     }
 
@@ -244,7 +255,10 @@ private struct LegalInformationView: View {
     private func legalRow(_ kind: LegalDocument.Kind) -> some View {
         if let document = documents.first(where: { $0.kind == kind }) {
             Link(destination: document.url) {
-                LegalDocumentRow(document: document)
+                LegalTextRow(
+                    title: document.title,
+                    detail: "\(document.version) ・施行日 \(document.effectiveDate)"
+                )
             }
             .accessibilityHint("Safariで正式文書を開きます。リンクを開けない場合は、もう一度接続を確認してください。")
         } else {
@@ -348,32 +362,21 @@ private enum OpenSourceLicenseCatalog {
     }
 }
 
-private struct LegalDocumentRow: View {
-    let document: LegalDocument
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(document.title)
-                .foregroundStyle(AppStyle.ink)
-            Text("\(document.version) ・施行日 \(document.effectiveDate)")
-                .font(.footnote)
-                .foregroundStyle(AppStyle.muted)
-        }
-    }
-}
-
 private struct LegalTextRow: View {
     let title: String
     let detail: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
             Text(title)
-                .foregroundStyle(AppStyle.ink)
+                .wireFont(.titleS)
             Text(detail)
-                .font(.footnote)
-                .foregroundStyle(AppStyle.muted)
+                .wireFont(.caption)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(WireMetrics.spacingL)
+        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
+        .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
@@ -381,29 +384,29 @@ private struct LegalTextRow: View {
 private struct ProfileTile: View {
     let title: String
     let symbol: String
-    let color: Color
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: WireMetrics.spacingS) {
             Image(systemName: symbol)
-                .font(.system(size: 30, weight: .semibold))
-                .foregroundStyle(color)
+                .wireFont(.titleL)
             Text(title)
-                .font(.headline)
-                .foregroundStyle(AppStyle.ink)
+                .wireFont(.titleS)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.72)
         }
-        .modifier(ProfileWidgetTileStyle())
+        .wireTile()
     }
 }
 
-private struct ProfileWidgetTileStyle: ViewModifier {
-    func body(content: Content) -> some View {
-        AppStyle.profileWidgetTile {
-            content
-        }
+private extension View {
+    /// プロフィールの正方形タイル。
+    func wireTile() -> some View {
+        frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(WireMetrics.spacingM)
+            .frame(maxWidth: .infinity)
+            .aspectRatio(1, contentMode: .fill)
+            .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
     }
 }
 
@@ -411,23 +414,33 @@ private struct HeatmapTile: View {
     let reviewedDays: [Date]
 
     var body: some View {
-        VStack(spacing: 11) {
+        VStack(spacing: WireMetrics.spacingS) {
             Image(systemName: "calendar")
-                .font(.system(size: 28, weight: .semibold))
-                .foregroundStyle(AppStyle.accent)
+                .wireFont(.titleL)
             Text("学習ヒートマップ")
-                .font(.headline)
-                .foregroundStyle(AppStyle.ink)
+                .wireFont(.titleS)
                 .multilineTextAlignment(.center)
             LazyVGrid(columns: Array(repeating: GridItem(.fixed(9), spacing: 3), count: 7), spacing: 3) {
                 ForEach(recentDays, id: \.self) { day in
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(reviewedDaySet.contains(day) ? AppStyle.ink : Color.gray.opacity(0.25))
-                        .frame(width: 9, height: 9)
+                    // 学習した日は塗り、していない日は線だけ。色相は使わない。
+                    heatmapCell(isReviewed: reviewedDaySet.contains(day))
                 }
             }
         }
-        .modifier(ProfileWidgetTileStyle())
+        .wireTile()
+    }
+
+    @ViewBuilder
+    private func heatmapCell(isReviewed: Bool) -> some View {
+        if isReviewed {
+            Rectangle()
+                .fill(WireColor.ink)
+                .frame(width: 9, height: 9)
+        } else {
+            Rectangle()
+                .strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair)
+                .frame(width: 9, height: 9)
+        }
     }
 
     private var reviewedDaySet: Set<Date> {
@@ -459,46 +472,81 @@ private struct ProfileEditSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("ユーザー名") {
-                    TextField("ユーザー名", text: $nickname)
-                        .textInputAutocapitalization(.never)
-                }
-                Section("アカウント") {
-                    Button("メールアドレス・パスワードを変更") {
-                        isManagingAccount = true
+            ScrollView {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXL) {
+                    WireSection("ユーザー名") {
+                        TextField("ユーザー名", text: $nickname)
+                            .textInputAutocapitalization(.never)
+                            .textFieldStyle(.wire)
                     }
-                }
-                Section {
-                    Button(role: .destructive) {
+
+                    WireSection("アカウント") {
+                        Button("メールアドレス・パスワードを変更") {
+                            isManagingAccount = true
+                        }
+                        .buttonStyle(.wireSecondary)
+                    }
+
+                    // サインアウトは破壊的操作。赤は使わず破線で示す。
+                    Button {
                         signOut()
                         dismiss()
                     } label: {
                         Label("サインアウト", systemImage: "rectangle.portrait.and.arrow.right")
                     }
+                    .buttonStyle(.wireDestructive)
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(WireMetrics.screenPadding)
             }
+            .background(WireColor.background)
             .navigationTitle("プロフィール編集")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(WireColor.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text("閉じる").wireFont(.label)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button {
                         Task {
                             await save(nickname.trimmingCharacters(in: .whitespacesAndNewlines))
                         }
+                    } label: {
+                        Text("保存").wireFont(.label)
                     }
                     .disabled(nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .wireDisabled(nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
         }
         .sheet(isPresented: $isManagingAccount) {
             AccountSecuritySheet()
                 .environmentObject(appState)
+        }
+    }
+}
+
+/// 見出し + 中身のひとかたまり。`Form` の Section に相当する。
+private struct WireSection<Content: View>: View {
+    let title: String
+    @ViewBuilder var content: Content
+
+    init(_ title: String, @ViewBuilder content: () -> Content) {
+        self.title = title
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingM) {
+            Text(title)
+                .wireFont(.titleS)
+            content
         }
     }
 }
@@ -516,59 +564,83 @@ private struct AccountSecuritySheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("パスワードを変更") {
-                    SecureField("今のパスワード", text: $currentPassword)
-                    SecureField("新しいパスワード（8文字以上）", text: $newPassword)
-                    Button("古いログインにも確認コードを送る") {
-                        Task { await requestReauthentication() }
+            ScrollView {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXL) {
+                    WireSection("パスワードを変更") {
+                        WireFieldBox {
+                            SecureField("今のパスワード", text: $currentPassword)
+                        }
+                        WireFieldBox {
+                            SecureField("新しいパスワード（8文字以上）", text: $newPassword)
+                        }
+                        Button("古いログインにも確認コードを送る") {
+                            Task { await requestReauthentication() }
+                        }
+                        .buttonStyle(.wireSecondary)
+                        TextField("確認コード（届いたときだけ）", text: $passwordNonce)
+                            .textInputAutocapitalization(.never)
+                            .textFieldStyle(.wire)
+                        Button("パスワードを変更") {
+                            Task { await changePassword() }
+                        }
+                        .buttonStyle(.wirePrimary)
+                        .disabled(isLoading || currentPassword.isEmpty || newPassword.isEmpty)
                     }
-                    TextField("確認コード（届いたときだけ）", text: $passwordNonce)
-                        .textInputAutocapitalization(.never)
-                    Button("パスワードを変更") {
-                        Task { await changePassword() }
-                    }
-                    .disabled(isLoading || currentPassword.isEmpty || newPassword.isEmpty)
-                }
 
-                Section("メールアドレスを変更") {
-                    Text("現在: \(appState.session?.user.email ?? "未設定")")
-                    TextField("新しいメールアドレス", text: $newEmail)
-                        .textInputAutocapitalization(.never)
-                        .keyboardType(.emailAddress)
-                    SecureField("今のパスワード", text: $currentPassword)
-                    Button("メールアドレスを変更") {
-                        Task { await changeEmail() }
+                    WireSection("メールアドレスを変更") {
+                        Text("現在: \(appState.session?.user.email ?? "未設定")")
+                            .wireFont(.body)
+                        TextField("新しいメールアドレス", text: $newEmail)
+                            .textInputAutocapitalization(.never)
+                            .keyboardType(.emailAddress)
+                            .textFieldStyle(.wire)
+                        WireFieldBox {
+                            SecureField("今のパスワード", text: $currentPassword)
+                        }
+                        Button("メールアドレスを変更") {
+                            Task { await changeEmail() }
+                        }
+                        .buttonStyle(.wirePrimary)
+                        .disabled(isLoading || currentPassword.isEmpty || newEmail.isEmpty)
+                        Text("今のメールと新しいメールの両方に届く確認メールを開くと、変更が完了します。")
+                            .wireFont(.caption)
                     }
-                    .disabled(isLoading || currentPassword.isEmpty || newEmail.isEmpty)
-                    Text("今のメールと新しいメールの両方に届く確認メールを開くと、変更が完了します。")
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
-                }
 
-                Section("退会") {
-                    Button(role: .destructive) {
-                        isDeletingAccount = true
-                    } label: {
-                        Label("アカウントを削除", systemImage: "person.crop.circle.badge.minus")
+                    WireSection("退会") {
+                        // 取り消せない操作。赤は使わず破線で示す。
+                        Button {
+                            isDeletingAccount = true
+                        } label: {
+                            Label("アカウントを削除", systemImage: "person.crop.circle.badge.minus")
+                        }
+                        .buttonStyle(.wireDestructive)
+                        Text("退会後はログインできなくなります。課金中のサービスがある場合、解約は別の操作です。")
+                            .wireFont(.caption)
                     }
-                    Text("退会後はログインできなくなります。課金中のサービスがある場合、解約は別の操作です。")
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
-                }
 
-                if !message.isEmpty {
-                    Section {
+                    if !message.isEmpty {
                         Text(message)
-                            .font(.footnote)
+                            .wireFont(.caption)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(WireMetrics.spacingM)
+                            .outlineSurface(radius: WireMetrics.radiusControl, shadow: nil)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(WireMetrics.screenPadding)
             }
+            .background(WireColor.background)
             .navigationTitle("アカウントの安全")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(WireColor.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") { dismiss() }
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("閉じる").wireFont(.label)
+                    }
                 }
             }
         }
@@ -627,55 +699,84 @@ struct AccountDeletionSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("退会前に確認してください") {
-                    Text("退会すると、すべての端末でログインできなくなり、学習記録・プロフィール・単語設定は通常の画面から見られなくなります。")
-                    Text("データは復元のため365日間停止状態で保持され、その後に削除されます。最終削除後は元に戻せません。")
-                    Text("App Storeなどの課金契約がある場合、退会だけでは解約されません。課金元で別に解約してください。")
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
-                }
+            ScrollView {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXL) {
+                    WireSection("退会前に確認してください") {
+                        WireCard {
+                            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
+                                Text("退会すると、すべての端末でログインできなくなり、学習記録・プロフィール・単語設定は通常の画面から見られなくなります。")
+                                    .wireFont(.body)
+                                Text("データは復元のため365日間停止状態で保持され、その後に削除されます。最終削除後は元に戻せません。")
+                                    .wireFont(.body)
+                                Text("App Storeなどの課金契約がある場合、退会だけでは解約されません。課金元で別に解約してください。")
+                                    .wireFont(.caption)
+                            }
+                        }
+                    }
 
-                Section("本人確認") {
-                    SecureField("現在のパスワード", text: $password)
-                        .textContentType(.password)
-                    TextField("確認のため「退会」と入力", text: $confirmation)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    Toggle("削除内容と元に戻せない条件を確認しました", isOn: $acknowledged)
-                }
+                    WireSection("本人確認") {
+                        WireFieldBox {
+                            SecureField("現在のパスワード", text: $password)
+                                .textContentType(.password)
+                        }
+                        TextField("確認のため「退会」と入力", text: $confirmation)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .textFieldStyle(.wire)
+                        Toggle("削除内容と元に戻せない条件を確認しました", isOn: $acknowledged)
+                            .wireFont(.body)
+                            .tint(WireColor.ink)
+                    }
 
-                Section {
-                    Button(role: .destructive) {
+                    // 取り消せない操作。赤は使わず破線で示す。
+                    Button {
                         Task { await submit() }
                     } label: {
-                        HStack {
+                        HStack(spacing: WireMetrics.spacingS) {
                             if appState.isDeletingAccount {
                                 ProgressView()
+                                    .tint(WireColor.ink)
                             }
                             Text(appState.isDeletingAccount ? "退会手続き中…" : "最終確認して退会する")
                         }
-                        .frame(maxWidth: .infinity)
                     }
+                    .buttonStyle(.wireDestructive)
                     .disabled(!canSubmit)
                     .accessibilityHint("本人確認後に退会状態へ変更します。最終削除までは365日間保持されます。")
-                }
 
-                if !message.isEmpty {
-                    Section("結果") {
-                        Text(message)
-                            .foregroundStyle(AppStyle.ink)
-                            .accessibilityLabel("退会手続きの結果。\(message)")
+                    if !message.isEmpty {
+                        WireSection("結果") {
+                            Text(message)
+                                .wireFont(.caption)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(WireMetrics.spacingM)
+                                .outlineSurface(
+                                    radius: WireMetrics.radiusControl,
+                                    shadow: nil,
+                                    dashed: true
+                                )
+                                .accessibilityLabel("退会手続きの結果。\(message)")
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(WireMetrics.screenPadding)
             }
+            .background(WireColor.background)
             .navigationTitle("アカウントを削除")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(WireColor.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .interactiveDismissDisabled(appState.isDeletingAccount)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") { dismiss() }
-                        .disabled(appState.isDeletingAccount)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("閉じる").wireFont(.label)
+                    }
+                    .disabled(appState.isDeletingAccount)
+                    .wireDisabled(appState.isDeletingAccount)
                 }
             }
         }
@@ -702,10 +803,7 @@ struct AccountDeletionSheet: View {
 
 #if DEBUG
 #Preview("Profile Dashboard") {
-    ZStack {
-        GridBackground()
-        ProfileDashboardView()
-    }
+    ProfileDashboardView()
     .environmentObject(AppState.preview)
     .environmentObject(DesignSettings())
 }

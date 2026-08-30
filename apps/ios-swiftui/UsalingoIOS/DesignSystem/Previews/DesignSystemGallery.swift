@@ -71,6 +71,11 @@ struct DesignSystemGallery: View {
                                     .onTapGesture { selectedPill = index }
                             }
                         }
+                        HStack(spacing: WireMetrics.spacingS) {
+                            WirePill(title: "Lv.3", font: .caption)
+                            WirePill(title: "12回", font: .caption)
+                            WirePill(title: "次: 5/1", font: .caption)
+                        }
                         WireMenuItem(title: "選択中の項目", isSelected: true)
                         WireMenuItem(title: "未選択の項目")
                     }

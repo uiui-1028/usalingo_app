@@ -14,6 +14,8 @@ struct StudyBackupSheet: View {
     @State private var isWorking = false
     @State private var isConfirmingRestore = false
     @State private var message: String?
+    /// `message` が失敗を表すかどうか。破線枠（Section 3.2）の出し分けにだけ使う。
+    @State private var isMessageError = false
 
     init(service: any GuestStudyBackupServicing = GuestStudyBackupService()) {
         self.service = service
@@ -21,38 +23,56 @@ struct StudyBackupSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section {
-                    Text("この端末の学習記録を、ログイン中のアカウントへ預けます。学習そのものは端末の中で完結しており、預けた記録は復元のためだけに使います。")
-                        .font(.subheadline)
-                        .foregroundStyle(AppStyle.muted)
-                }
-
-                if appState.isGuest {
-                    Section("ログインが必要です") {
-                        Text("バックアップにはログインが必要です。プロフィールのユーザー名をタップするとログインできます。")
-                            .font(.subheadline)
-                            .foregroundStyle(AppStyle.muted)
+            ScrollView {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXL) {
+                    WireCard {
+                        Text("この端末の学習記録を、ログイン中のアカウントへ預けます。学習そのものは端末の中で完結しており、預けた記録は復元のためだけに使います。")
+                            .wireFont(.caption)
                     }
-                } else {
-                    serverSection
-                    actionSection
-                }
 
-                if let message {
-                    Section("結果") {
-                        Text(message)
-                            .font(.footnote)
-                            .foregroundStyle(AppStyle.ink)
+                    if appState.isGuest {
+                        section("ログインが必要です") {
+                            WireCard {
+                                Text("バックアップにはログインが必要です。プロフィールのユーザー名をタップするとログインできます。")
+                                    .wireFont(.caption)
+                            }
+                        }
+                    } else {
+                        serverSection
+                        actionSection
+                    }
+
+                    if let message {
+                        section("結果") {
+                            // 色相を使わずに異常を示す（破線 + 文言）。
+                            Text(message)
+                                .wireFont(.caption)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(WireMetrics.spacingM)
+                                .outlineSurface(
+                                    radius: WireMetrics.radiusControl,
+                                    shadow: nil,
+                                    dashed: isMessageError
+                                )
+                        }
                     }
                 }
+                .padding(WireMetrics.screenPadding)
             }
+            .background(WireColor.background)
             .navigationTitle("学習記録のバックアップ")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(WireColor.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") { dismiss() }
-                        .disabled(isWorking)
+                    Button {
+                        dismiss()
+                    } label: {
+                        Text("閉じる").wireFont(.label)
+                    }
+                    .disabled(isWorking)
+                    .wireDisabled(isWorking)
                 }
             }
             .task { await load() }
@@ -71,50 +91,66 @@ struct StudyBackupSheet: View {
         }
     }
 
+    /// 見出し + 中身のひとかたまり。`Form` の Section に相当する。
+    private func section<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingM) {
+            Text(title)
+                .wireFont(.titleS)
+            content()
+        }
+    }
+
     @ViewBuilder
     private var serverSection: some View {
-        Section("預けてある記録") {
-            if isLoading {
-                HStack(spacing: 8) {
-                    ProgressView()
-                    Text("確認しています")
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
+        section("預けてある記録") {
+            WireCard {
+                if isLoading {
+                    HStack(spacing: WireMetrics.spacingS) {
+                        ProgressView()
+                            .tint(WireColor.ink)
+                        Text("確認しています")
+                            .wireFont(.caption)
+                    }
+                } else if let backup {
+                    VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+                        Text(backup.updatedAtText ?? "保存日時は不明です")
+                            .wireFont(.body)
+                        Text(backupDetail(backup))
+                            .wireFont(.caption)
+                    }
+                } else {
+                    Text("まだ預けていません。")
+                        .wireFont(.caption)
                 }
-            } else if let backup {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(backup.updatedAtText ?? "保存日時は不明です")
-                        .foregroundStyle(AppStyle.ink)
-                    Text(backupDetail(backup))
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
-                }
-            } else {
-                Text("まだ預けていません。")
-                    .font(.subheadline)
-                    .foregroundStyle(AppStyle.muted)
             }
         }
     }
 
     @ViewBuilder
     private var actionSection: some View {
-        Section {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingM) {
             Button {
                 Task { await save() }
             } label: {
                 Label("この端末の記録を預ける", systemImage: "arrow.up.doc")
             }
+            .buttonStyle(.wireSecondary)
             .disabled(isWorking || isLoading)
 
+            // 端末の記録を上書きする破壊的操作。赤は使わず破線で示す。
             Button {
                 isConfirmingRestore = true
             } label: {
                 Label("預けてある記録で置き換える", systemImage: "arrow.down.doc")
             }
+            .buttonStyle(.wireDestructive)
             .disabled(isWorking || isLoading || backup == nil)
-        } footer: {
+
             Text("預けられる記録は1件です。預けるたびに前の記録は置き換わります。")
+                .wireFont(.caption)
         }
     }
 
@@ -140,6 +176,7 @@ struct StudyBackupSheet: View {
             backup = try await service.fetch(session: session)
         } catch {
             message = "預けてある記録を確認できませんでした。\(UserFacingError.advice(for: error))"
+            isMessageError = true
         }
     }
 
@@ -155,8 +192,10 @@ struct StudyBackupSheet: View {
                 session: session
             )
             message = "この端末の記録を預けました。"
+            isMessageError = false
         } catch {
             message = "預けられませんでした。\(UserFacingError.advice(for: error))"
+            isMessageError = true
         }
     }
 
@@ -168,8 +207,10 @@ struct StudyBackupSheet: View {
             try appState.localStudy.restore(backup.snapshot)
             appState.markStudyDataChanged()
             message = "預けてある記録で置き換えました。"
+            isMessageError = false
         } catch {
             message = "置き換えられませんでした。\(UserFacingError.advice(for: error))"
+            isMessageError = true
         }
     }
 }

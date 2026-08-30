@@ -6,13 +6,18 @@ import SwiftUI
 struct WirePill: View {
     let title: String
     var isSelected: Bool = false
+    /// 小さいタグには `.caption` を渡して詰める。既定はラベル相当。
+    var font: WireFont = .label
+
+    private var isCompact: Bool { font == .caption }
 
     var body: some View {
         Text(title)
-            .wireFont(.label)
+            .wireFont(font, color: WireColor.ink)
             .fontWeight(isSelected ? .bold : .semibold)
-            .padding(.vertical, WireMetrics.spacingS)
-            .padding(.horizontal, WireMetrics.spacingM)
+            .lineLimit(1)
+            .padding(.vertical, isCompact ? WireMetrics.spacingXS : WireMetrics.spacingS)
+            .padding(.horizontal, isCompact ? WireMetrics.spacingS : WireMetrics.spacingM)
             .outlineSurface(
                 radius: WireMetrics.radiusSmall,
                 stroke: isSelected ? WireMetrics.strokeHeavy : WireMetrics.strokeBase,

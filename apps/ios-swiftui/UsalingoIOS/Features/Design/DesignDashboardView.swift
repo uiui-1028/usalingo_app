@@ -6,36 +6,48 @@ struct DesignDashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Label("ワイヤーフレーム開発モード", systemImage: "square.dashed")
-                        .font(.headline.bold())
-                    Text("機能と画面構成を固める間は、白黒・枠線中心の仮デザインで表示します。")
-                        .font(.subheadline)
-                        .foregroundStyle(AppStyle.muted)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background(AppStyle.surface)
-                .overlay {
-                    Rectangle().stroke(AppStyle.ink, lineWidth: 2)
+            VStack(spacing: WireMetrics.spacingL) {
+                WireCard {
+                    VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+                        Label("ワイヤーフレーム開発モード", systemImage: "square.dashed")
+                            .wireFont(.titleS)
+                        Text("機能と画面構成を固める間は、白黒・枠線中心の仮デザインで表示します。")
+                            .wireFont(.caption)
+                    }
                 }
 
-                DesignSettingRow(title: "UIテーマ設定", subtitle: "現在は白黒ワイヤーフレームに固定", symbol: "paintpalette.fill") {
+                DesignSettingRow(
+                    title: "UIテーマ設定",
+                    subtitle: "現在は白黒ワイヤーフレームに固定",
+                    symbol: "paintpalette"
+                ) {
                     activeSheet = .theme
                 }
-                DesignSettingRow(title: "カードUI設定", subtitle: "現在は細い枠線と小さい角丸に固定", symbol: "rectangle.stack.fill") {
+                DesignSettingRow(
+                    title: "カードUI設定",
+                    subtitle: "現在は細い枠線と小さい角丸に固定",
+                    symbol: "rectangle.stack"
+                ) {
                     activeSheet = .card
                 }
-                DesignSettingRow(title: "アプリ挙動設定", subtitle: "フォントや触覚などを変更", symbol: "gearshape.fill") {
+                DesignSettingRow(
+                    title: "アプリ挙動設定",
+                    subtitle: "フォントや触覚などを変更",
+                    symbol: "gearshape"
+                ) {
                     activeSheet = .behavior
                 }
-                DesignSettingRow(title: "アルゴリズム設定", subtitle: "学習アルゴリズムの調整", symbol: "square.grid.2x2.fill") {
+                DesignSettingRow(
+                    title: "アルゴリズム設定",
+                    subtitle: "学習アルゴリズムの調整",
+                    symbol: "square.grid.2x2"
+                ) {
                     activeSheet = .algorithm
                 }
             }
-            .padding(16)
+            .padding(WireMetrics.screenPadding)
         }
+        .background(WireColor.background)
         .sheet(item: $activeSheet) { sheet in
             DesignOptionSheet(sheet: sheet)
                 .environmentObject(designSettings)
@@ -61,34 +73,27 @@ private struct DesignSettingRow: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 16) {
+            HStack(spacing: WireMetrics.spacingL) {
                 Image(systemName: symbol)
-                    .font(.system(size: 26, weight: .semibold))
-                    .foregroundStyle(AppStyle.accent)
-                    .frame(width: 56, height: 56)
-                    .background(AppStyle.accent.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .wireFont(.titleS)
+                    .frame(width: 44, height: 44)
+                    .outlineCircleSurface()
 
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
                     Text(title)
-                        .font(.headline)
-                        .foregroundStyle(AppStyle.ink)
+                        .wireFont(.titleS)
                     Text(subtitle)
-                        .font(.subheadline)
-                        .foregroundStyle(AppStyle.muted)
+                        .wireFont(.caption)
                 }
 
                 Spacer()
                 Image(systemName: "chevron.right")
-                    .foregroundStyle(AppStyle.muted)
+                    .wireFont(.caption)
             }
-            .padding(18)
-            .background(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(AppStyle.line)
-            }
+            .padding(WireMetrics.spacingL)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
+            .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
         }
         .buttonStyle(.plain)
     }
@@ -99,108 +104,79 @@ private struct DesignOptionSheet: View {
     let sheet: DesignSheet
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            Text(title)
-                .font(.title2.bold())
+        ScrollView {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingL) {
+                Text(title)
+                    .wireFont(.titleL)
 
-            switch sheet {
-            case .theme:
-                accentOptions
-            case .card:
-                cardOptions
-            case .behavior:
-                staticOptions
-            case .algorithm:
-                staticOptions
+                switch sheet {
+                case .theme:
+                    accentOptions
+                case .card:
+                    cardOptions
+                case .behavior:
+                    staticOptions
+                case .algorithm:
+                    staticOptions
+                }
             }
-
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(WireMetrics.screenPadding)
         }
-        .padding(20)
+        .background(WireColor.background)
     }
 
     private var accentOptions: some View {
-        HStack(spacing: 14) {
-            Image(systemName: "checkmark.square.fill")
-                .font(.title2)
-            VStack(alignment: .leading, spacing: 4) {
-                Text("白黒ワイヤーフレーム")
-                    .font(.headline)
-                Text("色や装飾は、画面の流れが固まってから決めます。")
-                    .font(.footnote)
-                    .foregroundStyle(AppStyle.muted)
+        WireCard {
+            HStack(spacing: WireMetrics.spacingM) {
+                Image(systemName: "checkmark.square")
+                    .wireFont(.titleS)
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+                    Text("白黒ワイヤーフレーム")
+                        .wireFont(.titleS)
+                    Text("色や装飾は、画面の流れが固まってから決めます。")
+                        .wireFont(.caption)
+                }
+                Spacer()
             }
-            Spacer()
         }
-        .padding(14)
-        .background(AppStyle.surface)
-        .overlay { Rectangle().stroke(AppStyle.line) }
     }
 
     private var cardOptions: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("ワイヤーフレーム用カード")
-                .font(.headline)
-            Text("細い黒枠・影なし・小さい角丸で固定しています。")
-                .font(.footnote)
-                .foregroundStyle(AppStyle.muted)
+        WireCard {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
+                Text("ワイヤーフレーム用カード")
+                    .wireFont(.titleS)
+                Text("細い黒枠・影なし・小さい角丸で固定しています。")
+                    .wireFont(.caption)
+            }
         }
-        .padding(14)
-        .background(AppStyle.surface)
-        .overlay { Rectangle().stroke(AppStyle.line) }
     }
 
     private var staticOptions: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: WireMetrics.spacingM) {
             ForEach(options, id: \.0) { option in
                 optionRow(option)
             }
         }
     }
 
-    private func settingButton(_ title: String, _ symbol: String, _ subtitle: String, id: String, current: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack {
-                Image(systemName: symbol)
-                    .frame(width: 32)
-                    .foregroundStyle(AppStyle.accent(designSettings))
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(title)
-                        .font(.headline)
-                    Text(subtitle)
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
-                }
-                Spacer()
-                if id == current {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(AppStyle.accent(designSettings))
-                }
-            }
-            .padding(14)
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-        }
-        .buttonStyle(.plain)
-    }
-
     private func optionRow(_ option: (String, String, String)) -> some View {
-        HStack {
+        HStack(spacing: WireMetrics.spacingM) {
             Image(systemName: option.1)
+                .wireFont(.label)
                 .frame(width: 32)
-                .foregroundStyle(AppStyle.accent(designSettings))
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
                 Text(option.0)
-                    .font(.headline)
+                    .wireFont(.titleS)
                 Text(option.2)
-                    .font(.footnote)
-                    .foregroundStyle(AppStyle.muted)
+                    .wireFont(.caption)
             }
             Spacer()
         }
-        .padding(14)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .padding(WireMetrics.spacingM)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .outlineSurface(radius: WireMetrics.radiusControl, shadow: nil)
     }
 
     private var title: String {
@@ -217,14 +193,14 @@ private struct DesignOptionSheet: View {
         case .theme:
             return [
                 ("フラット", "square", "ミニマルでシンプル"),
-                ("マテリアル", "square.stack.3d.up.fill", "標準的な階層表現"),
-                ("ニューモーフ", "circle.hexagongrid.fill", "ソフトな影効果"),
+                ("マテリアル", "square.stack.3d.up", "標準的な階層表現"),
+                ("ニューモーフ", "circle.hexagongrid", "ソフトな影効果"),
                 ("ガラス", "circle.dotted", "透明感のある表現")
             ]
         case .card:
             return [
-                ("スワイプ感度", "hand.draw.fill", "カード操作のしきい値"),
-                ("カード角丸", "rectangle.roundedtop.fill", "カードの丸み"),
+                ("スワイプ感度", "hand.draw", "カード操作のしきい値"),
+                ("カード角丸", "rectangle.roundedtop", "カードの丸み"),
                 ("影の強さ", "circle.lefthalf.filled", "立体感の調整")
             ]
         case .behavior:
@@ -235,8 +211,8 @@ private struct DesignOptionSheet: View {
         case .algorithm:
             return [
                 ("復習間隔", "calendar.badge.clock", "次回復習の間隔"),
-                ("正答時の増加量", "arrow.up.forward.circle.fill", "SRSレベル調整"),
-                ("誤答時の戻し幅", "arrow.down.backward.circle.fill", "復習負荷の調整")
+                ("正答時の増加量", "arrow.up.forward.circle", "SRSレベル調整"),
+                ("誤答時の戻し幅", "arrow.down.backward.circle", "復習負荷の調整")
             ]
         }
     }

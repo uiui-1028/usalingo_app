@@ -31,53 +31,70 @@ struct DeckLibraryView: View {
     @State private var bundledDecks: [DeckFile] = []
     @State private var isImporting = false
     @State private var message: String?
+    /// `message` が失敗を表すかどうか。破線枠（Section 3.2）の出し分けにだけ使う。
+    @State private var isMessageError = false
 
     var body: some View {
         List {
-            Section("同梱デッキ") {
+            Section {
                 if bundledDecks.isEmpty {
                     Text("追加できる同梱デッキはありません。")
-                        .font(.subheadline)
-                        .foregroundStyle(AppStyle.muted)
+                        .wireFont(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(WireMetrics.spacingL)
+                        .outlineSurface(shadow: nil)
+                        .wireListRow()
                 } else {
                     ForEach(bundledDecks, id: \.deckId) { file in
                         bundledRow(file)
+                            .wireListRow()
                     }
                 }
+            } header: {
+                sectionHeader("同梱デッキ")
             }
 
-            Section("ファイルから追加") {
+            Section {
                 Button {
                     message = nil
+                    isMessageError = false
                     isImporting = true
                 } label: {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("JSONを読み込む")
-                            .font(.headline)
-                            .foregroundStyle(AppStyle.ink)
-                        Text("書き出したデッキJSONを選ぶと、デッキとして追加します。")
-                            .font(.subheadline)
-                            .foregroundStyle(AppStyle.muted)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.vertical, 10)
-                    .contentShape(Rectangle())
+                    card(
+                        title: "JSONを読み込む",
+                        detail: "書き出したデッキJSONを選ぶと、デッキとして追加します。"
+                    )
                 }
                 .buttonStyle(.plain)
+                .wireListRow()
+            } header: {
+                sectionHeader("ファイルから追加")
             }
 
             if let message {
                 Section {
+                    // 色相を使わずに異常を示す（破線 + 文言）。
                     Text(message)
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
+                        .wireFont(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(WireMetrics.spacingM)
+                        .outlineSurface(
+                            radius: WireMetrics.radiusControl,
+                            shadow: nil,
+                            dashed: isMessageError
+                        )
+                        .wireListRow()
                 }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .background(WireColor.background)
+        .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
         .navigationTitle("デッキを追加")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(WireColor.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .fileImporter(
             isPresented: $isImporting,
             allowedContentTypes: [.json],
@@ -88,23 +105,37 @@ struct DeckLibraryView: View {
         .task { reload() }
     }
 
+    private func sectionHeader(_ title: String) -> some View {
+        Text(title)
+            .wireFont(.titleS)
+            .textCase(nil)
+            .wireListRow(vertical: WireMetrics.spacingXS)
+    }
+
     private func bundledRow(_ file: DeckFile) -> some View {
         Button {
             add(file)
         } label: {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(file.deckName)
-                    .font(.headline)
-                    .foregroundStyle(AppStyle.ink)
-                Text(file.description ?? "\(file.cards.count) 語")
-                    .font(.subheadline)
-                    .foregroundStyle(AppStyle.muted)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 10)
-            .contentShape(Rectangle())
+            card(
+                title: file.deckName,
+                detail: file.description ?? "\(file.cards.count) 語"
+            )
         }
         .buttonStyle(.plain)
+    }
+
+    /// 一覧の 1 行。線で囲んだカードにする。
+    private func card(title: String, detail: String) -> some View {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+            Text(title)
+                .wireFont(.titleS)
+            Text(detail)
+                .wireFont(.caption)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(WireMetrics.spacingL)
+        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
+        .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
     }
 
     private func reload() {
@@ -115,10 +146,12 @@ struct DeckLibraryView: View {
         do {
             let deck = try appState.localStudy.installBundledDeck(key: file.deckId)
             message = "「\(deck.name)」を追加しました。"
+            isMessageError = false
             reload()
             onChanged()
         } catch {
             message = UserFacingError.message(for: error)
+            isMessageError = true
         }
     }
 
@@ -133,14 +166,18 @@ struct DeckLibraryView: View {
             let data = try Data(contentsOf: url)
             let deck = try appState.localStudy.importDeck(from: data)
             message = "「\(deck.name)」を追加しました。"
+            isMessageError = false
             reload()
             onChanged()
         } catch let error as DeckFileError {
             message = UserFacingError.message(for: error)
+            isMessageError = true
         } catch let error as LocalStudyError {
             message = UserFacingError.message(for: error)
+            isMessageError = true
         } catch {
             message = "ファイルを読み込めませんでした。\(UserFacingError.advice(for: error))"
+            isMessageError = true
         }
     }
 }

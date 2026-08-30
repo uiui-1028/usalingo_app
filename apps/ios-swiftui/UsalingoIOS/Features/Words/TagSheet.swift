@@ -18,72 +18,90 @@ struct TagSheet: View {
     }
 
     private let tags = [
-        ("重要", "star.fill", AppStyle.ink),
-        ("復習", "arrow.clockwise", AppStyle.ink),
-        ("苦手", "exclamationmark.circle.fill", AppStyle.ink),
-        ("お気に入り", "heart.fill", AppStyle.ink),
-        ("例文確認", "text.quote", AppStyle.ink),
-        ("発音確認", "waveform", AppStyle.ink)
+        ("重要", "star.fill"),
+        ("復習", "arrow.clockwise"),
+        ("苦手", "exclamationmark.circle.fill"),
+        ("お気に入り", "heart.fill"),
+        ("例文確認", "text.quote"),
+        ("発音確認", "waveform")
     ]
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 16) {
-                VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingL) {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
                     Text(word.text)
-                        .font(.largeTitle.bold())
+                        .wireFont(.titleL)
                     Text("タグを選択")
-                        .font(.subheadline)
-                        .foregroundStyle(AppStyle.muted)
+                        .wireFont(.caption)
                 }
 
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                LazyVGrid(
+                    columns: [GridItem(.flexible()), GridItem(.flexible())],
+                    spacing: WireMetrics.spacingM
+                ) {
                     ForEach(tags, id: \.0) { tag in
-                        tagButton(title: tag.0, symbol: tag.1, color: tag.2)
+                        tagButton(title: tag.0, symbol: tag.1)
                     }
                 }
-                .opacity(isLoading ? 0.45 : 1.0)
+                .wireDisabled(isLoading)
                 .disabled(isLoading || isSaving)
 
                 if isLoading {
-                    HStack(spacing: 8) {
+                    HStack(spacing: WireMetrics.spacingS) {
                         ProgressView()
+                            .tint(WireColor.ink)
                         Text("タグを読み込み中")
-                            .font(.footnote)
-                            .foregroundStyle(AppStyle.muted)
+                            .wireFont(.caption)
                     }
                 }
 
                 if !message.isEmpty {
+                    // 色相を使わずに異常を示す（破線 + 文言）。
                     Text(message)
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
-                        .padding(.top, 4)
+                        .wireFont(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(WireMetrics.spacingM)
+                        .outlineSurface(
+                            radius: WireMetrics.radiusControl,
+                            shadow: nil,
+                            dashed: true
+                        )
                 }
 
                 Spacer()
             }
-            .padding(20)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(WireMetrics.screenPadding)
+            .background(WireColor.background)
             .navigationTitle("タグ")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(WireColor.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text("閉じる").wireFont(.label)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button {
                         Task { await save() }
+                    } label: {
+                        Text("保存").wireFont(.label)
                     }
                     .disabled(isLoading || isSaving)
+                    .wireDisabled(isLoading || isSaving)
                 }
             }
             .task { await load() }
         }
     }
 
-    private func tagButton(title: String, symbol: String, color: Color) -> some View {
+    /// タグの選択状態は黒ベタ反転ではなく、枠線の昇格と太字で示す（Section 3.2）。
+    private func tagButton(title: String, symbol: String) -> some View {
         let isSelected = selectedTags.contains(title)
         return Button {
             if isSelected {
@@ -92,18 +110,23 @@ struct TagSheet: View {
                 selectedTags.insert(title)
             }
         } label: {
-            HStack(spacing: 8) {
+            HStack(spacing: WireMetrics.spacingS) {
                 Image(systemName: symbol)
                 Text(title)
-                    .font(.headline)
             }
+            .wireFont(.label)
+            .fontWeight(isSelected ? .bold : .semibold)
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
-            .foregroundStyle(isSelected ? .white : color)
-            .background(isSelected ? color : color.opacity(0.12))
-            .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .padding(.vertical, WireMetrics.spacingM)
+            .outlineSurface(
+                radius: WireMetrics.radiusSmall,
+                stroke: isSelected ? WireMetrics.strokeHeavy : WireMetrics.strokeBase,
+                shadow: nil
+            )
+            .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusSmall, style: .continuous))
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func load() async {
