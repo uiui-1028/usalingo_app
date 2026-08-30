@@ -102,6 +102,14 @@ bucketはいずれもpublic。現在のMIME設定は次のとおりで、対象m
 4. 上記を対象2migrationと同じ隔離Supabaseへ適用し、USL-243相当のRLS・Data API・StorageテストとSecurity Advisorを再実行する。
 5. 合格後に本番を再度読み取り監査する。USL-245の本番適用は、その後も人間の明示承認が必要。
 
+### 解除条件の進捗（2026-08-30 追記）
+
+1〜3は `supabase/migrations/20260830150000_close_production_only_exposure.sql` で実装し、
+ローカルの使い捨てPostgreSQLでmigration・pgTAP・lintが通っている。
+判断の記録は [USL-224](usl-224-close-production-exposure.md) を参照。
+4（隔離Supabaseでの再検証）と5（本番の再読み取り監査）は未実施であり、
+この監査の判定は**停止のまま**である。
+
 ## 根拠SQL
 
 本番では次のような読み取り専用集計だけを実行した。結果は上の表へ転記した。
