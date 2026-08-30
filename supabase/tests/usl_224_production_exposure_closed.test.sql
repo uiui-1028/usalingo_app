@@ -5,7 +5,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(28);
 
 -- ---------------------------------------------------------------------------
 -- 1. Storage policy を作り直せる SECURITY DEFINER 関数
@@ -107,13 +107,22 @@ select is(
   'all six production-only views run as the invoker'
 );
 
+-- 公式コンテンツはサインイン後だけ読める。20260812055432 の契約に view も従う。
 select ok(
-  has_table_privilege('anon', 'public.v_word_meanings_with_paths', 'select'),
-  'anon keeps read access to v_word_meanings_with_paths'
+  not has_table_privilege('anon', 'public.v_word_meanings_with_paths', 'select'),
+  'anon cannot read v_word_meanings_with_paths'
 );
 select ok(
-  has_table_privilege('anon', 'public.v_example_contents_with_paths', 'select'),
-  'anon keeps read access to v_example_contents_with_paths'
+  not has_table_privilege('anon', 'public.v_example_contents_with_paths', 'select'),
+  'anon cannot read v_example_contents_with_paths'
+);
+select ok(
+  has_table_privilege('authenticated', 'public.v_word_meanings_with_paths', 'select'),
+  'authenticated keeps read access to v_word_meanings_with_paths'
+);
+select ok(
+  has_table_privilege('authenticated', 'public.v_example_contents_with_paths', 'select'),
+  'authenticated keeps read access to v_example_contents_with_paths'
 );
 select ok(
   not has_table_privilege('anon', 'public.v_word_meanings_with_paths', 'insert'),

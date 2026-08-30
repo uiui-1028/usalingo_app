@@ -34,6 +34,19 @@ DBテスト用スクリプトとは別に、Auth/APIの確認時は次を使い�
 
 `supabase status`のAPI、DB、Mailpitなどは127.0.0.1のURL・接続先であることを確認します。
 
+## Data APIの公開範囲を確かめる場合
+
+    ./scripts/test-local-data-api-exposure.sh
+
+`supabase start` でフルスタックが動いている状態で実行します。
+USL-224 が閉じたオブジェクト（`asset_processing_queue`、Storage policyを作り直す
+`SECURITY DEFINER` 関数、監視系の関数とview）へ、`anon` としてPostgREST経由で
+実際に到達できないことを確かめます。あわせて、公式コンテンツの2つのviewが
+読み取りだけ残っていることも確かめます。
+
+pgTAPはカタログ上の権限を見ますが、このスクリプトはクライアントから見た
+実挙動を見ます。両方が揃って初めて「閉じた」と言えます。
+
 ## 停止・再起動・完全再作成
 
 DBテスト環境を止める場合:

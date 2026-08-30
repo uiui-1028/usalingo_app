@@ -44,6 +44,26 @@ migrationに記録されていなかったオブジェクトを、**そのまま
   `v_word_meanings_with_paths` と `v_example_contents_with_paths` への
   `INSERT`・`UPDATE`・`DELETE` は、基底tableへの書込経路になりうる。
 
+## 追記（2026-08-30）: 公式コンテンツviewのGRANTを修正した
+
+上表の「公式コンテンツ2件は `SELECT` のみ残す」は、`anon` にも読み取りを残していた。
+これは `20260812055432_define_official_content_contract.sql` の決定と矛盾する。
+そのmigrationは公式コンテンツを「サインイン後にだけ読める」ものと定め、
+基底tableから `anon` の権限をすべて取り消している。
+
+ローカルのData API検証 `scripts/test-local-data-api-exposure.sh` で発見した。
+`anon` が2つのviewを読もうとすると 401 が返る。`security_invoker = true` によって
+基底tableの権限で弾かれるためである。**データは漏れていない**が、GRANTだけが
+契約より広い状態で残っていた。
+
+`20260830170000_align_content_view_grants.sql` で、両viewの `SELECT` を
+`authenticated` だけに絞った。pgTAPと検証スクリプトも同じ期待値へ直した。
+
+この取りこぼしは、カタログ上の権限だけを見て、クライアントから見た実挙動を
+見ていなかったために起きた。pgTAPは「`anon` に `SELECT` がある」ことを
+期待どおりと判定してしまい、その期待自体が誤りであることを検出できなかった。
+Data APIを通す検証を別に持つ理由がここにある。
+
 ## 検証
 
 migration自身が末尾の `do $$ ... $$` で、RLS・policy件数・関数権限・view権限・
