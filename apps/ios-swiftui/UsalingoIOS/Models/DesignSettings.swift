@@ -26,19 +26,6 @@ final class DesignSettings: ObservableObject {
         defaults.removeObject(forKey: Keys.cardCornerRadius)
     }
 
-    var accentColor: Color {
-        switch accentName {
-        case "blue":
-            return AppStyle.secondary
-        case "green":
-            return AppStyle.accent
-        case "orange":
-            return AppStyle.sun
-        default:
-            return AppStyle.ink
-        }
-    }
-
     private enum Keys {
         static let accentName = "design.accentName"
         static let cardCornerRadius = "design.cardCornerRadius"
