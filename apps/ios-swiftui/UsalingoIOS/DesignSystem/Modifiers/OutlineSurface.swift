@@ -9,12 +9,14 @@ struct OutlineSurface: ViewModifier {
     var shadow: OffsetShadow? = .card
     /// 破壊的操作を表す破線（Section 3.2）。赤は使わない。
     var dashed: Bool = false
+    /// 面の塗り。Bento グループでは段階のある灰色を渡す（計画書 4.2）。
+    var fill: Color = WireColor.surface
 
     func body(content: Content) -> some View {
         content
             .background(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
-                    .fill(WireColor.surface)
+                    .fill(fill)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: radius, style: .continuous)
@@ -49,9 +51,12 @@ extension View {
         radius: CGFloat = WireMetrics.radiusCard,
         stroke: CGFloat = WireMetrics.strokeBase,
         shadow: OffsetShadow? = .card,
-        dashed: Bool = false
+        dashed: Bool = false,
+        fill: Color = WireColor.surface
     ) -> some View {
-        modifier(OutlineSurface(radius: radius, stroke: stroke, shadow: shadow, dashed: dashed))
+        modifier(
+            OutlineSurface(radius: radius, stroke: stroke, shadow: shadow, dashed: dashed, fill: fill)
+        )
     }
 
     func outlineCircleSurface(

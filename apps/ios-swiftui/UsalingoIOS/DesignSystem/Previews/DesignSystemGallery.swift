@@ -39,6 +39,42 @@ struct DesignSystemGallery: View {
                     }
                 }
 
+                section("Bento Group") {
+                    VStack(spacing: WireMetrics.spacingM) {
+                        BentoGroup(title: "上段 l1", tone: .l1) {
+                            Text("枠の中に置く要素は枠を持たない").wireFont(.caption)
+                        }
+                        BentoGroup(title: "中段 l2", tone: .l2) {
+                            Text("上から下へ、面を1段ずつ濃くする").wireFont(.caption)
+                        }
+                        BentoGroup(title: "下段 l3", tone: .l3) {
+                            Text("ここが可読性から決まる濃さの限界").wireFont(.caption)
+                        }
+                    }
+                }
+
+                section("Bento Group (List rows)") {
+                    VStack(spacing: 0) {
+                        ForEach(0..<3, id: \.self) { index in
+                            Text("行 \(index)")
+                                .wireFont(.body)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(WireMetrics.spacingL)
+                                .background(
+                                    BentoRowBackground(
+                                        position: BentoRowPosition(
+                                            isFirst: index == 0,
+                                            isLast: index == 2
+                                        ),
+                                        tone: .l1,
+                                        horizontalInset: 0,
+                                        showsDivider: index < 2
+                                    )
+                                )
+                        }
+                    }
+                }
+
                 section("Container") {
                     WireContainer {
                         Text("画面レベルのコンテナ").wireFont(.body)
