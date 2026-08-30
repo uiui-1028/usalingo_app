@@ -17,10 +17,15 @@ struct WordListView: View {
     private let previewWords: [WordCard]?
     private let studyService = StudyService()
 
-    init(deck: Deck? = nil, previewWords: [WordCard]? = nil) {
+    init(
+        deck: Deck? = nil,
+        previewWords: [WordCard]? = nil,
+        displayMode: WordListDisplayMode = .list
+    ) {
         self.deck = deck
         self.previewWords = previewWords
         _words = State(initialValue: previewWords ?? [])
+        _selectedDisplayMode = State(initialValue: displayMode)
     }
 
     var body: some View {
@@ -29,46 +34,43 @@ struct WordListView: View {
                 HStack {
                     Spacer()
                     ProgressView()
+                        .tint(WireColor.ink)
                     Spacer()
                 }
+                .wireListRow()
             } else if !message.isEmpty && words.isEmpty {
                 WordListErrorBox(info: WordListErrorInfo(rawMessage: message)) {
                     Task { await load() }
                 }
-                .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: 24, leading: 20, bottom: 24, trailing: 20))
+                .wireListRow(vertical: WireMetrics.spacingXL)
             } else {
                 Section {
                     displayModePicker
-                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 4, trailing: 20))
-                        .listRowSeparator(.hidden)
+                        .wireListRow(vertical: WireMetrics.spacingXS)
                 }
 
                 if !availableTags.isEmpty {
                     Section {
                         tagFilterBar
-                            .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
-                            .listRowSeparator(.hidden)
+                            .wireListRow(vertical: WireMetrics.spacingXS)
                     }
                 }
 
                 Section {
                     statusFilterBar
-                        .listRowInsets(EdgeInsets(top: 2, leading: 20, bottom: 6, trailing: 20))
-                        .listRowSeparator(.hidden)
+                        .wireListRow(vertical: WireMetrics.spacingXS)
                 }
 
                 Section {
                     dueFilterBar
-                        .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 6, trailing: 20))
-                        .listRowSeparator(.hidden)
+                        .wireListRow(vertical: WireMetrics.spacingXS)
                 }
 
                 if filteredWords.isEmpty {
                     ContentUnavailableView("単語がありません", systemImage: "magnifyingglass", description: Text("検索条件またはタグを変更してください"))
-                        .listRowSeparator(.hidden)
+                        .wireListRow()
                 } else if selectedDisplayMode == .cards {
-                    LazyVGrid(columns: cardColumns, spacing: 12) {
+                    LazyVGrid(columns: cardColumns, spacing: WireMetrics.spacingM) {
                         ForEach(filteredWords) { word in
                             Button {
                                 selectedWord = word
@@ -78,8 +80,7 @@ struct WordListView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 20, trailing: 16))
-                    .listRowSeparator(.hidden)
+                    .wireListRow()
                 } else {
                     ForEach(filteredWords) { word in
                         Button {
@@ -88,12 +89,17 @@ struct WordListView: View {
                             WordRow(word: word)
                         }
                         .buttonStyle(.plain)
+                        .wireListRow()
                     }
                 }
             }
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(WireColor.background)
         .navigationTitle(deck?.deckName ?? "単語リスト")
+        .toolbarBackground(WireColor.background, for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 sortMenu
@@ -158,20 +164,37 @@ struct WordListView: View {
         ]
     }
 
+    /// セグメント表示は既製の見た目なので、ピルの並びに置き換える（Section 3）。
     private var displayModePicker: some View {
-        Picker("表示形式", selection: $selectedDisplayMode) {
+        HStack(spacing: WireMetrics.spacingS) {
             ForEach(WordListDisplayMode.allCases) { mode in
-                Label(mode.title, systemImage: mode.symbol)
-                    .tag(mode)
+                Button {
+                    selectedDisplayMode = mode
+                } label: {
+                    Label(mode.title, systemImage: mode.symbol)
+                        .wireFont(.label)
+                        .fontWeight(selectedDisplayMode == mode ? .bold : .semibold)
+                        .lineLimit(1)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, WireMetrics.spacingS)
+                        .outlineSurface(
+                            radius: WireMetrics.radiusSmall,
+                            stroke: selectedDisplayMode == mode
+                                ? WireMetrics.strokeHeavy
+                                : WireMetrics.strokeBase,
+                            shadow: nil
+                        )
+                        .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusSmall, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selectedDisplayMode == mode ? .isSelected : [])
             }
         }
-        .pickerStyle(.segmented)
-        .accessibilityLabel("単語の表示形式")
     }
 
     private var tagFilterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: WireMetrics.spacingS) {
                 tagFilterButton(title: "すべて", isSelected: selectedTagFilter == nil) {
                     selectedTagFilter = nil
                 }
@@ -182,48 +205,43 @@ struct WordListView: View {
                     }
                 }
             }
-            .padding(.vertical, 6)
+            .padding(.vertical, WireMetrics.spacingXS)
         }
     }
 
     private var statusFilterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: WireMetrics.spacingS) {
                 ForEach(WordStatusFilter.allCases) { filter in
                     tagFilterButton(title: filter.title, isSelected: selectedStatusFilter == filter) {
                         selectedStatusFilter = filter
                     }
                 }
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, WireMetrics.spacingXS)
         }
     }
 
     private var dueFilterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
+            HStack(spacing: WireMetrics.spacingS) {
                 ForEach(WordDueFilter.allCases) { filter in
                     tagFilterButton(title: filter.title, isSelected: selectedDueFilter == filter) {
                         selectedDueFilter = filter
                     }
                 }
             }
-            .padding(.vertical, 4)
+            .padding(.vertical, WireMetrics.spacingXS)
         }
     }
 
+    /// 選択は黒ベタ反転ではなく、枠線の昇格と太字で示す（Section 3.2）。
     private func tagFilterButton(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(title)
-                .font(.caption.weight(.bold))
-                .lineLimit(1)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 7)
-                .background(isSelected ? AppStyle.accent : Color(.secondarySystemBackground))
-                .foregroundStyle(isSelected ? .white : AppStyle.ink)
-                .clipShape(Capsule())
+            WirePill(title: title, isSelected: isSelected, font: .caption)
         }
         .buttonStyle(.plain)
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
 
     private func load() async {
@@ -314,51 +332,36 @@ private struct WordListErrorBox: View {
     let retry: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            HStack(spacing: 12) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.title3)
-                    .foregroundStyle(AppStyle.coral)
+        // 色相を使わずに異常を示す（破線 + 文言）。
+        VStack(alignment: .leading, spacing: WireMetrics.spacingM) {
+            HStack(spacing: WireMetrics.spacingM) {
+                Image(systemName: "exclamationmark.triangle")
+                    .wireFont(.titleS)
                     .frame(width: 42, height: 42)
-                    .background(AppStyle.coral.opacity(0.12))
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .outlineCircleSurface()
 
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
                     Text("読み込みできません")
-                        .font(.headline.weight(.black))
-                        .foregroundStyle(AppStyle.ink)
+                        .wireFont(.titleS)
                     Text("エラー番号: \(info.number)")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(AppStyle.muted)
+                        .wireFont(.caption)
                 }
             }
 
             Text("対処方法: \(info.action)")
-                .font(.subheadline)
-                .foregroundStyle(AppStyle.ink)
+                .wireFont(.body)
                 .fixedSize(horizontal: false, vertical: true)
 
             Button {
                 retry()
             } label: {
                 Label("再読み込み", systemImage: "arrow.clockwise")
-                    .font(.subheadline.weight(.bold))
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 11)
-                    .background(AppStyle.accent)
-                    .foregroundStyle(.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.wireSecondary)
         }
-        .padding(18)
-        .background(AppStyle.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 22, style: .continuous)
-                .stroke(AppStyle.line, lineWidth: 1)
-        }
-        .shadow(color: AppStyle.shadow, radius: 12, y: 7)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(WireMetrics.spacingL)
+        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card, dashed: true)
     }
 }
 
@@ -535,7 +538,7 @@ private enum WordStatusFilter: String, CaseIterable, Identifiable {
     }
 }
 
-private enum WordListDisplayMode: String, CaseIterable, Identifiable {
+enum WordListDisplayMode: String, CaseIterable, Identifiable {
     case list
     case cards
 
@@ -570,21 +573,15 @@ private struct WordLibraryCard: View {
                 .clipped()
 
             Text(word.text)
-                .font(.headline.weight(.bold))
-                .foregroundStyle(AppStyle.ink)
+                .wireFont(.titleS)
                 .lineLimit(2)
                 .minimumScaleFactor(0.8)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity, minHeight: 48)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 6)
+                .padding(.horizontal, WireMetrics.spacingS)
+                .padding(.vertical, WireMetrics.spacingXS)
         }
-        .background(AppStyle.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .stroke(AppStyle.line, lineWidth: 1)
-        }
+        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(word.text)
         .accessibilityHint("単語の詳細を開きます")
@@ -614,14 +611,10 @@ private struct WordLibraryCard: View {
 
     private func imagePlaceholder(showProgress: Bool) -> some View {
         ZStack {
-            Color(.secondarySystemBackground)
+            WireImagePlaceholder(radius: WireMetrics.radiusControl)
             if showProgress {
                 ProgressView()
-            } else {
-                Image(systemName: "photo.on.rectangle.angled")
-                    .font(.title2.weight(.semibold))
-                    .foregroundStyle(AppStyle.muted)
-                    .accessibilityHidden(true)
+                    .tint(WireColor.ink)
             }
         }
     }
@@ -631,40 +624,24 @@ private struct WordRow: View {
     let word: WordCard
 
     var body: some View {
-        HStack(spacing: 14) {
-            Circle()
-                .fill(AppStyle.accent)
-                .frame(width: 42, height: 42)
-                .overlay {
-                    Text(String(word.text.prefix(1)).uppercased())
-                        .font(.headline.bold())
-                        .foregroundStyle(.white)
-                }
+        HStack(spacing: WireMetrics.spacingM) {
+            WireAvatar(initials: String(word.text.prefix(1)).uppercased(), diameter: 42)
 
-            VStack(alignment: .leading, spacing: 5) {
-                HStack(spacing: 8) {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+                HStack(spacing: WireMetrics.spacingS) {
                     Text(word.text)
-                        .font(.headline)
-                        .foregroundStyle(AppStyle.ink)
+                        .wireFont(.titleS)
                     if let part = word.partOfSpeech {
-                        Text(part.uppercased())
-                            .font(.caption2.weight(.bold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 3)
-                            .background(AppStyle.accent.opacity(0.12))
-                            .foregroundStyle(AppStyle.accent)
-                            .clipShape(Capsule())
+                        WirePill(title: part.uppercased(), font: .caption)
                     }
                     StatusBadge(status: word.learningStatus)
                 }
                 Text(word.meaning)
-                    .font(.subheadline)
-                    .foregroundStyle(AppStyle.muted)
+                    .wireFont(.body)
                     .lineLimit(1)
                 if let sentence = word.sentenceEnglish, !sentence.isEmpty {
                     Text(sentence)
-                        .font(.caption)
-                        .foregroundStyle(AppStyle.muted)
+                        .wireFont(.caption)
                         .lineLimit(1)
                 }
                 if !word.tags.isEmpty {
@@ -672,18 +649,19 @@ private struct WordRow: View {
                 }
                 if let learning = word.learning {
                     Text("次回: \(learning.formattedNextReviewDate)")
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(AppStyle.muted)
+                        .wireFont(.caption)
                         .lineLimit(1)
                 }
             }
 
             Spacer()
             Image(systemName: "chevron.right")
-                .font(.caption.weight(.bold))
-                .foregroundStyle(AppStyle.muted)
+                .wireFont(.caption)
         }
-        .padding(.vertical, 8)
+        .padding(WireMetrics.spacingL)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
+        .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
     }
 }
 
@@ -691,14 +669,7 @@ private struct StatusBadge: View {
     let status: String?
 
     var body: some View {
-        Text(title)
-            .font(.caption2.weight(.bold))
-            .lineLimit(1)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 3)
-            .background(color.opacity(0.12))
-            .foregroundStyle(color)
-            .clipShape(Capsule())
+        WirePill(title: title, isSelected: status == "mastered", font: .caption)
     }
 
     private var title: String {
@@ -709,17 +680,6 @@ private struct StatusBadge: View {
             "習得済み"
         default:
             "未学習"
-        }
-    }
-
-    private var color: Color {
-        switch status {
-        case "learning":
-            AppStyle.accent
-        case "mastered":
-            .green
-        default:
-            AppStyle.muted
         }
     }
 }
@@ -738,7 +698,7 @@ private struct WordDetailSheet: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingL) {
                     if let url = word.illustrationURL {
                         AsyncImage(url: url) { image in
                             image
@@ -746,24 +706,22 @@ private struct WordDetailSheet: View {
                                 .scaledToFit()
                         } placeholder: {
                             ProgressView()
+                                .tint(WireColor.ink)
                                 .frame(maxWidth: .infinity, minHeight: 180)
                         }
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: 180)
-                        .background(Color(.secondarySystemBackground))
-                        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+                        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: nil)
                     }
 
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
                         Text(word.text)
-                            .font(.largeTitle.bold())
+                            .wireFont(.titleL)
                         Text(word.meaning)
-                            .font(.title3.weight(.semibold))
-                            .foregroundStyle(AppStyle.ink)
+                            .wireFont(.titleS)
                         if let part = word.partOfSpeech {
                             Text(part.uppercased())
-                                .font(.caption.weight(.bold))
-                                .foregroundStyle(AppStyle.accent)
+                                .wireFont(.caption)
                         }
                         WordMetaRow(word: word)
                         if !word.tags.isEmpty {
@@ -783,22 +741,28 @@ private struct WordDetailSheet: View {
                         DetailBlock(title: "学習メモ", text: learning.studySummary)
                     }
                 }
-                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(WireMetrics.screenPadding)
             }
+            .background(WireColor.background)
             .navigationTitle("単語詳細")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(WireColor.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button {
                         isTagging = true
                     } label: {
                         Image(systemName: "tag")
+                            .wireFont(.label)
                     }
                     .accessibilityLabel("タグを編集")
                     Button {
                         isEditing = true
                     } label: {
                         Image(systemName: "square.and.pencil")
+                            .wireFont(.label)
                     }
                     .accessibilityLabel("単語を編集")
                 }
@@ -825,28 +789,17 @@ private struct WordMetaRow: View {
     let word: WordCard
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: WireMetrics.spacingS) {
             StatusBadge(status: word.learningStatus)
             if let part = word.partOfSpeech {
-                metaChip(part.uppercased(), symbol: "textformat")
+                WirePill(title: part.uppercased(), font: .caption)
             }
             if let learning = word.learning {
-                metaChip("Lv.\(learning.srsLevel)", symbol: "chart.bar")
+                WirePill(title: "Lv.\(learning.srsLevel)", font: .caption)
             }
-            metaChip("\(word.tags.count)タグ", symbol: "tag")
+            WirePill(title: "\(word.tags.count)タグ", font: .caption)
         }
-        .padding(.top, 4)
-    }
-
-    private func metaChip(_ title: String, symbol: String) -> some View {
-        Label(title, systemImage: symbol)
-            .font(.caption2.weight(.bold))
-            .lineLimit(1)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 5)
-            .background(Color(.secondarySystemBackground))
-            .foregroundStyle(AppStyle.muted)
-            .clipShape(Capsule())
+        .padding(.top, WireMetrics.spacingXS)
     }
 }
 
@@ -855,15 +808,9 @@ private struct TagChipRow: View {
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
+            HStack(spacing: WireMetrics.spacingXS) {
                 ForEach(tags, id: \.self) { tag in
-                    Text(tag)
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(AppStyle.accent.opacity(0.12))
-                        .foregroundStyle(AppStyle.accent)
-                        .clipShape(Capsule())
+                    WirePill(title: tag, font: .caption)
                 }
             }
         }
@@ -901,17 +848,14 @@ private struct DetailBlock: View {
     let text: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
             Text(title)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(AppStyle.muted)
+                .wireFont(.caption)
             Text(text)
-                .font(.body)
-                .foregroundStyle(AppStyle.ink)
+                .wireFont(.body)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(14)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .padding(WireMetrics.spacingL)
+        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
     }
 }

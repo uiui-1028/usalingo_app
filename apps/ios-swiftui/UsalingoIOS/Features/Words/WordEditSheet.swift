@@ -27,50 +27,83 @@ struct WordEditSheet: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                Section("単語") {
-                    TextField("英単語", text: $text)
-                        .textInputAutocapitalization(.never)
-                    TextField("意味", text: $meaning, axis: .vertical)
-                        .lineLimit(2...4)
-                }
+            ScrollView {
+                VStack(alignment: .leading, spacing: WireMetrics.spacingXL) {
+                    section("単語") {
+                        TextField("英単語", text: $text)
+                            .textInputAutocapitalization(.never)
+                            .textFieldStyle(.wire)
+                        TextField("意味", text: $meaning, axis: .vertical)
+                            .lineLimit(2...4)
+                            .textFieldStyle(.wire)
+                    }
 
-                Section("例文") {
-                    TextField("English", text: $sentenceEnglish, axis: .vertical)
-                        .lineLimit(2...4)
-                    TextField("日本語", text: $sentenceJapanese, axis: .vertical)
-                        .lineLimit(2...4)
-                }
+                    section("例文") {
+                        TextField("English", text: $sentenceEnglish, axis: .vertical)
+                            .lineLimit(2...4)
+                            .textFieldStyle(.wire)
+                        TextField("日本語", text: $sentenceJapanese, axis: .vertical)
+                            .lineLimit(2...4)
+                            .textFieldStyle(.wire)
+                    }
 
-                Section("画像") {
-                    TextField("image_asset_path", text: $imageAssetPath, axis: .vertical)
-                        .textInputAutocapitalization(.never)
-                        .lineLimit(2...3)
-                }
+                    section("画像") {
+                        TextField("image_asset_path", text: $imageAssetPath, axis: .vertical)
+                            .textInputAutocapitalization(.never)
+                            .lineLimit(2...3)
+                            .textFieldStyle(.wire)
+                    }
 
-                if !message.isEmpty {
-                    Section {
+                    if !message.isEmpty {
+                        // 色相を使わずに異常を示す（破線 + 文言）。
                         Text(message)
-                            .font(.footnote)
-                            .foregroundStyle(AppStyle.muted)
+                            .wireFont(.caption)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(WireMetrics.spacingM)
+                            .outlineSurface(
+                                radius: WireMetrics.radiusControl,
+                                shadow: nil,
+                                dashed: true
+                            )
                     }
                 }
+                .padding(WireMetrics.screenPadding)
             }
+            .background(WireColor.background)
             .navigationTitle("単語編集")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(WireColor.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") {
+                    Button {
                         dismiss()
+                    } label: {
+                        Text("閉じる").wireFont(.label)
                     }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("保存") {
+                    Button {
                         Task { await save() }
+                    } label: {
+                        Text("保存").wireFont(.label)
                     }
                     .disabled(isSaving)
+                    .wireDisabled(isSaving)
                 }
             }
+        }
+    }
+
+    /// 見出し + 枠付きのひとかたまり。`Form` の Section に相当する。
+    private func section<Content: View>(
+        _ title: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingM) {
+            Text(title)
+                .wireFont(.titleS)
+            content()
         }
     }
 

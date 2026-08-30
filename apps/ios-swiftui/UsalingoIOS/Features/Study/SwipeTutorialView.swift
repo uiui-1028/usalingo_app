@@ -19,83 +19,78 @@ struct SwipeTutorialView: View {
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.34)
+            // 背面へ退避した面。色相は持たせない。
+            WireColor.ink.opacity(0.34)
                 .ignoresSafeArea()
 
-            VStack(spacing: 22) {
+            VStack(spacing: WireMetrics.spacingXL) {
                 HStack {
                     Text("はじめての操作ガイド")
-                        .font(.title3.weight(.black))
+                        .wireFont(.titleS)
                     Spacer()
                     Button("あとで", action: dismiss)
-                        .font(.subheadline.weight(.semibold))
+                        .buttonStyle(.plain)
+                        .wireFont(.label)
                         .accessibilityLabel("チュートリアルを閉じる")
                 }
 
                 ProgressView(value: Double(step + 1), total: Double(steps.count))
-                    .tint(AppStyle.accent)
+                    .tint(WireColor.ink)
                     .accessibilityLabel("操作ガイド \(step + 1) / \(steps.count)")
 
                 Text(step == steps.count ? "できました！" : steps[step])
-                    .font(.title2.weight(.black))
+                    .wireFont(.titleL)
                     .multilineTextAlignment(.center)
 
                 tutorialCard
 
                 Text(instruction)
-                    .font(.body.weight(.medium))
+                    .wireFont(.caption)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(AppStyle.muted)
                     .frame(minHeight: 46)
 
                 if !message.isEmpty {
                     Text(message)
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(AppStyle.accentDark)
+                        .wireFont(.label)
                         .multilineTextAlignment(.center)
                         .accessibilityLabel(message)
                 }
 
                 controls
             }
-            .padding(24)
+            .padding(WireMetrics.spacingXL)
             .frame(maxWidth: 440)
-            .background(AppStyle.surface)
-            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-            .overlay {
-                RoundedRectangle(cornerRadius: 28, style: .continuous)
-                    .stroke(AppStyle.line, lineWidth: 1)
-            }
-            .padding(20)
+            .outlineSurface(
+                radius: WireMetrics.radiusLarge,
+                stroke: WireMetrics.strokeHeavy,
+                shadow: .container
+            )
+            .padding(WireMetrics.spacingXL)
         }
         .accessibilityAddTraits(.isModal)
     }
 
     private var tutorialCard: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: WireMetrics.spacingM) {
             Text("apple")
-                .font(.system(size: 40, weight: .black))
+                .wireFont(.titleL)
             Text(showsAnswer ? "りんご" : "タップして答えを見る")
-                .font(.headline)
-                .foregroundStyle(showsAnswer ? AppStyle.accentDark : AppStyle.muted)
+                .wireFont(showsAnswer ? .titleS : .caption)
             if step == 1 {
-                Label("左へ：まだむずかしい", systemImage: "xmark.circle.fill")
-                    .foregroundStyle(AppStyle.coral)
-                    .font(.footnote.weight(.bold))
+                Label("左へ：まだむずかしい", systemImage: "xmark.circle")
+                    .wireFont(.caption)
             } else if step == 2 {
-                Label("右へ：わかった", systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(AppStyle.accent)
-                    .font(.footnote.weight(.bold))
+                Label("右へ：わかった", systemImage: "checkmark.circle")
+                    .wireFont(.caption)
             }
         }
         .frame(maxWidth: .infinity)
         .frame(height: 210)
-        .background(AppStyle.background)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(AppStyle.line, lineWidth: 2)
-        }
+        .outlineSurface(
+            radius: WireMetrics.radiusCard,
+            stroke: WireMetrics.strokeHeavy,
+            shadow: .card
+        )
         .offset(x: dragOffset)
         .rotationEffect(.degrees(reduceMotion ? 0 : Double(dragOffset / 18)))
         .gesture(dragGesture)
@@ -115,42 +110,41 @@ struct SwipeTutorialView: View {
     }
 
     private var controls: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: WireMetrics.spacingM) {
             if step == 0 {
                 Button("答えを表示") {
                     showsAnswer = true
                     message = "答えが見えました。次へ進めます。"
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.wireSecondary)
 
                 Button("次へ") { advance() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.wirePrimary)
                     .disabled(!showsAnswer)
             } else if step == 1 {
                 swipeButtons
                 Button("次へ") { advance() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.wirePrimary)
                     .disabled(message != "左スワイプを試せました。")
             } else if step == 2 {
                 swipeButtons
                 Button("完了") { complete() }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.wirePrimary)
                     .disabled(message != "右スワイプを試せました。")
             } else {
                 Button("学習をはじめる", action: complete)
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.wirePrimary)
             }
         }
     }
 
     private var swipeButtons: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: WireMetrics.spacingM) {
             Button("左：まだむずかしい") { finishSwipe(.left) }
-                .buttonStyle(.bordered)
+                .buttonStyle(.wireSecondary)
             Button("右：わかった") { finishSwipe(.right) }
-                .buttonStyle(.bordered)
+                .buttonStyle(.wireSecondary)
         }
-        .font(.footnote.weight(.semibold))
     }
 
     private var instruction: String {

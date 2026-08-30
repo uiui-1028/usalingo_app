@@ -70,7 +70,7 @@ struct StudySessionView: View {
             toolbar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(GridBackground())
+        .background(WireColor.background)
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .onAppear {
@@ -100,44 +100,38 @@ struct StudySessionView: View {
     }
 
     private var header: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: WireMetrics.spacingL) {
             Button {
                 dismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.headline)
-                    .foregroundStyle(AppStyle.ink)
-                    .frame(width: 42, height: 42)
-                    .background(AppStyle.surface)
-                    .clipShape(Circle())
-                    .overlay {
-                        Circle().stroke(AppStyle.line, lineWidth: 1)
-                    }
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.wireIcon(diameter: 44))
+            .accessibilityLabel("学習を終える")
 
-            VStack(alignment: .leading, spacing: 9) {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
                 HStack {
                     Text(cards.isEmpty ? "0 / 0" : "\(min(index + 1, cards.count)) / \(cards.count)")
                     Text(studyMode.title)
                 }
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(AppStyle.muted)
+                .wireFont(.caption)
+                // 進み具合は色ではなく「枠の中がどれだけ塗られたか」で示す。
                 GeometryReader { proxy in
                     ZStack(alignment: .leading) {
                         Capsule()
-                            .fill(AppStyle.line)
+                            .strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair)
                         Capsule()
-                            .fill(AppStyle.accent(designSettings))
+                            .fill(WireColor.ink)
                             .frame(width: proxy.size.width * progress)
                     }
                 }
                 .frame(height: 10)
+                .accessibilityHidden(true)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 14)
-        .padding(.bottom, 12)
+        .padding(.horizontal, WireMetrics.screenPadding)
+        .padding(.top, WireMetrics.spacingM)
+        .padding(.bottom, WireMetrics.spacingM)
     }
 
     private var cardStack: some View {
@@ -181,104 +175,88 @@ struct StudySessionView: View {
     }
 
     private var toolbar: some View {
-        HStack(spacing: 22) {
-            toolbarButton("tag", action: tagCurrentCard)
+        HStack(spacing: WireMetrics.spacingL) {
+            toolbarButton("tag", label: "タグ", action: tagCurrentCard)
             toolbarButton(
-                audioPlaybackService.isPlaying ? "speaker.slash.fill" : "speaker.wave.2",
+                audioPlaybackService.isPlaying ? "speaker.slash" : "speaker.wave.2",
+                label: "音声を再生",
                 isDisabled: currentAudioURL == nil,
                 action: playCurrentCardAudio
             )
             toolbarButton(
                 "arrow.uturn.backward",
+                label: "ひとつ戻す",
                 isDisabled: answerHistory.isEmpty || answerAttempt.isSaving || isUndoingAnswer,
                 action: undo
             )
-            toolbarButton("square.and.pencil", action: editCurrentCard)
+            toolbarButton("square.and.pencil", label: "単語を編集", action: editCurrentCard)
         }
-        .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .background(AppStyle.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .stroke(AppStyle.line, lineWidth: 1)
-        }
-        .shadow(color: AppStyle.shadow, radius: 0, y: 5)
-        .padding(16)
+        .padding(.horizontal, WireMetrics.spacingXL)
+        .padding(.vertical, WireMetrics.spacingL)
+        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+        .padding(WireMetrics.screenPadding)
     }
 
     @ViewBuilder
     private var saveFailureBanner: some View {
         if let saveErrorMessage, index < cards.count {
-            VStack(spacing: 8) {
+            // 色相を使わずに異常を示す（破線 + 文言）。
+            VStack(spacing: WireMetrics.spacingS) {
                 Text("回答を保存できませんでした")
-                    .font(.subheadline.bold())
-                    .foregroundStyle(AppStyle.coral)
+                    .wireFont(.label)
                 Text(saveErrorMessage)
-                    .font(.footnote)
-                    .foregroundStyle(AppStyle.muted)
+                    .wireFont(.caption)
                     .multilineTextAlignment(.center)
                 Button("同じ回答をもう一度保存") {
                     retryAnswer()
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.wireSecondary)
                 .disabled(answerAttempt.isSaving || isUndoingAnswer)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 12)
+            .frame(maxWidth: .infinity)
+            .padding(WireMetrics.spacingL)
+            .outlineSurface(radius: WireMetrics.radiusControl, shadow: nil, dashed: true)
+            .padding(.horizontal, WireMetrics.screenPadding)
         }
     }
 
     @ViewBuilder
     private var answerControls: some View {
         if !isLoading, index < cards.count {
-            HStack(spacing: 12) {
-                answerButton(title: "不正解", symbol: "xmark", color: AppStyle.coral) {
+            HStack(spacing: WireMetrics.spacingM) {
+                Button {
                     submitAnswer(isCorrect: false)
+                } label: {
+                    Label("不正解", systemImage: "xmark")
                 }
-                answerButton(title: "正解", symbol: "checkmark", color: AppStyle.accent) {
+                .buttonStyle(.wireSecondary)
+                .disabled(answerAttempt.isSaving || isUndoingAnswer)
+
+                Button {
                     submitAnswer(isCorrect: true)
+                } label: {
+                    Label("正解", systemImage: "checkmark")
                 }
+                .buttonStyle(.wirePrimary)
+                .disabled(answerAttempt.isSaving || isUndoingAnswer)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 4)
+            .padding(.horizontal, WireMetrics.screenPadding)
+            .padding(.top, WireMetrics.spacingXS)
         }
     }
 
-    private func answerButton(title: String, symbol: String, color: Color, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Label(title, systemImage: symbol)
-                .font(.headline.weight(.black))
-                .foregroundStyle(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(color)
-                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(color.opacity(0.18), lineWidth: 1)
-                }
-                .shadow(color: color.opacity(0.30), radius: 0, y: 5)
-        }
-        .buttonStyle(.plain)
-        .disabled(answerAttempt.isSaving || isUndoingAnswer)
-    }
-
-    private func toolbarButton(_ symbol: String, isDisabled: Bool = false, action: @escaping () -> Void) -> some View {
+    private func toolbarButton(
+        _ symbol: String,
+        label: String,
+        isDisabled: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 21, weight: .semibold))
-                .foregroundStyle(AppStyle.accent(designSettings))
-                .frame(width: 48, height: 48)
-                .background(AppStyle.background)
-                .clipShape(Circle())
-                .overlay {
-                    Circle().stroke(AppStyle.line)
-                }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.wireIcon(diameter: 48))
         .disabled(isDisabled)
-        .opacity(isDisabled ? 0.35 : 1)
+        .accessibilityLabel(label)
     }
 
     private var progress: CGFloat {
@@ -490,22 +468,22 @@ private struct StudyStatusView: View {
     let action: () -> Void
 
     var body: some View {
-        VStack(spacing: 14) {
-            Image(systemName: symbol)
-                .font(.system(size: 38))
-                .foregroundStyle(AppStyle.secondary)
-            Text(title)
-                .font(.title3.bold())
-                .foregroundStyle(AppStyle.ink)
-                .multilineTextAlignment(.center)
-            Text(message)
-                .font(.subheadline)
-                .foregroundStyle(AppStyle.muted)
-                .multilineTextAlignment(.center)
-            Button(actionTitle, action: action)
-                .buttonStyle(.borderedProminent)
+        WireCard {
+            VStack(spacing: WireMetrics.spacingM) {
+                Image(systemName: symbol)
+                    .wireFont(.titleL)
+                Text(title)
+                    .wireFont(.titleS)
+                    .multilineTextAlignment(.center)
+                Text(message)
+                    .wireFont(.caption)
+                    .multilineTextAlignment(.center)
+                Button(actionTitle, action: action)
+                    .buttonStyle(.wirePrimary)
+            }
+            .frame(maxWidth: .infinity)
         }
-        .padding(24)
+        .padding(WireMetrics.spacingXL)
     }
 }
 
@@ -517,58 +495,46 @@ private struct StudyCompletionView: View {
     let weakCount: Int
 
     var body: some View {
-        VStack(spacing: 18) {
+        VStack(spacing: WireMetrics.spacingL) {
             Image(systemName: "sparkles")
-                .font(.system(size: 42))
-                .foregroundStyle(AppStyle.accent)
+                .wireFont(.titleL)
 
-            VStack(spacing: 6) {
+            VStack(spacing: WireMetrics.spacingXS) {
                 Text("学習完了")
-                    .font(.title.bold())
-                    .foregroundStyle(AppStyle.ink)
+                    .wireFont(.titleL)
                 Text("今日の学習はここまで。")
-                    .font(.subheadline)
-                    .foregroundStyle(AppStyle.muted)
+                    .wireFont(.caption)
             }
 
-            VStack(spacing: 10) {
-                HStack(spacing: 10) {
-                    CompletionMetric(title: "正解", value: "\(correctCount)", color: AppStyle.accent)
-                    CompletionMetric(title: "不正解", value: "\(incorrectCount)", color: AppStyle.coral)
+            VStack(spacing: WireMetrics.spacingM) {
+                HStack(spacing: WireMetrics.spacingM) {
+                    CompletionMetric(title: "正解", value: "\(correctCount)")
+                    CompletionMetric(title: "不正解", value: "\(incorrectCount)")
                 }
-                HStack(spacing: 10) {
-                    CompletionMetric(title: "今回学習", value: "\(studiedCount)", color: AppStyle.accent)
-                    CompletionMetric(title: "正答率", value: accuracyText, color: AppStyle.secondary)
+                HStack(spacing: WireMetrics.spacingM) {
+                    CompletionMetric(title: "今回学習", value: "\(studiedCount)")
+                    CompletionMetric(title: "正答率", value: accuracyText)
                 }
-                CompletionMetric(title: "苦手", value: "\(weakCount)", color: AppStyle.sun)
+                CompletionMetric(title: "苦手", value: "\(weakCount)")
             }
         }
-        .padding(24)
+        .padding(WireMetrics.spacingXL)
     }
 }
 
 private struct CompletionMetric: View {
     let title: String
     let value: String
-    let color: Color
 
     var body: some View {
-        VStack(spacing: 4) {
+        VStack(spacing: WireMetrics.spacingXS) {
             Text(title)
-                .font(.caption.weight(.bold))
-                .foregroundStyle(AppStyle.muted)
+                .wireFont(.caption)
             Text(value)
-                .font(.title2.bold())
-                .foregroundStyle(color)
+                .wireFont(.titleL)
         }
         .frame(maxWidth: .infinity)
-        .padding(14)
-        .background(AppStyle.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .stroke(color.opacity(0.22), lineWidth: 1)
-        }
-        .shadow(color: color.opacity(0.16), radius: 0, y: 4)
+        .padding(WireMetrics.spacingM)
+        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
     }
 }
