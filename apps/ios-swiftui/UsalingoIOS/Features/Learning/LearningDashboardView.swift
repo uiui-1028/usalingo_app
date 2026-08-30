@@ -33,6 +33,7 @@ struct LearningDashboardView: View {
             Section {
                 ForEach(decks) { deck in
                     deckRow(deck)
+                        .wireListRow()
                         .swipeActions(edge: .leading, allowsFullSwipe: false) {
                             Button("書き出す") { prepareExport(deck) }
                         }
@@ -42,42 +43,39 @@ struct LearningDashboardView: View {
             }
 
             Section {
-                if isEditing {
-                    Button {
-                        isEditing = false
-                    } label: {
-                        Text("編集を終える")
-                            .font(.headline)
-                            .foregroundStyle(AppStyle.ink)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.vertical, 8)
+                VStack(spacing: WireMetrics.spacingM) {
+                    if isEditing {
+                        Button("編集を終える") {
+                            isEditing = false
+                        }
+                        .buttonStyle(.wireSecondary)
                     }
-                    .buttonStyle(.plain)
-                }
 
-                Button {
-                    isEditing = false
-                    isShowingLibrary = true
-                } label: {
-                    Text("＋ デッキを追加")
-                        .font(.headline)
-                        .foregroundStyle(AppStyle.ink)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, 8)
+                    Button("＋ デッキを追加") {
+                        isEditing = false
+                        isShowingLibrary = true
+                    }
+                    .buttonStyle(.wirePrimary)
                 }
-                .buttonStyle(.plain)
+                .wireListRow()
             }
 
             if let errorMessage {
                 Section {
+                    // 色相を使わずに異常を示す（破線 + 文言）。
                     Text(errorMessage)
-                        .font(.footnote)
-                        .foregroundStyle(AppStyle.muted)
+                        .wireFont(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(WireMetrics.spacingM)
+                        .outlineSurface(radius: WireMetrics.radiusControl, shadow: nil, dashed: true)
+                        .wireListRow()
                 }
             }
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
+        .background(WireColor.background)
+        .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
         .environment(\.editMode, .constant(isEditing ? .active : .inactive))
         .overlay {
             if decks.isEmpty {
@@ -104,17 +102,16 @@ struct LearningDashboardView: View {
             guard !isEditing else { return }
             selectedDeck = deck.deck
         } label: {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
                 Text(deck.name)
-                    .font(.headline)
-                    .foregroundStyle(AppStyle.ink)
+                    .wireFont(.titleS)
                 Text(counterText(for: deck))
-                    .font(.subheadline)
-                    .foregroundStyle(AppStyle.muted)
+                    .wireFont(.caption)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.vertical, 10)
-            .contentShape(Rectangle())
+            .padding(WireMetrics.spacingL)
+            .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
+            .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
         }
         .buttonStyle(.plain)
         .simultaneousGesture(
@@ -125,15 +122,15 @@ struct LearningDashboardView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 10) {
-            Text("デッキがありません")
-                .font(.headline)
-                .foregroundStyle(AppStyle.ink)
-            Text("「＋ デッキを追加」から追加してください。")
-                .font(.subheadline)
-                .foregroundStyle(AppStyle.muted)
+        WireCard {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
+                Text("デッキがありません")
+                    .wireFont(.titleS)
+                Text("「＋ デッキを追加」から追加してください。")
+                    .wireFont(.caption)
+            }
         }
-        .padding(24)
+        .padding(WireMetrics.screenPadding)
     }
 
     private func counterText(for deck: LocalDeck) -> String {
@@ -198,11 +195,8 @@ struct LearningDashboardView: View {
 
 #if DEBUG
 #Preview("Learning Dashboard") {
-    ZStack {
-        GridBackground()
-        LearningDashboardView()
-    }
-    .environmentObject(AppState.preview)
-    .environmentObject(DesignSettings())
+    LearningDashboardView()
+        .environmentObject(AppState.preview)
+        .environmentObject(DesignSettings())
 }
 #endif

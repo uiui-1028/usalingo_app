@@ -18,6 +18,19 @@
 		A10000000000000000000008 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* AuthService.swift */; };
 		A1000000000000000000000A /* StudyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* StudyService.swift */; };
 		A1000000000000000000000B /* AppStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000B /* AppStyle.swift */; };
+		A10000000000000000000030 /* WireColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000030 /* WireColor.swift */; };
+		A10000000000000000000031 /* WireMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000031 /* WireMetrics.swift */; };
+		A10000000000000000000032 /* WireTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000032 /* WireTypography.swift */; };
+		A10000000000000000000033 /* OffsetShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000033 /* OffsetShadow.swift */; };
+		A10000000000000000000034 /* OutlineSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000034 /* OutlineSurface.swift */; };
+		A10000000000000000000035 /* WireCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000035 /* WireCard.swift */; };
+		A10000000000000000000036 /* WireButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000036 /* WireButton.swift */; };
+		A10000000000000000000037 /* WireTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000037 /* WireTextField.swift */; };
+		A10000000000000000000038 /* WirePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000038 /* WirePill.swift */; };
+		A10000000000000000000039 /* WireIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000039 /* WireIconButton.swift */; };
+		A1000000000000000000003A /* WireImagePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003A /* WireImagePlaceholder.swift */; };
+		A1000000000000000000003B /* WireTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003B /* WireTimeline.swift */; };
+		A1000000000000000000003C /* DesignSystemGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003C /* DesignSystemGallery.swift */; };
 		A1000000000000000000000C /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* AuthView.swift */; };
 		A1000000000000000000000E /* StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* StudySessionView.swift */; };
 		A1000000000000000000000F /* StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* StudyCardView.swift */; };
@@ -75,6 +88,19 @@
 		A20000000000000000000008 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AuthService.swift; sourceTree = "<group>"; };
 		A2000000000000000000000A /* StudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyService.swift; sourceTree = "<group>"; };
 		A2000000000000000000000B /* AppStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/AppStyle.swift; sourceTree = "<group>"; };
+		A20000000000000000000030 /* WireColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireColor.swift; sourceTree = "<group>"; };
+		A20000000000000000000031 /* WireMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireMetrics.swift; sourceTree = "<group>"; };
+		A20000000000000000000032 /* WireTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireTypography.swift; sourceTree = "<group>"; };
+		A20000000000000000000033 /* OffsetShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Modifiers/OffsetShadow.swift; sourceTree = "<group>"; };
+		A20000000000000000000034 /* OutlineSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Modifiers/OutlineSurface.swift; sourceTree = "<group>"; };
+		A20000000000000000000035 /* WireCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireCard.swift; sourceTree = "<group>"; };
+		A20000000000000000000036 /* WireButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireButton.swift; sourceTree = "<group>"; };
+		A20000000000000000000037 /* WireTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTextField.swift; sourceTree = "<group>"; };
+		A20000000000000000000038 /* WirePill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WirePill.swift; sourceTree = "<group>"; };
+		A20000000000000000000039 /* WireIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireIconButton.swift; sourceTree = "<group>"; };
+		A2000000000000000000003A /* WireImagePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireImagePlaceholder.swift; sourceTree = "<group>"; };
+		A2000000000000000000003B /* WireTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTimeline.swift; sourceTree = "<group>"; };
+		A2000000000000000000003C /* DesignSystemGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Previews/DesignSystemGallery.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000F /* StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
@@ -164,6 +190,19 @@
 				A20000000000000000000017 /* SessionStore.swift */,
 				A20000000000000000000019 /* AudioPlaybackService.swift */,
 				A2000000000000000000000B /* AppStyle.swift */,
+				A20000000000000000000030 /* WireColor.swift */,
+				A20000000000000000000031 /* WireMetrics.swift */,
+				A20000000000000000000032 /* WireTypography.swift */,
+				A20000000000000000000033 /* OffsetShadow.swift */,
+				A20000000000000000000034 /* OutlineSurface.swift */,
+				A20000000000000000000035 /* WireCard.swift */,
+				A20000000000000000000036 /* WireButton.swift */,
+				A20000000000000000000037 /* WireTextField.swift */,
+				A20000000000000000000038 /* WirePill.swift */,
+				A20000000000000000000039 /* WireIconButton.swift */,
+				A2000000000000000000003A /* WireImagePlaceholder.swift */,
+				A2000000000000000000003B /* WireTimeline.swift */,
+				A2000000000000000000003C /* DesignSystemGallery.swift */,
 				A2000000000000000000000C /* AuthView.swift */,
 				A2000000000000000000000E /* StudySessionView.swift */,
 				A2000000000000000000000F /* StudyCardView.swift */,
@@ -316,6 +355,19 @@
 				A10000000000000000000024 /* StudyDataSource.swift in Sources */,
 				A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */,
 				A1000000000000000000000B /* AppStyle.swift in Sources */,
+				A10000000000000000000030 /* WireColor.swift in Sources */,
+				A10000000000000000000031 /* WireMetrics.swift in Sources */,
+				A10000000000000000000032 /* WireTypography.swift in Sources */,
+				A10000000000000000000033 /* OffsetShadow.swift in Sources */,
+				A10000000000000000000034 /* OutlineSurface.swift in Sources */,
+				A10000000000000000000035 /* WireCard.swift in Sources */,
+				A10000000000000000000036 /* WireButton.swift in Sources */,
+				A10000000000000000000037 /* WireTextField.swift in Sources */,
+				A10000000000000000000038 /* WirePill.swift in Sources */,
+				A10000000000000000000039 /* WireIconButton.swift in Sources */,
+				A1000000000000000000003A /* WireImagePlaceholder.swift in Sources */,
+				A1000000000000000000003B /* WireTimeline.swift in Sources */,
+				A1000000000000000000003C /* DesignSystemGallery.swift in Sources */,
 				A1000000000000000000000C /* AuthView.swift in Sources */,
 				A1000000000000000000000E /* StudySessionView.swift in Sources */,
 				A1000000000000000000000F /* StudyCardView.swift in Sources */,

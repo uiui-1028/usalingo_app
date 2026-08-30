@@ -6,14 +6,15 @@ struct AppShellView: View {
     @State private var selectedTab = 1
 
     private let tabs: [ShellTab] = [
-        .init(title: "デザイン", symbol: "paintpalette.fill", color: AppStyle.secondary),
-        .init(title: "学習", symbol: "bolt.fill", color: AppStyle.accent),
-        .init(title: "プロフィール", symbol: "person.crop.circle.fill", color: AppStyle.sun)
+        .init(title: "デザイン", symbol: "paintpalette"),
+        .init(title: "学習", symbol: "bolt"),
+        .init(title: "プロフィール", symbol: "person.crop.circle")
     ]
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            GridBackground()
+            WireColor.background
+                .ignoresSafeArea()
 
             VStack(spacing: 0) {
                 Group {
@@ -47,32 +48,28 @@ struct AppShellView: View {
                     }
                 } label: {
                     Image(systemName: tab.symbol)
-                        .font(.system(size: 19, weight: .semibold))
-                    .foregroundStyle(selectedTab == index ? .white : AppStyle.muted)
-                    .frame(width: 48, height: 48)
-                    .background(selectedTab == index ? tab.color : Color.clear)
-                    .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(
+                    .wireIcon(
+                        diameter: 48,
+                        isSelected: selectedTab == index,
+                        invertsWhenSelected: true
+                    )
+                )
                 .accessibilityLabel(tab.title)
+                .accessibilityAddTraits(selectedTab == index ? .isSelected : [])
             }
         }
-        .padding(12)
-        .background(AppStyle.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 3, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 3, style: .continuous)
-                .stroke(AppStyle.line, lineWidth: 1)
-        }
-        .padding(.horizontal, 16)
-        .padding(.bottom, 20)
+        .padding(WireMetrics.spacingM)
+        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+        .padding(.horizontal, WireMetrics.screenPadding)
+        .padding(.bottom, WireMetrics.spacingXL)
     }
 }
 
 private struct ShellTab {
     let title: String
     let symbol: String
-    let color: Color
 }
 
 #if DEBUG
