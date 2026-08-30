@@ -2,6 +2,8 @@
 
 この手順はDocker内の127.0.0.1だけで動きます。本番project ref、認証情報、利用者データは使いません。
 
+Dockerが使えない環境では [Dockerなしでmigrationとテストを検証する](sql-verification-without-docker.md) を使います。確認できる範囲は狭くなります。
+
 ## 必要なもの
 
 - Docker Desktop
