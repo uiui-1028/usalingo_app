@@ -12,6 +12,9 @@ set -eu
 # test-local-account-e2e.sh exercises the Data API for the app's own tables, but
 # never touches asset_processing_queue or the six production-only views.
 #
+# Note on status codes: PostgREST maps insufficient_privilege (42501) to 401 for
+# an anonymous request rather than 403, so a closed object answers 401 here.
+#
 # It never accepts a remote project URL and makes no production change.
 
 for command_name in curl jq supabase; do
@@ -69,15 +72,6 @@ assert_closed() {
   esac
 }
 
-assert_open() {
-  label=$1
-  actual=$2
-  case "$actual" in
-    2*) printf 'PASS: %s (HTTP %s)\n' "$label" "$actual" ;;
-    *)  fail "$label should still be readable but returned HTTP $actual" ;;
-  esac
-}
-
 printf '== asset_processing_queue ==\n'
 assert_closed 'anon cannot read asset_processing_queue' \
   "$(status_of GET 'asset_processing_queue?select=id' "$ANON_KEY")"
@@ -105,10 +99,11 @@ assert_closed 'anon cannot read v_database_size_monitoring' \
 assert_closed 'anon cannot read v_table_stats_monitoring' \
   "$(status_of GET 'v_table_stats_monitoring?select=*' "$ANON_KEY")"
 
-printf '== content views keep read access, lose write access ==\n'
-assert_open 'anon can still read v_word_meanings_with_paths' \
+# 公式コンテンツはサインイン後だけ読める (20260812055432)。view も同じ扱いにする。
+printf '== content views follow the official content contract ==\n'
+assert_closed 'anon cannot read v_word_meanings_with_paths' \
   "$(status_of GET 'v_word_meanings_with_paths?select=id&limit=1' "$ANON_KEY")"
-assert_open 'anon can still read v_example_contents_with_paths' \
+assert_closed 'anon cannot read v_example_contents_with_paths' \
   "$(status_of GET 'v_example_contents_with_paths?select=id&limit=1' "$ANON_KEY")"
 assert_closed 'anon cannot write through v_word_meanings_with_paths' \
   "$(status_of POST 'v_word_meanings_with_paths' "$ANON_KEY" '{"id":999999}')"
