@@ -1,0 +1,26 @@
+-- USL-276 壊れた sync_existing_images を削除する
+--
+-- public.sync_existing_images() は、現行スキーマに存在しない列を参照している。
+--
+--   JOIN words w ON ec.word_id = w.id      -- example_contents に word_id は無い
+--   SET illustration_url = image_url        -- example_contents に illustration_url も無い
+--
+-- 多義語対応で example_contents は word_id 直参照から meaning_id 経由へ変わり、
+-- 画像の持ち方も illustration_url（URL文字列）から image_asset_path（パス）へ変わった。
+-- 関数だけが取り残されている。plpgsql は本体を実行時にしか検証しないため、
+-- 作成は成功し、呼んだ時点で 42703 で失敗する。
+--
+-- 直すのではなく消す理由:
+--   1. スキーマが変わった時点から壊れており、正常に動いていた呼び出し元は存在しえない
+--   2. 同じ仕事は Edge Function asset-linker-v4-corrected が現行スキーマで行っている。
+--      ID からファイル名を生成し、illustration_asset_path / audio_asset_path を書く
+--   3. アプリの Swift コードはこの関数を呼んでいない
+--   4. anon から実行できる SECURITY DEFINER 関数であり、消せば露出面が減る
+--
+-- 定義は 20260830090000_record_production_only_objects.sql と git 履歴に残るため、
+-- 復元は可能である。
+--
+-- 本番への適用はこの課題では行わない。
+-- 判断の記録: docs/decisions/usl-276-drop-sync-existing-images.md
+
+DROP FUNCTION IF EXISTS public.sync_existing_images();
