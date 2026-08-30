@@ -31,6 +31,7 @@
 		A1000000000000000000003A /* WireImagePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003A /* WireImagePlaceholder.swift */; };
 		A1000000000000000000003B /* WireTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003B /* WireTimeline.swift */; };
 		A1000000000000000000003C /* DesignSystemGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003C /* DesignSystemGallery.swift */; };
+		A1000000000000000000003D /* BentoGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003D /* BentoGroup.swift */; };
 		A1000000000000000000000C /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* AuthView.swift */; };
 		A1000000000000000000000E /* StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* StudySessionView.swift */; };
 		A1000000000000000000000F /* StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* StudyCardView.swift */; };
@@ -101,6 +102,7 @@
 		A2000000000000000000003A /* WireImagePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireImagePlaceholder.swift; sourceTree = "<group>"; };
 		A2000000000000000000003B /* WireTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTimeline.swift; sourceTree = "<group>"; };
 		A2000000000000000000003C /* DesignSystemGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Previews/DesignSystemGallery.swift; sourceTree = "<group>"; };
+		A2000000000000000000003D /* BentoGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/BentoGroup.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000F /* StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
@@ -203,6 +205,7 @@
 				A2000000000000000000003A /* WireImagePlaceholder.swift */,
 				A2000000000000000000003B /* WireTimeline.swift */,
 				A2000000000000000000003C /* DesignSystemGallery.swift */,
+				A2000000000000000000003D /* BentoGroup.swift */,
 				A2000000000000000000000C /* AuthView.swift */,
 				A2000000000000000000000E /* StudySessionView.swift */,
 				A2000000000000000000000F /* StudyCardView.swift */,
@@ -368,6 +371,7 @@
 				A1000000000000000000003A /* WireImagePlaceholder.swift in Sources */,
 				A1000000000000000000003B /* WireTimeline.swift in Sources */,
 				A1000000000000000000003C /* DesignSystemGallery.swift in Sources */,
+				A1000000000000000000003D /* BentoGroup.swift in Sources */,
 				A1000000000000000000000C /* AuthView.swift in Sources */,
 				A1000000000000000000000E /* StudySessionView.swift in Sources */,
 				A1000000000000000000000F /* StudyCardView.swift in Sources */,

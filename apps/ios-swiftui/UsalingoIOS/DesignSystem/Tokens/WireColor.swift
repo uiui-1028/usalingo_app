@@ -16,4 +16,16 @@ enum WireColor {
     static let subText = Color(red: 107.0 / 255.0, green: 109.0 / 255.0, blue: 113.0 / 255.0)
     /// Drawer 背面など、退避した面。`#E9E9EA`
     static let scrim = Color(red: 233.0 / 255.0, green: 233.0 / 255.0, blue: 234.0 / 255.0)
+
+    // MARK: - Bento グループの面（計画書 4.2）
+
+    /// 最上段のグループ。`#FFFFFF`
+    static let groupL1 = Color.white
+    /// 中段のグループ。`#F7F7F8`
+    static let groupL2 = Color(red: 247.0 / 255.0, green: 247.0 / 255.0, blue: 248.0 / 255.0)
+    /// 最下段のグループ。`#F0F0F1`
+    ///
+    /// これより濃くしない。`subText`(#6B6D71) とのコントラスト比が
+    /// ここで 4.55:1 となり、WCAG AA の本文基準 4.5:1 の限界に当たる。
+    static let groupL3 = Color(red: 240.0 / 255.0, green: 240.0 / 255.0, blue: 241.0 / 255.0)
 }

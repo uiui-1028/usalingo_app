@@ -28,47 +28,83 @@ struct LearningDashboardView: View {
         .task(id: appState.studyDataVersion) { reload() }
     }
 
+    /// 画面は上から「デッキ一覧」「操作」「通知」の3つのまとまりへ分ける。
+    /// 下へ行くほど面を1段濃くする（計画書 6）。
     private var list: some View {
         List {
+            // まとまり1: デッキ一覧。List のまま行背景で1つの枠を描くので、
+            // swipeActions / onMove / onDelete はそのまま使える。
             Section {
-                ForEach(decks) { deck in
-                    deckRow(deck)
-                        .wireListRow()
-                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                            Button("書き出す") { prepareExport(deck) }
-                        }
+                // 見出しと行の左端を揃えるため、余白は行の中身側で持つ。
+                Text("デッキ一覧")
+                    .wireFont(.titleS)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(WireMetrics.spacingL)
+                    .bentoListRow(
+                        position: .top,
+                        tone: deckGroupTone,
+                        showsDivider: true
+                    )
+
+                if decks.isEmpty {
+                    emptyState
+                        .bentoListRow(position: .bottom, tone: deckGroupTone)
+                } else {
+                    ForEach(decks) { deck in
+                        let isLast = deck.id == decks.last?.id
+                        deckRow(deck)
+                            .bentoListRow(
+                                position: isLast ? .bottom : .middle,
+                                tone: deckGroupTone,
+                                showsDivider: !isLast
+                            )
+                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                                Button("書き出す") { prepareExport(deck) }
+                            }
+                    }
+                    .onMove(perform: moveHandler)
+                    .onDelete(perform: deleteHandler)
                 }
-                .onMove(perform: moveHandler)
-                .onDelete(perform: deleteHandler)
             }
 
+            // まとまり2: 操作。
             Section {
-                VStack(spacing: WireMetrics.spacingM) {
-                    if isEditing {
-                        Button("編集を終える") {
-                            isEditing = false
+                BentoGroup(tone: .l2) {
+                    VStack(spacing: WireMetrics.spacingM) {
+                        if isEditing {
+                            Button("編集を終える") {
+                                isEditing = false
+                            }
+                            .buttonStyle(.wireSecondary)
                         }
-                        .buttonStyle(.wireSecondary)
-                    }
 
-                    Button("＋ デッキを追加") {
-                        isEditing = false
-                        isShowingLibrary = true
+                        Button("＋ デッキを追加") {
+                            isEditing = false
+                            isShowingLibrary = true
+                        }
+                        .buttonStyle(.wirePrimary)
                     }
-                    .buttonStyle(.wirePrimary)
                 }
                 .wireListRow()
             }
 
+            // まとまり3: 通知。エラーがなければグループごと出さない。
             if let errorMessage {
                 Section {
-                    // 色相を使わずに異常を示す（破線 + 文言）。
-                    Text(errorMessage)
-                        .wireFont(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(WireMetrics.spacingM)
-                        .outlineSurface(radius: WireMetrics.radiusControl, shadow: nil, dashed: true)
-                        .wireListRow()
+                    BentoGroup(title: "通知", tone: .l3) {
+                        // 色相を使わずに異常を示す（破線 + 文言）。
+                        Text(errorMessage)
+                            .wireFont(.caption)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(WireMetrics.spacingM)
+                            .outlineSurface(
+                                radius: WireMetrics.radiusControl,
+                                shadow: nil,
+                                dashed: true,
+                                fill: BentoTone.l3.fill
+                            )
+                    }
+                    .wireListRow()
                 }
             }
         }
@@ -77,11 +113,6 @@ struct LearningDashboardView: View {
         .background(WireColor.background)
         .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
         .environment(\.editMode, .constant(isEditing ? .active : .inactive))
-        .overlay {
-            if decks.isEmpty {
-                emptyState
-            }
-        }
         .fileExporter(
             isPresented: Binding(
                 get: { exportDocument != nil },
@@ -110,10 +141,9 @@ struct LearningDashboardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(WireMetrics.spacingL)
-            .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
-            .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
         }
-        .buttonStyle(.plain)
+        // 行は枠を持たない。押せることは押下中の面の濃さと縮小で示す。
+        .buttonStyle(.bentoRow(tone: deckGroupTone))
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                 isEditing = true
@@ -121,17 +151,20 @@ struct LearningDashboardView: View {
         )
     }
 
+    /// デッキ一覧グループの中に収める空状態。枠は外側のグループが持つので重ねない。
     private var emptyState: some View {
-        WireCard {
-            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-                Text("デッキがありません")
-                    .wireFont(.titleS)
-                Text("「＋ デッキを追加」から追加してください。")
-                    .wireFont(.caption)
-            }
+        VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
+            Text("デッキがありません")
+                .wireFont(.body)
+            Text("「＋ デッキを追加」から追加してください。")
+                .wireFont(.caption)
         }
-        .padding(WireMetrics.screenPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(WireMetrics.spacingL)
     }
+
+    /// デッキ一覧は画面の一番上のまとまりなので、最も薄い段を使う。
+    private var deckGroupTone: BentoTone { .l1 }
 
     private func counterText(for deck: LocalDeck) -> String {
         guard let counts = countsByDeckId[deck.id] else { return "新規 - ・ 復習 -" }

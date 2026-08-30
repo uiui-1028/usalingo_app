@@ -61,7 +61,8 @@ struct AppShellView: View {
             }
         }
         .padding(WireMetrics.spacingM)
-        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+        // 画面の一番下にある常設の部品なので、階調の一番濃い段に合わせる。
+        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card, fill: BentoTone.l3.fill)
         .padding(.horizontal, WireMetrics.screenPadding)
         .padding(.bottom, WireMetrics.spacingXL)
     }
