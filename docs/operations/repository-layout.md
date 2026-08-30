@@ -47,8 +47,12 @@ usalingo_app/
 │   ├── operations/                   # 開発環境、技術スタック、ルール、手順書
 │   ├── legal/                        # 公開文書と素材・プライバシーの台帳
 │   └── archive/                      # 現行仕様ではない履歴・検討資料
+├── scripts/                          # 開発・検証用のスクリプト
+│   └── sql/                          # スクリプトが読み込むSQL断片
 ├── supabase/
-│   └── migrations/                   # 実行可能SQLの正本
+│   ├── migrations/                   # 実行可能SQLの正本
+│   ├── tests/                        # pgTAPテスト
+│   └── functions/                    # Edge Function
 └── assets/                           # アイコンなどの制作素材
 ```
 
@@ -57,6 +61,7 @@ usalingo_app/
 - 現行Swiftコードは `apps/ios-swiftui/UsalingoIOS/` に置く。
 - Swiftテストは `apps/ios-swiftui/UsalingoIOSTests/` に置く。
 - 実行可能なDB変更は `supabase/migrations/` に置く。
+- 開発・検証用のスクリプトは `scripts/` に置く。スクリプトが読み込むSQL断片は `scripts/sql/` に置き、`supabase/migrations/` へ混ぜない。
 - 文書は `docs/` に置く。棚は下の3つの原則で選ぶ。
 - `Config/Local.xcconfig` は端末固有の秘密設定としてGitへ登録しない。
 - Xcodeの `xcuserdata`、DerivedData、ビルド生成物は仕様や共有コードとして扱わない。
