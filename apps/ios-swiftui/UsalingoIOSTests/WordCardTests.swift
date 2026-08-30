@@ -215,14 +215,13 @@ final class WordCardTests: XCTestCase {
         controller.view.frame = window.bounds
         controller.view.layoutIfNeeded()
 
-        let picker = try XCTUnwrap(firstSubview(of: UISegmentedControl.self, in: controller.view))
-        XCTAssertEqual(picker.numberOfSegments, 2)
-        XCTAssertEqual(picker.titleForSegment(at: 0), "リスト")
-        XCTAssertEqual(picker.titleForSegment(at: 1), "カード")
+        // 表示形式の切り替えは、ワイヤーフレーム化でセグメントからピルの並びに変わった。
+        // 見た目の実装に依存しないよう、読み上げラベル経由で操作する。
+        XCTAssertNotNil(accessibilityElement(labeled: "リスト", in: controller.view))
+        let cardButton = try XCTUnwrap(accessibilityElement(labeled: "カード", in: controller.view))
 
         let listImage = renderedImage(of: controller.view)
-        picker.selectedSegmentIndex = 1
-        picker.sendActions(for: .valueChanged)
+        XCTAssertTrue(cardButton.accessibilityActivate())
         controller.view.layoutIfNeeded()
         let cardImage = renderedImage(of: controller.view)
 
@@ -244,6 +243,24 @@ final class WordCardTests: XCTestCase {
     }
 
     @MainActor
+    /// 読み上げラベルが一致する要素を、View 階層とアクセシビリティ要素の両方から探す。
+    private func accessibilityElement(labeled label: String, in view: UIView) -> NSObject? {
+        if view.accessibilityLabel == label, view.isAccessibilityElement {
+            return view
+        }
+        for element in view.accessibilityElements ?? [] {
+            if let element = element as? NSObject, element.accessibilityLabel == label {
+                return element
+            }
+        }
+        for subview in view.subviews {
+            if let match = accessibilityElement(labeled: label, in: subview) {
+                return match
+            }
+        }
+        return nil
+    }
+
     private func firstSubview<T: UIView>(of type: T.Type, in view: UIView) -> T? {
         if let matchingView = view as? T {
             return matchingView

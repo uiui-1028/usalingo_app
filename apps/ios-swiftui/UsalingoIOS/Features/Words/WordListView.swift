@@ -185,7 +185,6 @@ struct WordListView: View {
                 .accessibilityAddTraits(selectedDisplayMode == mode ? .isSelected : [])
             }
         }
-        .accessibilityLabel("単語の表示形式")
     }
 
     private var tagFilterBar: some View {
