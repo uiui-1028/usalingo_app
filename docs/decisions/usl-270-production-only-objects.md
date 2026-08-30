@@ -8,6 +8,10 @@
 `supabase/migrations/20260830090000_record_production_only_objects.sql` として記録した。
 ローカルPostgreSQLで全13migrationを適用し、19オブジェクトが本番と同じ形で再現されることを確認した。
 
+その後、Docker上のローカルSupabase（PostgreSQL 17.4）でも全migrationを空から適用し直した。
+`supabase db reset --local`、pgTAP 54件、public schemaのSQL lintがすべて成功したため、
+USL-270を止めていたローカルSupabase環境での未確認事項は解消した。
+
 本番へのDDL、DML、設定変更、migration適用は **0件**。読み取りのみ。
 
 ## 実行境界
@@ -19,6 +23,9 @@
 - 本番への書き込み: なし
 - 検証環境: このセッションのコンテナ上に `initdb` で作ったPostgreSQL 16.13
   （Supabase CLIとDockerが使えないため、`auth`・`storage` は最小スタブで代用した）
+- 追加検証環境: Docker 29.7.2、Supabase CLI 2.33.9、ローカルSupabase PostgreSQL 17.4
+- 追加検証時刻: 2026-08-30 13:55 UTC
+- 追加検証の本番接続: なし。`--local` のみ使用
 
 ## 記録した19オブジェクト
 
@@ -68,29 +75,35 @@ USL-270のチケット本文は `ensure_current_user_row` を対象に挙げて�
 | テーブルのindex | `pg_indexes` | PK + 3本、本番と一致 |
 | GRANT（表・view 7件 × 3ロール） | `information_schema.role_table_grants` | 21/21 一致 |
 | GRANT（関数5本 × 3ロール） | `aclexplode(proacl)` | 15/15 一致 |
+| ローカルSupabaseを空から再現できる | `./scripts/test-local-db.sh` 内の `supabase db reset --local` | 成功 |
+| 既存pgTAPテスト | `supabase test db --local` | 3ファイル・54件すべて成功 |
+| public schemaのSQL lint | `supabase db lint --local --schema public --fail-on error` | error 0件 |
 
-## 未確認のこと
+## 追加検証で解消したこと
 
-- **pgTAPテストは実行していない。** 検証環境に `pgtap` 拡張が無い。
-  `supabase/tests/*.test.sql` の成否は未確認である。
-- **`supabase db reset` は実行していない。** Supabase CLIとDockerが使えないため、
-  `psql` による順次適用で代用した。Supabaseの実際の起動順序、`auth`・`storage` の
-  本物のスキーマ、Storage policyの動作は再現していない。
-- 検証環境はPostgreSQL 16、本番は17。バージョン差による挙動差は確認していない。
+- 当初はSupabase CLIとDockerが無く、`supabase db reset`、pgTAP、SQL lintを実行できなかった。
+- 追加検証では、ローカルSupabaseのPostgreSQL 17.4へ全migrationとseedを適用した。
+- pgTAP 54件とSQL lintが成功し、PostgreSQL 16の代替検証だけだった状態を解消した。
+- 本番へのmigration適用は、この記録課題の対象外であり実施していない。
+
+## 後続migrationで変わったこと
+
 - `sync_existing_images` は `example_contents.illustration_url` と
   `words.word_text` 経由の `word_id` を参照するが、現行スキーマにこれらは無い。
-  実行すると失敗する可能性が高い。本番のまま写しており、動作確認はしていない。
+  USL-270では本番の現状記録として写したが、後続のUSL-276で壊れた関数と公開実行権限を
+  `20260830120000_drop_broken_sync_existing_images.sql` により削除した。
 
 ## この記録は改善ではない
 
-既知の危険を、あえてそのまま再現している。閉じるのは後続の課題である。
+baseline migrationは、取得時点の既知の危険をあえてそのまま再現している。
+後続migrationで変わったものを除き、閉じるのは別課題である。
 
 1. `asset_processing_queue` はRLS無効で、`anon` に全DML（TRUNCATEを含む）が開いている。
    anonキーはアプリに配布されるため、誰でも読み書きできる。
 2. Storage policyを再作成できる `setup_content_images_policies` と
    `optimize_content_audio_policies` を `anon` が実行できる。
-3. 監視用の `get_index_recommendations`、`get_performance_summary`、
-   および `sync_existing_images` も `anon` が実行できる。
+3. 監視用の `get_index_recommendations` と `get_performance_summary` を `anon` が実行できる。
+   `sync_existing_images` はbaselineでは同じ状態だったが、前節の後続migrationで削除済み。
 4. view 6本が `security_invoker` 未設定のまま、`anon` にSELECT権限がある。
 
 ## 新しく分かったこと（USL-270の想定より広い）
