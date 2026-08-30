@@ -35,7 +35,7 @@ final class DesignSettings: ObservableObject {
         case "orange":
             return AppStyle.sun
         default:
-            return Color(red: 1.0, green: 0.36, blue: 0.59)
+            return AppStyle.ink
         }
     }
 
