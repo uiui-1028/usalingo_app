@@ -75,16 +75,15 @@ RLSやStorageの**実際の遮断**を確かめるには、Dockerのある環境
 
 | 項目 | 結果 |
 | --- | --- |
-| migration | 13件すべて適用成功 |
-| pgTAP | 54件中 0件失敗 |
-| lint | **error 1件**。終了コード1 |
+| migration | 15件すべて適用成功 |
+| pgTAP | 80件中 0件失敗 |
+| lint | error 0件。終了コード0 |
 
-lintのerrorは `public.sync_existing_images` の1件だけです。
-これは本番から写した壊れた関数で、[USL-276](https://app.notion.com/p/3ccc3d1f59e8819bb992df9ba515a378)
-で扱います。**このスクリプトはUSL-276が片づくまでは終了コード1で終わります。**
-隠さずそのまま出しています。
+以前はlintが `public.sync_existing_images` で error 1件を出し、このスクリプトは
+終了コード1で終わっていました。その関数は
+[USL-276](../decisions/usl-276-drop-sync-existing-images.md) で削除され、現在lintは通ります。
 
-lintを飛ばした場合（`supabase` コマンドが無い場合）は終了コード0で終わります。
+`supabase` コマンドが無い場合は、lintを飛ばして終了コード0で終わります。
 
 ## なぜこれが要るのか
 
@@ -94,7 +93,7 @@ USL-270の作業中、Docker Hubのイメージ取得がネットワーク方針
 この手順を用意したことで、Dockerなしでも次が確認できるようになりました。
 
 - migrationが順番に適用できること
-- pgTAP 54件が成功すること
+- pgTAPが成功すること
 - lintが動くこと（そしてUSL-276のバグは、これで初めて見つかりました）
 
 ## 関連
