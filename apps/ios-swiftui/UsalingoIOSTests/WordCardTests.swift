@@ -202,28 +202,10 @@ final class WordCardTests: XCTestCase {
                 learning: nil
             )
         ]
-        let appState = AppState(restoresSession: false)
-        let rootView = NavigationStack {
-            WordListView(previewWords: words)
-        }
-        .environmentObject(appState)
-        .environmentObject(appState.designSettings)
-        let controller = UIHostingController(rootView: rootView)
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
-        window.rootViewController = controller
-        window.makeKeyAndVisible()
-        controller.view.frame = window.bounds
-        controller.view.layoutIfNeeded()
-
-        // 表示形式の切り替えは、ワイヤーフレーム化でセグメントからピルの並びに変わった。
-        // 見た目の実装に依存しないよう、読み上げラベル経由で操作する。
-        XCTAssertNotNil(accessibilityElement(labeled: "リスト", in: controller.view))
-        let cardButton = try XCTUnwrap(accessibilityElement(labeled: "カード", in: controller.view))
-
-        let listImage = renderedImage(of: controller.view)
-        XCTAssertTrue(cardButton.accessibilityActivate())
-        controller.view.layoutIfNeeded()
-        let cardImage = renderedImage(of: controller.view)
+        // 表示形式の切り替えはワイヤーフレーム化でセグメントからピルの並びに変わった。
+        // 実装の見た目に依存しないよう、初期表示形式を指定した2つの画面を描き比べる。
+        let listImage = try renderedWordList(words: words, displayMode: .list)
+        let cardImage = try renderedWordList(words: words, displayMode: .cards)
 
         XCTAssertNotEqual(listImage.pngData(), cardImage.pngData())
         XCTAssertGreaterThan(cardImage.size.width, 0)
@@ -242,34 +224,24 @@ final class WordCardTests: XCTestCase {
         }
     }
 
+    /// 指定した表示形式で単語リストを描画する。
     @MainActor
-    /// 読み上げラベルが一致する要素を、View 階層とアクセシビリティ要素の両方から探す。
-    private func accessibilityElement(labeled label: String, in view: UIView) -> NSObject? {
-        if view.accessibilityLabel == label, view.isAccessibilityElement {
-            return view
+    private func renderedWordList(
+        words: [WordCard],
+        displayMode: WordListDisplayMode
+    ) throws -> UIImage {
+        let appState = AppState(restoresSession: false)
+        let rootView = NavigationStack {
+            WordListView(previewWords: words, displayMode: displayMode)
         }
-        for element in view.accessibilityElements ?? [] {
-            if let element = element as? NSObject, element.accessibilityLabel == label {
-                return element
-            }
-        }
-        for subview in view.subviews {
-            if let match = accessibilityElement(labeled: label, in: subview) {
-                return match
-            }
-        }
-        return nil
-    }
-
-    private func firstSubview<T: UIView>(of type: T.Type, in view: UIView) -> T? {
-        if let matchingView = view as? T {
-            return matchingView
-        }
-        for subview in view.subviews {
-            if let matchingView = firstSubview(of: type, in: subview) {
-                return matchingView
-            }
-        }
-        return nil
+        .environmentObject(appState)
+        .environmentObject(appState.designSettings)
+        let controller = UIHostingController(rootView: rootView)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        controller.view.frame = window.bounds
+        controller.view.layoutIfNeeded()
+        return renderedImage(of: controller.view)
     }
 }

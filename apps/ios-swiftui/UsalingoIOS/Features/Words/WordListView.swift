@@ -17,10 +17,15 @@ struct WordListView: View {
     private let previewWords: [WordCard]?
     private let studyService = StudyService()
 
-    init(deck: Deck? = nil, previewWords: [WordCard]? = nil) {
+    init(
+        deck: Deck? = nil,
+        previewWords: [WordCard]? = nil,
+        displayMode: WordListDisplayMode = .list
+    ) {
         self.deck = deck
         self.previewWords = previewWords
         _words = State(initialValue: previewWords ?? [])
+        _selectedDisplayMode = State(initialValue: displayMode)
     }
 
     var body: some View {
@@ -533,7 +538,7 @@ private enum WordStatusFilter: String, CaseIterable, Identifiable {
     }
 }
 
-private enum WordListDisplayMode: String, CaseIterable, Identifiable {
+enum WordListDisplayMode: String, CaseIterable, Identifiable {
     case list
     case cards
 
