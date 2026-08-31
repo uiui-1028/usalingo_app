@@ -5,8 +5,8 @@ import UniformTypeIdentifiers
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
-    @State private var decks: [LocalDeck] = []
-    @State private var countsByDeckId: [Int: LocalDeckCounts] = [:]
+    @State private var decks: [Deck] = []
+    @State private var countsByDeckId: [Int: StudyDeckCounts] = [:]
     @State private var selectedDeck: Deck?
     @State private var isEditing = false
     @State private var isShowingLibrary = false
@@ -21,11 +21,10 @@ struct LearningDashboardView: View {
                     StudySessionView(deck: deck)
                 }
                 .navigationDestination(isPresented: $isShowingLibrary) {
-                    DeckLibraryView { reload() }
+                    DeckLibraryView { Task { await reload() } }
                 }
         }
-        .task { reload() }
-        .task(id: appState.studyDataVersion) { reload() }
+        .task(id: reloadKey) { await reload() }
     }
 
     /// 画面は上から「デッキ一覧」「操作」「通知」の3つのまとまりへ分ける。
@@ -59,7 +58,9 @@ struct LearningDashboardView: View {
                                 showsDivider: !isLast
                             )
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                Button("書き出す") { prepareExport(deck) }
+                                if appState.isGuest {
+                                    Button("書き出す") { prepareExport(deck) }
+                                }
                             }
                     }
                     .onMove(perform: moveHandler)
@@ -68,24 +69,26 @@ struct LearningDashboardView: View {
             }
 
             // まとまり2: 操作。
-            Section {
-                BentoGroup(tone: .l2) {
-                    VStack(spacing: WireMetrics.spacingM) {
-                        if isEditing {
-                            Button("編集を終える") {
-                                isEditing = false
+            if appState.isGuest {
+                Section {
+                    BentoGroup(tone: .l2) {
+                        VStack(spacing: WireMetrics.spacingM) {
+                            if isEditing {
+                                Button("編集を終える") {
+                                    isEditing = false
+                                }
+                                .buttonStyle(.wireSecondary)
                             }
-                            .buttonStyle(.wireSecondary)
-                        }
 
-                        Button("＋ デッキを追加") {
-                            isEditing = false
-                            isShowingLibrary = true
+                            Button("＋ デッキを追加") {
+                                isEditing = false
+                                isShowingLibrary = true
+                            }
+                            .buttonStyle(.wirePrimary)
                         }
-                        .buttonStyle(.wirePrimary)
                     }
+                    .wireListRow()
                 }
-                .wireListRow()
             }
 
             // まとまり3: 通知。エラーがなければグループごと出さない。
@@ -128,13 +131,13 @@ struct LearningDashboardView: View {
         }
     }
 
-    private func deckRow(_ deck: LocalDeck) -> some View {
+    private func deckRow(_ deck: Deck) -> some View {
         Button {
             guard !isEditing else { return }
-            selectedDeck = deck.deck
+            selectedDeck = deck
         } label: {
             VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                Text(deck.name)
+                Text(deck.deckName)
                     .wireFont(.titleS)
                 Text(counterText(for: deck))
                     .wireFont(.caption)
@@ -146,7 +149,7 @@ struct LearningDashboardView: View {
         .buttonStyle(.bentoRow(tone: deckGroupTone))
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                isEditing = true
+                if appState.isGuest { isEditing = true }
             }
         )
     }
@@ -156,7 +159,7 @@ struct LearningDashboardView: View {
         VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
             Text("デッキがありません")
                 .wireFont(.body)
-            Text("「＋ デッキを追加」から追加してください。")
+            Text(appState.isGuest ? "「＋ デッキを追加」から追加してください。" : "利用できるデッキがまだありません。")
                 .wireFont(.caption)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -166,20 +169,33 @@ struct LearningDashboardView: View {
     /// デッキ一覧は画面の一番上のまとまりなので、最も薄い段を使う。
     private var deckGroupTone: BentoTone { .l1 }
 
-    private func counterText(for deck: LocalDeck) -> String {
+    private func counterText(for deck: Deck) -> String {
         guard let counts = countsByDeckId[deck.id] else { return "新規 - ・ 復習 -" }
         return "新規 \(counts.newCount) ・ 復習 \(counts.dueCount)"
     }
 
-    private func reload() {
-        decks = appState.localStudy.decks()
-        var counts: [Int: LocalDeckCounts] = [:]
+    private var reloadKey: String {
+        "\(appState.session?.user.id ?? "guest")-\(appState.studyDataVersion)"
+    }
+
+    private func reload() async {
+        let dataSource = appState.studyDataSource
+        var counts: [Int: StudyDeckCounts] = [:]
         var failed: [String] = []
+        do {
+            decks = try await dataSource.fetchDecks()
+        } catch {
+            decks = []
+            countsByDeckId = [:]
+            errorMessage = UserFacingError.message(for: error)
+            isEditing = false
+            return
+        }
         for deck in decks {
             do {
-                counts[deck.id] = try appState.localStudy.counts(deckId: deck.id)
+                counts[deck.id] = try await dataSource.fetchDeckCounts(deckId: deck.id)
             } catch {
-                failed.append(deck.name)
+                failed.append(deck.deckName)
             }
         }
         countsByDeckId = counts
@@ -197,9 +213,12 @@ struct LearningDashboardView: View {
         isEditing ? delete : nil
     }
 
-    private func prepareExport(_ deck: LocalDeck) {
+    private func prepareExport(_ deck: Deck) {
         do {
-            exportFileName = deck.key
+            guard let localDeck = appState.localStudy.deck(id: deck.id) else {
+                throw LocalStudyError.deckNotFound
+            }
+            exportFileName = localDeck.key
             exportDocument = DeckDocument(data: try appState.localStudy.exportData(deckId: deck.id))
             errorMessage = nil
         } catch {
@@ -210,7 +229,7 @@ struct LearningDashboardView: View {
     private func move(fromOffsets source: IndexSet, toOffset destination: Int) {
         do {
             try appState.localStudy.moveDecks(fromOffsets: source, toOffset: destination)
-            reload()
+            Task { await reload() }
         } catch {
             errorMessage = "並び順を保存できませんでした。"
         }
@@ -219,7 +238,7 @@ struct LearningDashboardView: View {
     private func delete(atOffsets offsets: IndexSet) {
         do {
             try appState.localStudy.removeDecks(atOffsets: offsets)
-            reload()
+            Task { await reload() }
         } catch {
             errorMessage = "デッキを削除できませんでした。"
         }

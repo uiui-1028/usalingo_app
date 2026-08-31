@@ -16,10 +16,7 @@ struct LocalDeck: Identifiable, Codable, Equatable {
 }
 
 /// デッキごとの「新規 n ・ 復習 m」カウンタ。
-struct LocalDeckCounts: Equatable {
-    let newCount: Int
-    let dueCount: Int
-}
+typealias LocalDeckCounts = StudyDeckCounts
 
 /// 端末に保存しているデッキ一覧とカードIDの対応表。
 /// バックアップへそのまま入れるため、内部だけの型にしない。
@@ -200,6 +197,22 @@ final class LocalStudyDataSource: StudyDataSource {
 
     // MARK: - StudyDataSource
 
+    func fetchDecks() async throws -> [Deck] {
+        decks().map(\.deck)
+    }
+
+    func fetchDeckCounts(deckId: Int) async throws -> StudyDeckCounts {
+        try counts(deckId: deckId)
+    }
+
+    func fetchCards(deckId: Int) async throws -> [WordCard] {
+        try loadCards(deckId: deckId)
+    }
+
+    func fetchWordList() async throws -> [WordCard] {
+        try loadCards(deckId: Self.allDecksId)
+    }
+
     func fetchStudyQueue(deckId: Int, mode: StudyMode) async throws -> [WordCard] {
         let cards = try loadCards(deckId: deckId)
         let now = Date()
@@ -230,6 +243,23 @@ final class LocalStudyDataSource: StudyDataSource {
                     .prefix(QueueLimit.weak)
             )
         }
+    }
+
+    func fetchStudyStats() async throws -> StudyStats {
+        let rows = Array(progressByCardId.values)
+        let now = Date()
+        let reviewedDates = rows.compactMap { progress in
+            progress.lastReviewedAt.flatMap(Self.parseDate)
+        }
+        let reviewedDays = Array(Set(reviewedDates.map { Calendar.current.startOfDay(for: $0) })).sorted()
+        return StudyStats(
+            studiedCount: rows.count,
+            dueCount: rows.filter { Self.parseDate($0.nextReviewDate).map { $0 <= now } ?? false }.count,
+            masteredCount: rows.filter { $0.status == "mastered" }.count,
+            currentStreak: Self.currentStreak(from: reviewedDates),
+            totalReviews: rows.reduce(0) { $0 + $1.repetitions },
+            reviewedDays: reviewedDays
+        )
     }
 
     @discardableResult
@@ -535,6 +565,19 @@ final class LocalStudyDataSource: StudyDataSource {
         }
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter.date(from: value)
+    }
+
+    private static func currentStreak(from dates: [Date]) -> Int {
+        let calendar = Calendar.current
+        let reviewedDays = Set(dates.map { calendar.startOfDay(for: $0) })
+        var day = calendar.startOfDay(for: Date())
+        var streak = 0
+        while reviewedDays.contains(day) {
+            streak += 1
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
+            day = previous
+        }
+        return streak
     }
 
     // MARK: - 永続化

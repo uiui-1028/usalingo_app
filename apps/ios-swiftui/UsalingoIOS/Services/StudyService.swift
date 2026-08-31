@@ -138,6 +138,17 @@ final class StudyService {
         static let studyCard = "id,word_id,sort_order,word:words!inner(\(word))"
     }
 
+    func fetchDecks(session: AuthSession) async throws -> [Deck] {
+        try await fetchAllPages(
+            path: "decks",
+            queryItems: [
+                URLQueryItem(name: "select", value: "id,deck_name,description"),
+                URLQueryItem(name: "order", value: "id.asc")
+            ],
+            accessToken: session.accessToken
+        )
+    }
+
     func fetchStudyQueue(deckId: Int, mode: StudyMode = .all, session: AuthSession) async throws -> [WordCard] {
         switch mode {
         case .newOnly:

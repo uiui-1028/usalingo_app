@@ -15,7 +15,6 @@ struct WordListView: View {
 
     private let deck: Deck?
     private let previewWords: [WordCard]?
-    private let studyService = StudyService()
 
     init(
         deck: Deck? = nil,
@@ -112,7 +111,7 @@ struct WordListView: View {
             }
                 .presentationDetents([.medium, .large])
         }
-        .task { await load() }
+        .task(id: appState.session?.user.id ?? "guest") { await load() }
     }
 
     private var availableTags: [String] {
@@ -246,15 +245,15 @@ struct WordListView: View {
 
     private func load() async {
         guard previewWords == nil else { return }
-        guard let session = appState.session else { return }
         isLoading = true
         defer { isLoading = false }
 
         do {
+            let dataSource = appState.studyDataSource
             if let deck {
-                words = try await studyService.fetchCards(deckId: deck.id, session: session)
+                words = try await dataSource.fetchCards(deckId: deck.id)
             } else {
-                words = try await studyService.fetchWordList(session: session)
+                words = try await dataSource.fetchWordList()
             }
             clearMissingTagFilter()
             message = ""
