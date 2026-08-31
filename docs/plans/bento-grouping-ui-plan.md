@@ -2,6 +2,11 @@
 
 状態: **B-1〜B-5 実装済み（B-6 未着手）**。ビルドと既存65テストは通過。実機での確認は初期状態（デッキ1件）のみ
 
+判定（2026-08-30）: **B-6は要らない。中止する。** M1（TestFlight配信）にもM2（50語の通し）にも要らず、
+階調ルールはこの計画書の4章に書かれているため、別文書を作ると正本が2つになる。
+判定の根拠は [../decisions/plan-scope-20260830.md](../decisions/plan-scope-20260830.md)、
+マイルストーンは [milestones.md](milestones.md) を見る。B-1〜B-5の実装は有効なまま残る。
+
 作成日: 2026-08-30
 
 対象: `apps/ios-swiftui/UsalingoIOS/DesignSystem/`、`apps/ios-swiftui/UsalingoIOS/Features/Learning/`、`apps/ios-swiftui/UsalingoIOS/Features/Shell/`

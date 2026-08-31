@@ -2,6 +2,12 @@
 
 状態: **G-1〜G-3完了 / G-4保留中**（マイグレーションSQLは未適用）
 
+判定（2026-08-30）: **G-4は要る（M1）。** 適用するまで学習記録のバックアップは保存時にエラーになるため、
+人に配る前に終わらせる必要がある。Notion USL-245 が対応し、
+「実行｜最初のビルドをTestFlightへ提出して内部テスターへ配る」の前提になっている。
+根拠は [../decisions/plan-scope-20260830.md](../decisions/plan-scope-20260830.md)、
+マイルストーンは [milestones.md](milestones.md) を見る。
+
 作成日: 2026-08-28
 
 対象: `apps/ios-swiftui/UsalingoIOS/` と `supabase/migrations/`
