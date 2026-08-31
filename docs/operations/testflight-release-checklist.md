@@ -46,7 +46,8 @@
 | 署名方式 | 済み | `CODE_SIGN_STYLE = Automatic`（自動管理） |
 | アーカイブ手順書 | 済み（USL-282） | [Releaseアーカイブ手順](release-archive.md) |
 | `DEVELOPMENT_TEAM` | 済み（USL-282） | `CTSYH44JRG` を Debug・Release 両方へ設定済み |
-| 配布証明書・プロビジョニングプロファイル | 未確認 | 自動管理なら Xcode が作る。開発機で Apple Account にサインインしておく。詰まったときの対処は [Releaseアーカイブ手順](release-archive.md) の3章 |
+| 配布証明書・プロビジョニングプロファイル | 済み（2026-09-01） | 自動管理で Xcode が作成。`Taiga Kawai` チームでのアーカイブに成功済み |
+| Releaseアーカイブ | 済み（2026-09-01） | `0.1.0 (1)` / `com.usalingo.ios` / arm64 で成功。詰まったときの対処は [Releaseアーカイブ手順](release-archive.md) の3章 |
 | CI での署名 | 済み（意図的） | `ios-ci.yml` は `CODE_SIGNING_ALLOWED=NO` で走る。CI は署名を検証しない。署名の確認は開発機で行う |
 
 ## 4. ビルド環境
@@ -85,7 +86,7 @@
 - [x] Apple Developer Program に加入する（個人で加入済み）
 - [x] チームIDを控えて共有する（`CTSYH44JRG`）
 - [x] アプリアイコンの絵を用意する（既存素材を採用）
-- [ ] 開発機の Xcode が 26 以降か確認する
+- [x] 開発機の Xcode が 26 以降か確認する（アーカイブが通ったため実質確認済み。提出時に再確認する）
 - [ ] App Store Connect でアプリレコードを作る（アプリ名を決める）
 - [ ] 内部テスターを招待する
 - [ ] App Privacy と年齢区分に答える
@@ -98,8 +99,9 @@
 「済み」と書かないための記録です。
 
 - App Store Connect にアプリレコードがあるかどうか
-- 開発機に入っている Xcode のバージョン
-- 証明書とプロビジョニングプロファイルの有無
+
+証明書、プロビジョニングプロファイル、Xcode のバージョンは、2026-09-01 に
+アーカイブが成功したことで確認済みになりました。
 
 ## 10. 根拠
 

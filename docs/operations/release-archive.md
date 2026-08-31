@@ -48,14 +48,29 @@ Debug と Release の**両方**がこのファイルを参照しているので�
 
 ## 2. アーカイブする
 
-### Xcode から
+### 手順1: 開発機を最新にする
+
+設定を変えた直後は、開発機のコードが古いままのことがあります。Xcode は古い設定で
+署名してしまうため、**先に取り込んでから開きます**。
+
+```bash
+cd <リポジトリのパス>
+git checkout main
+git pull origin main
+grep DEVELOPMENT_TEAM apps/ios-swiftui/UsalingoIOS.xcodeproj/project.pbxproj
+```
+
+最後の行で `DEVELOPMENT_TEAM = CTSYH44JRG;` が2行出ることを確認します。
+Xcode を開いたままなら、**いったん終了して開き直します**。
+
+### 手順2: Xcode から
 
 1. Xcode で `apps/ios-swiftui/UsalingoIOS.xcodeproj` を開く
 2. 実行先を **Any iOS Device (arm64)** にする（シミュレータではアーカイブできません）
 3. メニューの **Product → Archive**
 4. Organizer が開いたら **Distribute App → TestFlight & App Store**
 
-### コマンドから
+### 手順2の代わり: コマンドから
 
 ```bash
 cd apps/ios-swiftui
@@ -77,6 +92,8 @@ xcodebuild archive \
 | `No profiles for 'com.usalingo.ios' were found` | 同じ Bundle ID が Apple 側に登録されていない。Certificates, Identifiers & Profiles で登録するか、Xcode の「Try Again」に任せる |
 | アーカイブは通るが通信が全部失敗する | **0章の `Local.xcconfig` を確認**。値が空のまま |
 | シミュレータ用しか作れない | 実行先が Any iOS Device になっていない |
+| **Organizer の Team が `(Personal Team)` になる** | **開発機のコードが古い。**`DEVELOPMENT_TEAM` の設定がまだ手元へ届いていないと、Xcode は無料枠の仮チームで署名する。2章の手順1を実行して Xcode を開き直す。Personal Team のアーカイブは TestFlight へ出せない |
+| 設定を直したのに反映されない | Xcode が起動中は古い設定を保持する。**Xcode を終了して開き直す** |
 
 ## 4. この手順に含まれないもの
 
@@ -91,9 +108,22 @@ xcodebuild archive \
 - 証明書（`.p12`）、プロビジョニングプロファイル（`.mobileprovision`）はリポジトリへ置かない
 - `DEVELOPMENT_TEAM` のチームIDは秘密情報ではありません。署名済みアプリから読み取れる公開値なので、`project.pbxproj` に書いて問題ありません
 
-## 6. 未確認
+## 6. 実施記録
 
-この文書は**リポジトリの設定から書いたもので、実際のアーカイブはまだ実行していません**。
-macOS と Xcode が要るため、AI の実行環境では確認できません。
+**2026-09-01、初回のアーカイブに成功しました。**
 
-初回のアーカイブを実行したら、詰まった箇所をこの文書の3章へ足してください。
+| 項目 | 値 |
+|---|---|
+| Version | `0.1.0 (1)` |
+| Identifier | `com.usalingo.ios` |
+| Type | `iOS App Archive` |
+| Team | `Taiga Kawai`（有料の Developer Program チーム） |
+| Architectures | `arm64` |
+
+> [!IMPORTANT]
+> Organizer の **Team 欄に `(Personal Team)` が付いていないこと**が、配信できる
+> アーカイブかどうかの見分け方です。付いている場合は無料枠の仮チームで署名されており、
+> TestFlight へは出せません。
+
+初回で実際に詰まったのは「開発機のコードが古く、Personal Team で署名された」の1点でした。
+3章へ追記済みです。以降で新しい症状が出たら、同じように3章へ足してください。
