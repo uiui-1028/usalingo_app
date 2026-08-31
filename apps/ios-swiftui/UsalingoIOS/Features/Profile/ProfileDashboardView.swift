@@ -77,7 +77,7 @@ struct ProfileDashboardView: View {
             .padding(WireMetrics.screenPadding)
         }
         .background(WireColor.background)
-        .task { await load() }
+        .task(id: appState.session?.user.id ?? "guest") { await load() }
         .task(id: appState.studyDataVersion) { await refreshStats() }
         .sheet(isPresented: $isEditingProfile) {
             ProfileEditSheet(
@@ -116,10 +116,13 @@ struct ProfileDashboardView: View {
     }
 
     private func load() async {
-        guard let session = appState.session else { return }
         do {
-            stats = try await studyService.fetchStudyStats(session: session)
-            profile = try await studyService.fetchUserProfile(session: session)
+            stats = try await appState.studyDataSource.fetchStudyStats()
+            if let session = appState.session {
+                profile = try await studyService.fetchUserProfile(session: session)
+            } else {
+                profile = UserProfile(userId: "", nickname: nil, plan: "free")
+            }
             message = ""
         } catch {
             stats = .empty
@@ -128,9 +131,8 @@ struct ProfileDashboardView: View {
     }
 
     private func refreshStats() async {
-        guard let session = appState.session else { return }
         do {
-            stats = try await studyService.fetchStudyStats(session: session)
+            stats = try await appState.studyDataSource.fetchStudyStats()
         } catch {
             stats = .empty
         }

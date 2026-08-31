@@ -218,6 +218,15 @@ private final class FakeSessionStore: SessionStoring {
 }
 
 final class StudyFlowTests: XCTestCase {
+    func testAuthenticatedDecksAreFetchedFromRemoteCatalog() async throws {
+        let service = StudyService(client: FakeStudySupabaseClient())
+
+        let decks = try await service.fetchDecks(session: Self.session)
+
+        XCTAssertEqual(decks.map(\.id), [1, 2])
+        XCTAssertEqual(decks.map(\.deckName), ["基礎", "発展"])
+    }
+
     func testLargeDeckIsFetchedInPagesWithoutLosingCards() async throws {
         let client = FakeStudySupabaseClient(deckCardCount: 1_000)
         let service = StudyService(client: client)
@@ -423,6 +432,11 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
         prefer: String?
     ) async throws -> T {
         switch (path, method) {
+        case ("decks", .get):
+            return try decodeJSONObject([
+                ["id": 1, "deck_name": "基礎", "description": "最初のデッキ"],
+                ["id": 2, "deck_name": "発展", "description": NSNull()]
+            ])
         case ("cards", .get):
             return try decodeCardResponse(queryItems: queryItems)
         case ("user_card_progress", .get):

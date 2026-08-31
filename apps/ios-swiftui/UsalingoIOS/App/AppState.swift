@@ -21,14 +21,16 @@ final class AppState: ObservableObject {
     /// ローカル同梱データ層（D-1）。デッキ一覧・入出力はこの実体を直接使う。
     let localStudy: LocalStudyDataSource
 
-    /// 学習画面が使うデータ層。将来ログイン時に RemoteStudyDataSource へ差し替える。
+    /// 学習画面が使うデータ層。ゲストは端末、認証済み利用者はSupabaseへ接続する。
     var studyDataSource: any StudyDataSource {
-        localStudy
+        guard let session else { return localStudy }
+        return makeRemoteStudy(session)
     }
 
     private let authService: AuthService
     private let accountDeletionService: any AccountDeletionServicing
     private let defaults: UserDefaults
+    private let makeRemoteStudy: (AuthSession) -> any StudyDataSource
 
     var isGuest: Bool {
         session == nil
@@ -39,12 +41,14 @@ final class AppState: ObservableObject {
         defaults: UserDefaults = .standard,
         authService: AuthService = AuthService(),
         accountDeletionService: any AccountDeletionServicing = AccountDeletionService(),
-        localStudy: LocalStudyDataSource = LocalStudyDataSource()
+        localStudy: LocalStudyDataSource = LocalStudyDataSource(),
+        makeRemoteStudy: @escaping (AuthSession) -> any StudyDataSource = { RemoteStudyDataSource(session: $0) }
     ) {
         self.localStudy = localStudy
         self.defaults = defaults
         self.authService = authService
         self.accountDeletionService = accountDeletionService
+        self.makeRemoteStudy = makeRemoteStudy
         designSettings = DesignSettings(defaults: defaults)
         isSwipeTutorialPresented = !defaults.bool(forKey: TutorialKey.hasCompletedSwipeTutorial)
         guard restoresSession else {
