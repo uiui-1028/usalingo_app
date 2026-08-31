@@ -44,8 +44,9 @@
 | 項目 | 状態 | やること |
 |---|---|---|
 | 署名方式 | 済み | `CODE_SIGN_STYLE = Automatic`（自動管理） |
-| `DEVELOPMENT_TEAM` | 未（AI） | 現在は空。加入後にチームIDを入れる（USL-282） |
-| 配布証明書・プロビジョニングプロファイル | 未確認 | 自動管理なら Xcode が作る。開発機で Apple Account にサインインしておく |
+| アーカイブ手順書 | 済み（USL-282） | [Releaseアーカイブ手順](release-archive.md) |
+| `DEVELOPMENT_TEAM` | 済み（USL-282） | `CTSYH44JRG` を Debug・Release 両方へ設定済み |
+| 配布証明書・プロビジョニングプロファイル | 未確認 | 自動管理なら Xcode が作る。開発機で Apple Account にサインインしておく。詰まったときの対処は [Releaseアーカイブ手順](release-archive.md) の3章 |
 | CI での署名 | 済み（意図的） | `ios-ci.yml` は `CODE_SIGNING_ALLOWED=NO` で走る。CI は署名を検証しない。署名の確認は開発機で行う |
 
 ## 4. ビルド環境
