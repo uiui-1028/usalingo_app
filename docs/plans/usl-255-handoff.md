@@ -79,7 +79,7 @@ USL-278 で「v0.1 は**現在の同梱教材で先に配る**」と決めた
 
 | # | 作業 | 状態 |
 |---|---|---|
-| 1 | Bubble に `terms` / `privacy` / `credits` の3ページを作って公開する | **未作成**。アプリはこのURLを開くので、いまタップするとページが見つからない。Notion [USL-295](https://app.notion.com/3cec3d1f59e881f79968ffa0459b7350) として登録した（owner: human） |
+| 1 | 法務3ページを公開する | **未作成**。Notion [USL-295](https://app.notion.com/3cec3d1f59e881f79968ffa0459b7350)。**2026-09-01 に方針変更**: Bubble をやめ、静的サイトを作って Vercel の無料枠で公開する。ドメインも取り直すため、アプリの `publishedBaseURL` も変わる。手順は [usl-295-handoff.md](usl-295-handoff.md) |
 | 2 | 実機で VoiceOver・Dynamic Type・リンク遷移を確認する | 未実施（USL-285 と同じやり方でできる） |
 | 3 | 法的な適否の専門家確認 | 未実施 |
 
@@ -97,13 +97,15 @@ USL-278 で「v0.1 は**現在の同梱教材で先に配る**」と決めた
 ```text
 ✅ 事業者情報・出典・施行日を確定（人間）
 ✅ 3文書へ反映（AI）
-→ Bubble に3ページを公開（人間・USL-295）※ slug は terms / privacy / credits
+→ 静的サイトを作って Vercel で公開（USL-295）※ パスは /terms /privacy /credits
+→ 公開URLに合わせて publishedBaseURL を直す（AI）
 → 実機でリンク遷移・VoiceOver・Dynamic Type を確認（人間）
 → USL-255 を done に（AI）
 → USL-287 TestFlight 提出へ（ここで対象年齢が決まる）
 ```
 
-アプリ側の URL は先に決まっている。**その slug の通りにページを作る**こと。違うとリンクが切れる。
+パス（`/terms`、`/privacy`、`/credits`）は動かせない。アプリが決め打ちで開くため。
+ドメインは取り直すので、公開URLが決まったらアプリ側の `publishedBaseURL` を同じコミットで直す。
 
 ## 次のセッションへ渡すプロンプト
 
@@ -124,8 +126,8 @@ USL-255（実装｜法務・ライセンス・クレジットをアプリ内で�
 
 やってほしいこと。
 
-1. Bubble の3ページ（slug: `terms` / `privacy` / `credits`、Notion USL-295）が公開されたか確認する。
-   まだなら、作り方を小学生でもわかる比喩で端的に説明する。
+1. 法務3ページ（Notion USL-295）が公開されたか確認する。Bubble ではなく、リポジトリ内の
+   静的サイトを Vercel で公開する方針に変わっている。詳細は `docs/plans/usl-295-handoff.md`。
 2. 公開されたら、実機でプロフィール →「法務・ライセンス」から4行すべてをタップし、
    ページが開くこと、版と施行日が出ること、問い合わせでメールが起動することを確認してもらう。
    VoiceOver と Dynamic Type も同じ画面で確認する。やり方は USL-285 と同じ。

@@ -136,7 +136,7 @@
 | 6 | `Services/AppInfo.swift` とバージョン表示 | ✅ 済 |
 | 7 | ライセンス一覧を「ライセンス」行から開く | ✅ 済。外部URLではなくアプリ内画面にした |
 
-**公開先。** `https://imagicraft-power.bubbleapps.io/version-test/` の下に `terms`、`privacy`、`credits` の3ページを作ります。アプリはこのURLをそのまま開くため、slugが違うとリンクが切れます。
+**公開先。** 当初は Bubble のページを使う予定でしたが、2026-09-01 に方針を変え、リポジトリ内の静的サイトを Vercel の無料枠で公開することにしました。ドメインも取り直します。パスは `/terms`、`/privacy`、`/credits` のままで、アプリはこの形で決め打ちで開きます。作業は Notion USL-295、手順は [usl-295-handoff.md](usl-295-handoff.md) にあります。
 
 **サンプルデータの扱い。** 会社所在地、施行日、素材の出典欄はサンプルです。旧PDFにあった住所と電話番号は、公開リポジトリの検索可能なテキストとして置き直すことを避け、プレースホルダにしました。問い合わせ先は個人宛ではなく `support@usalingo.jp` という役割アドレスにし、`AppInfo.supportEmail` の1か所で変えられるようにしています。
 
