@@ -1,4 +1,5 @@
 import SwiftUI
+import WebKit
 
 struct ProfileDashboardView: View {
     @EnvironmentObject private var appState: AppState
@@ -199,13 +200,16 @@ private struct LegalInformationView: View {
                     } else {
                         section("公開済みの文書") {
                             ForEach(documents) { document in
-                                Link(destination: document.url) {
+                                NavigationLink {
+                                    LegalDocumentDetailView(document: document)
+                                } label: {
                                     LegalTextRow(
                                         title: document.title,
                                         detail: "\(document.version) ・施行日 \(document.effectiveDate)"
                                     )
                                 }
-                                .accessibilityHint("Safariで正式文書を開きます。リンクを開けない場合は、もう一度接続を確認してください。")
+                                .buttonStyle(.plain)
+                                .accessibilityHint("正式文書をアプリ内で開きます。")
                             }
                         }
                     }
@@ -246,15 +250,88 @@ private struct LegalInformationView: View {
     @ViewBuilder
     private func legalRow(_ kind: LegalDocument.Kind) -> some View {
         if let document = documents.first(where: { $0.kind == kind }) {
-            Link(destination: document.url) {
+            NavigationLink {
+                LegalDocumentDetailView(document: document)
+            } label: {
                 LegalTextRow(
                     title: document.title,
                     detail: "\(document.version) ・施行日 \(document.effectiveDate)"
                 )
             }
-            .accessibilityHint("Safariで正式文書を開きます。リンクを開けない場合は、もう一度接続を確認してください。")
+            .buttonStyle(.plain)
+            .accessibilityHint("正式文書をアプリ内で開きます。")
         } else {
             LegalTextRow(title: kind.title, detail: "正式版は公開準備中です。")
+        }
+    }
+}
+
+/// 法務文書をアプリ内で表示する画面。外部Safariへは出ない。
+private struct LegalDocumentDetailView: View {
+    let document: LegalDocument
+    @State private var isLoading = true
+    @State private var loadFailed = false
+
+    var body: some View {
+        ZStack {
+            LegalWebView(url: document.url, isLoading: $isLoading, didFail: $loadFailed)
+                .opacity(loadFailed ? 0 : 1)
+
+            if isLoading {
+                ProgressView()
+            }
+
+            if loadFailed {
+                ContentUnavailableView(
+                    "文書を読み込めませんでした",
+                    systemImage: "wifi.slash",
+                    description: Text("通信状態を確認して、もう一度開いてください。")
+                )
+            }
+        }
+        .navigationTitle(document.title)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
+/// WKWebView を SwiftUI から使うための薄いラッパー。
+private struct LegalWebView: UIViewRepresentable {
+    let url: URL
+    @Binding var isLoading: Bool
+    @Binding var didFail: Bool
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    func makeUIView(context: Context) -> WKWebView {
+        let webView = WKWebView()
+        webView.navigationDelegate = context.coordinator
+        webView.load(URLRequest(url: url))
+        return webView
+    }
+
+    func updateUIView(_ uiView: WKWebView, context: Context) {}
+
+    final class Coordinator: NSObject, WKNavigationDelegate {
+        private let parent: LegalWebView
+
+        init(_ parent: LegalWebView) {
+            self.parent = parent
+        }
+
+        func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            parent.isLoading = false
+        }
+
+        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+            parent.isLoading = false
+            parent.didFail = true
+        }
+
+        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+            parent.isLoading = false
+            parent.didFail = true
         }
     }
 }
