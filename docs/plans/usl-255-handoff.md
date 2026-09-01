@@ -79,7 +79,7 @@ USL-278 で「v0.1 は**現在の同梱教材で先に配る**」と決めた
 
 | # | 作業 | 状態 |
 |---|---|---|
-| 1 | Bubble に `terms` / `privacy` / `credits` の3ページを作って公開する | **未作成**。アプリはこのURLを開くので、いまタップするとページが見つからない |
+| 1 | Bubble に `terms` / `privacy` / `credits` の3ページを作って公開する | **未作成**。アプリはこのURLを開くので、いまタップするとページが見つからない。Notion [USL-295](https://app.notion.com/3cec3d1f59e881f79968ffa0459b7350) として登録した（owner: human） |
 | 2 | 実機で VoiceOver・Dynamic Type・リンク遷移を確認する | 未実施（USL-285 と同じやり方でできる） |
 | 3 | 法的な適否の専門家確認 | 未実施 |
 
@@ -97,7 +97,7 @@ USL-278 で「v0.1 は**現在の同梱教材で先に配る**」と決めた
 ```text
 ✅ 事業者情報・出典・施行日を確定（人間）
 ✅ 3文書へ反映（AI）
-→ Bubble に3ページを公開（人間）※ slug は terms / privacy / credits
+→ Bubble に3ページを公開（人間・USL-295）※ slug は terms / privacy / credits
 → 実機でリンク遷移・VoiceOver・Dynamic Type を確認（人間）
 → USL-255 を done に（AI）
 → USL-287 TestFlight 提出へ（ここで対象年齢が決まる）
@@ -124,7 +124,7 @@ USL-255（実装｜法務・ライセンス・クレジットをアプリ内で�
 
 やってほしいこと。
 
-1. Bubble の3ページ（slug: `terms` / `privacy` / `credits`）が公開されたか確認する。
+1. Bubble の3ページ（slug: `terms` / `privacy` / `credits`、Notion USL-295）が公開されたか確認する。
    まだなら、作り方を小学生でもわかる比喩で端的に説明する。
 2. 公開されたら、実機でプロフィール →「法務・ライセンス」から4行すべてをタップし、
    ページが開くこと、版と施行日が出ること、問い合わせでメールが起動することを確認してもらう。
