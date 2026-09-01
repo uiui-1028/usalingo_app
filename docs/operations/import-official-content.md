@@ -67,7 +67,8 @@ python3 scripts/prepare-official-content.py render-sql \
 SQLは最初に、既存行が予約ID帯（word 1001〜1050、example 3001〜3050など）、
 Anki GUID、原本位置、英単語を別内容で使っていないか
 調べます。衝突時はトランザクション全体を停止します。画像と音声はUSL-288で変換・配置する
-予定パスを保存し、配置確認前なので状態を `unverified` にします。
+予定パスを保存し、配置確認前なので状態を `unverified` にします。変換、Storage登録、匿名での
+読戻し、状態更新は [`deliver-official-media.md`](deliver-official-media.md) に続きます。
 
 ## 4. ローカルSupabaseへ2回入れる
 
