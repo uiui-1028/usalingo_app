@@ -72,6 +72,7 @@
 		B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* AuthConfirmationTests.swift */; };
 		B10000000000000000000006 /* AccountDeletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000007 /* AccountDeletionTests.swift */; };
 		B10000000000000000000007 /* AppInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000008 /* AppInfoTests.swift */; };
+		B1000000000000000000002A /* LegalDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* LegalDocumentTests.swift */; };
 		B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000009 /* LocalStudyDataSourceTests.swift */; };
 		B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */; };
 /* End PBXBuildFile section */
@@ -156,6 +157,7 @@
 		B20000000000000000000006 /* AuthConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfirmationTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000007 /* AccountDeletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDeletionTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000008 /* AppInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfoTests.swift; sourceTree = "<group>"; };
+		B2000000000000000000002A /* LegalDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000009 /* LocalStudyDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStudyDataSourceTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestStudyBackupServiceTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -273,6 +275,7 @@
 				B20000000000000000000006 /* AuthConfirmationTests.swift */,
 				B20000000000000000000007 /* AccountDeletionTests.swift */,
 				B20000000000000000000008 /* AppInfoTests.swift */,
+				B2000000000000000000002A /* LegalDocumentTests.swift */,
 				B20000000000000000000009 /* LocalStudyDataSourceTests.swift */,
 				B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */,
 			);
@@ -441,6 +444,7 @@
 				B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */,
 				B10000000000000000000006 /* AccountDeletionTests.swift in Sources */,
 				B10000000000000000000007 /* AppInfoTests.swift in Sources */,
+				B1000000000000000000002A /* LegalDocumentTests.swift in Sources */,
 				B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */,
 				B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */,
 			);
