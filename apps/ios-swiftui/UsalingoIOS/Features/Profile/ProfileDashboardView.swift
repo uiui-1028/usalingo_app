@@ -63,16 +63,6 @@ struct ProfileDashboardView: View {
                         )
                 }
 
-                Button {
-                    appState.showSwipeTutorial()
-                } label: {
-                    Label("操作ガイドをもう一度見る", systemImage: "hand.draw")
-                }
-                .buttonStyle(.wireSecondary)
-
-                Text(AppInfo.versionLabel())
-                    .wireFont(.caption)
-                    .padding(.top, WireMetrics.spacingS)
             }
             .padding(WireMetrics.screenPadding)
         }

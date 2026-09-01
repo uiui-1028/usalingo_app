@@ -66,8 +66,7 @@ struct StudySessionView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             saveFailureBanner
-            answerControls
-            toolbar
+            actionBar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(WireColor.background)
@@ -172,10 +171,51 @@ struct StudySessionView: View {
                 }
         }
         .padding(.horizontal, 18)
+        .contentShape(Rectangle())
+        .gesture(
+            DragGesture()
+                .onEnded { value in
+                    let threshold: CGFloat = 60
+                    if value.translation.width > threshold {
+                        dismiss()
+                    }
+                }
+        )
+    }
+
+    @ViewBuilder
+    private var actionBar: some View {
+        if !isLoading, index < cards.count {
+            HStack(spacing: WireMetrics.spacingS) {
+                Button {
+                    submitAnswer(isCorrect: false)
+                } label: {
+                    Image(systemName: "xmark")
+                }
+                .buttonStyle(.wireIcon(diameter: 52))
+                .disabled(answerAttempt.isSaving || isUndoingAnswer)
+                .accessibilityLabel("不正解")
+
+                toolbar
+                    .frame(maxWidth: .infinity)
+
+                Button {
+                    submitAnswer(isCorrect: true)
+                } label: {
+                    Image(systemName: "checkmark")
+                }
+                .buttonStyle(.wireIcon(diameter: 52, isSelected: true, invertsWhenSelected: true))
+                .disabled(answerAttempt.isSaving || isUndoingAnswer)
+                .accessibilityLabel("正解")
+            }
+            .padding(.horizontal, WireMetrics.screenPadding)
+            .padding(.top, WireMetrics.spacingXS)
+            .padding(.bottom, WireMetrics.screenPadding)
+        }
     }
 
     private var toolbar: some View {
-        HStack(spacing: WireMetrics.spacingL) {
+        HStack(spacing: WireMetrics.spacingS) {
             toolbarButton("tag", label: "タグ", action: tagCurrentCard)
             toolbarButton(
                 audioPlaybackService.isPlaying ? "speaker.slash" : "speaker.wave.2",
@@ -191,10 +231,9 @@ struct StudySessionView: View {
             )
             toolbarButton("square.and.pencil", label: "単語を編集", action: editCurrentCard)
         }
-        .padding(.horizontal, WireMetrics.spacingXL)
-        .padding(.vertical, WireMetrics.spacingL)
+        .padding(.horizontal, WireMetrics.spacingM)
+        .padding(.vertical, WireMetrics.spacingM)
         .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
-        .padding(WireMetrics.screenPadding)
     }
 
     @ViewBuilder
@@ -220,31 +259,6 @@ struct StudySessionView: View {
         }
     }
 
-    @ViewBuilder
-    private var answerControls: some View {
-        if !isLoading, index < cards.count {
-            HStack(spacing: WireMetrics.spacingM) {
-                Button {
-                    submitAnswer(isCorrect: false)
-                } label: {
-                    Label("不正解", systemImage: "xmark")
-                }
-                .buttonStyle(.wireSecondary)
-                .disabled(answerAttempt.isSaving || isUndoingAnswer)
-
-                Button {
-                    submitAnswer(isCorrect: true)
-                } label: {
-                    Label("正解", systemImage: "checkmark")
-                }
-                .buttonStyle(.wirePrimary)
-                .disabled(answerAttempt.isSaving || isUndoingAnswer)
-            }
-            .padding(.horizontal, WireMetrics.screenPadding)
-            .padding(.top, WireMetrics.spacingXS)
-        }
-    }
-
     private func toolbarButton(
         _ symbol: String,
         label: String,
@@ -254,7 +268,7 @@ struct StudySessionView: View {
         Button(action: action) {
             Image(systemName: symbol)
         }
-        .buttonStyle(.wireIcon(diameter: 48))
+        .buttonStyle(.wireIcon(diameter: 40))
         .disabled(isDisabled)
         .accessibilityLabel(label)
     }
