@@ -13,6 +13,7 @@ struct StudySessionView: View {
     @State private var loadErrorMessage: String?
     @State private var saveErrorMessage: String?
     @State private var dragOffset = CGSize.zero
+    @State private var hasCrossedSwipeThreshold = false
     @State private var showAnswer = false
     @State private var answerAttempt = StudyAnswerAttempt()
     @State private var isUndoingAnswer = false
@@ -150,8 +151,15 @@ struct StudySessionView: View {
                     DragGesture()
                         .onChanged { value in
                             dragOffset = value.translation
+                            let threshold: CGFloat = 110
+                            let crossed = abs(value.translation.width) > threshold
+                            if crossed && !hasCrossedSwipeThreshold {
+                                HapticFeedbackService.swipeThresholdCrossed()
+                            }
+                            hasCrossedSwipeThreshold = crossed
                         }
                         .onEnded { value in
+                            hasCrossedSwipeThreshold = false
                             let threshold: CGFloat = 110
                             if value.translation.width > threshold {
                                 swipe(isCorrect: true)
@@ -165,6 +173,7 @@ struct StudySessionView: View {
                         }
                 )
                 .onTapGesture {
+                    HapticFeedbackService.tap()
                     withAnimation(.easeInOut(duration: 0.18)) {
                         showAnswer.toggle()
                     }
