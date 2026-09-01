@@ -2,8 +2,9 @@
 
 ここが公開文書の**正本**です。`docs/legal/source/` のPDFは2025-08-15の旧草案で、現行アプリに無い機能を前提にしています。今後はこちらのMarkdownを直し、公開先へ反映します。
 
-> [!WARNING]
-> **ここにある会社情報・日付・URLはサンプルデータです。** 実際の値ではありません。公開前に責任者が確定し、[`../asset-and-privacy-inventory.md`](../asset-and-privacy-inventory.md) の「公開前の確認リスト」7項目をそろえてください。法的な適否は専門家が判断します。
+> [!IMPORTANT]
+> **事業者情報は 2026-09-01 に確定しました。** 事業者は個人の「河合 泰芽」、所在地は〒446-0042 愛知県安城市大山町2-15-18、窓口は `support@usalingo.jp`、版は第1.0版、施行日は2026年9月1日です。
+> **未了は次の3つです。** ①下の表のBubble 3ページが未作成（URLは予定値）、②プライバシーポリシー第7条の対象年齢と第9条の保存期間が確定待ち、③法的な適否について専門家の確認は未実施。[`../asset-and-privacy-inventory.md`](../asset-and-privacy-inventory.md) の「公開前の確認リスト」7項目もあわせて確認してください。
 
 ## 公開先
 
@@ -15,7 +16,8 @@ Bubble の公開ページを使います。
 | [プライバシーポリシー](privacy-policy.md) | `https://imagicraft-power.bubbleapps.io/version-test/privacy` | プライバシー |
 | [クレジット](credits.md) | `https://imagicraft-power.bubbleapps.io/version-test/credits` | クレジット |
 
-**Bubble側でこの3つのページを作る必要があります。** ページ名（slug）を `terms`、`privacy`、`credits` にしてください。アプリはこのURLをそのまま開きます。
+> [!WARNING]
+> **この3ページはまだ存在しません。** アプリはこのURLをそのまま開くため、いまタップするとページが見つかりません。Bubble側で slug を `terms`、`privacy`、`credits` にしたページを作り、上のMarkdownの内容を貼り付けてください。TestFlightで配る前に必要です。
 
 「ライセンス」だけは外部URLではなく、アプリ内の画面です。依存パッケージの一覧を生成物として同梱しているためで、公開ページには置きません。
 
@@ -47,7 +49,7 @@ App Store Connect はプライバシーポリシーの**URL**を求めるため�
 ## 直したら何をするか
 
 1. このMarkdownを直す
-2. 版と施行日を上げる
+2. 版と施行日を上げる（現在: 第1.0版 ／ 2026年9月1日）
 3. Bubble の該当ページへ反映する
 4. `apps/ios-swiftui/UsalingoIOS/Features/Profile/ProfileDashboardView.swift` の `LegalDocument.publishedDocuments` の版・施行日を合わせる
 
