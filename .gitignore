@@ -29,3 +29,9 @@ DerivedData/
 # LicensePlist の中間出力。アプリが読むのは
 # apps/ios-swiftui/UsalingoIOS/Resources/Licenses/Acknowledgements.md だけです。
 apps/ios-swiftui/.licenseplist-output/
+
+# apps/legal-web/ の生成物。正本は docs/legal/published/*.md で、
+# HTML は Vercel 側の build で作る生成物のため commit しません。
+apps/legal-web/node_modules/
+apps/legal-web/public/
+apps/legal-web/.vercel/
