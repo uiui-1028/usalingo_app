@@ -4,20 +4,19 @@
 
 > [!IMPORTANT]
 > **事業者情報は 2026-09-01 に確定しました。** 事業者は個人の「河合 泰芽」、所在地は〒446-0042 愛知県安城市大山町2-15-18、窓口は `support@usalingo.jp`、版は第1.0版、施行日は2026年9月1日です。
-> **未了は次の3つです。** ①公開サイトが未作成（下の表を見る）、②プライバシーポリシー第7条の対象年齢と第9条の保存期間が確定待ち、③法的な適否について専門家の確認は未実施。[`../asset-and-privacy-inventory.md`](../asset-and-privacy-inventory.md) の「公開前の確認リスト」7項目もあわせて確認してください。
+> **未了は次の2つです。** ①プライバシーポリシー第7条の対象年齢と第9条の保存期間が確定待ち、②法的な適否について専門家の確認は未実施。[`../asset-and-privacy-inventory.md`](../asset-and-privacy-inventory.md) の「公開前の確認リスト」7項目もあわせて確認してください。
 
 ## 公開先
 
-**2026-09-01 に方針を変えました。Bubble は使いません。** このリポジトリ内に静的サイトを作り、Vercel の無料枠で公開します。ドメインも取り直します。3ページとも文章を出すだけで、Bubble の機能を必要としないためです。作業は Notion [USL-295](https://app.notion.com/3cec3d1f59e881f79968ffa0459b7350)、手順は [`../../plans/usl-295-handoff.md`](../../plans/usl-295-handoff.md) にあります。
+**2026-09-01 に方針を変えました。Bubble は使いません。** このリポジトリ内（`apps/legal-web/`）に静的サイトを作り、Vercel の無料枠（`https://usalingo-app.vercel.app`）で公開しています。3ページとも文章を出すだけで、Bubble の機能を必要としないためです。作業は Notion [USL-295](https://app.notion.com/3cec3d1f59e881f79968ffa0459b7350)、手順は [`../../plans/usl-295-handoff.md`](../../plans/usl-295-handoff.md) にあります。
 
-| 文書 | 公開後のパス | アプリ内の表示行 |
+| 文書 | 公開先 | アプリ内の表示行 |
 |---|---|---|
-| [利用規約](terms-of-service.md) | `<公開URL>/terms` | 利用規約 |
-| [プライバシーポリシー](privacy-policy.md) | `<公開URL>/privacy` | プライバシー |
-| [クレジット](credits.md) | `<公開URL>/credits` | クレジット |
+| [利用規約](terms-of-service.md) | <https://usalingo-app.vercel.app/terms> | 利用規約 |
+| [プライバシーポリシー](privacy-policy.md) | <https://usalingo-app.vercel.app/privacy> | プライバシー |
+| [クレジット](credits.md) | <https://usalingo-app.vercel.app/credits> | クレジット |
 
-> [!WARNING]
-> **サイトはまだ存在しません。** アプリの `LegalDocument.publishedBaseURL` は Bubble の旧URL（`https://imagicraft-power.bubbleapps.io/version-test`）のままなので、いまタップしてもページは開きません。Vercel で deploy して公開URLが決まったら、この表とアプリ側の定数の両方を直します。TestFlightで配る前に必要です。
+サイトは 2026-09-01 に公開済みです。アプリの `LegalDocument.publishedBaseURL` も同じURLに更新済みで、タップすると各ページが開きます。
 
 パスの `terms`、`privacy`、`credits` は変えられません。アプリがこの形で決め打ちで開きます。
 

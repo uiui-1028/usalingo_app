@@ -292,7 +292,7 @@ private struct LegalDocument: Identifiable {
         published(.credits, path: "credits")
     ].compactMap { $0 }
 
-    private static let publishedBaseURL = "https://imagicraft-power.bubbleapps.io/version-test"
+    private static let publishedBaseURL = "https://usalingo-app.vercel.app"
     private static let publishedVersion = "第1.0版"
     private static let publishedEffectiveDate = "2026年9月1日"
 
