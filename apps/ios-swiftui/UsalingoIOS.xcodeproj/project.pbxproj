@@ -40,6 +40,12 @@
 		A10000000000000000000016 /* ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ProfileDashboardView.swift */; };
 		A10000000000000000000017 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SessionStore.swift */; };
 		A10000000000000000000018 /* WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* WordListView.swift */; };
+		A100000000000000000070 /* WordListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000070 /* WordListViewModel.swift */; };
+		A100000000000000000071 /* WordListFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000071 /* WordListFilters.swift */; };
+		A100000000000000000072 /* WordListFilterBars.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000072 /* WordListFilterBars.swift */; };
+		A100000000000000000073 /* WordListRowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000073 /* WordListRowViews.swift */; };
+		A100000000000000000074 /* WordListErrorBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000074 /* WordListErrorBox.swift */; };
+		A100000000000000000075 /* WordDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000075 /* WordDetailSheet.swift */; };
 		A10000000000000000000019 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AudioPlaybackService.swift */; };
 		A1000000000000000000003E /* HapticFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003E /* HapticFeedbackService.swift */; };
 		A1000000000000000000001A /* WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* WordEditSheet.swift */; };
@@ -60,6 +66,8 @@
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
 		B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000B /* UserFacingErrorTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
+		B100000000000000000012 /* WordListFiltersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000000000000000012 /* WordListFiltersTests.swift */; };
+		B100000000000000000013 /* WordListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000000000000000013 /* WordListViewModelTests.swift */; };
 		B10000000000000000000004 /* AuthTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* AuthTransportTests.swift */; };
 		B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* AuthConfirmationTests.swift */; };
 		B10000000000000000000006 /* AccountDeletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000007 /* AccountDeletionTests.swift */; };
@@ -115,6 +123,12 @@
 		A20000000000000000000016 /* ProfileDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileDashboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SessionStore.swift; sourceTree = "<group>"; };
 		A20000000000000000000018 /* WordListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListView.swift; sourceTree = "<group>"; };
+		A200000000000000000070 /* WordListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListViewModel.swift; sourceTree = "<group>"; };
+		A200000000000000000071 /* WordListFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilters.swift; sourceTree = "<group>"; };
+		A200000000000000000072 /* WordListFilterBars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilterBars.swift; sourceTree = "<group>"; };
+		A200000000000000000073 /* WordListRowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListRowViews.swift; sourceTree = "<group>"; };
+		A200000000000000000074 /* WordListErrorBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListErrorBox.swift; sourceTree = "<group>"; };
+		A200000000000000000075 /* WordDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordDetailSheet.swift; sourceTree = "<group>"; };
 		A20000000000000000000019 /* AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AudioPlaybackService.swift; sourceTree = "<group>"; };
 		A2000000000000000000003E /* HapticFeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HapticFeedbackService.swift; sourceTree = "<group>"; };
 		A2000000000000000000001A /* WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
@@ -136,6 +150,8 @@
 		B2000000000000000000000B /* UserFacingErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingErrorTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
+		B200000000000000000012 /* WordListFiltersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListFiltersTests.swift; sourceTree = "<group>"; };
+		B200000000000000000013 /* WordListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListViewModelTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000005 /* AuthTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTransportTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000006 /* AuthConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfirmationTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000007 /* AccountDeletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDeletionTests.swift; sourceTree = "<group>"; };
@@ -219,6 +235,12 @@
 				A20000000000000000000015 /* DesignDashboardView.swift */,
 				A20000000000000000000016 /* ProfileDashboardView.swift */,
 				A20000000000000000000018 /* WordListView.swift */,
+				A200000000000000000070 /* WordListViewModel.swift */,
+				A200000000000000000071 /* WordListFilters.swift */,
+				A200000000000000000072 /* WordListFilterBars.swift */,
+				A200000000000000000073 /* WordListRowViews.swift */,
+				A200000000000000000074 /* WordListErrorBox.swift */,
+				A200000000000000000075 /* WordDetailSheet.swift */,
 				A2000000000000000000001A /* WordEditSheet.swift */,
 				A2000000000000000000001B /* TagSheet.swift */,
 				A2000000000000000000001F /* SwipeTutorialView.swift */,
@@ -245,6 +267,8 @@
 				B20000000000000000000001 /* LearningProgressTests.swift */,
 				B2000000000000000000000B /* UserFacingErrorTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
+				B200000000000000000012 /* WordListFiltersTests.swift */,
+				B200000000000000000013 /* WordListViewModelTests.swift */,
 				B20000000000000000000005 /* AuthTransportTests.swift */,
 				B20000000000000000000006 /* AuthConfirmationTests.swift */,
 				B20000000000000000000007 /* AccountDeletionTests.swift */,
@@ -387,6 +411,12 @@
 				A10000000000000000000016 /* ProfileDashboardView.swift in Sources */,
 				A10000000000000000000017 /* SessionStore.swift in Sources */,
 				A10000000000000000000018 /* WordListView.swift in Sources */,
+				A100000000000000000070 /* WordListViewModel.swift in Sources */,
+				A100000000000000000071 /* WordListFilters.swift in Sources */,
+				A100000000000000000072 /* WordListFilterBars.swift in Sources */,
+				A100000000000000000073 /* WordListRowViews.swift in Sources */,
+				A100000000000000000074 /* WordListErrorBox.swift in Sources */,
+				A100000000000000000075 /* WordDetailSheet.swift in Sources */,
 				A10000000000000000000019 /* AudioPlaybackService.swift in Sources */,
 				A1000000000000000000003E /* HapticFeedbackService.swift in Sources */,
 				A1000000000000000000001A /* WordEditSheet.swift in Sources */,
@@ -405,6 +435,8 @@
 				B10000000000000000000001 /* LearningProgressTests.swift in Sources */,
 				B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
+				B100000000000000000012 /* WordListFiltersTests.swift in Sources */,
+				B100000000000000000013 /* WordListViewModelTests.swift in Sources */,
 				B10000000000000000000004 /* AuthTransportTests.swift in Sources */,
 				B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */,
 				B10000000000000000000006 /* AccountDeletionTests.swift in Sources */,
