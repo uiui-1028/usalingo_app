@@ -53,6 +53,10 @@ EXAMPLE_BASE = 3_000
 PRONUNCIATION_BASE = 4_000
 EXAMPLE_AUDIO_BASE = 5_000
 DECK_DB_ID = 286
+# デッキの説明とライセンスは配信先の利用者に見える値なので、検証用の文言を残さない。
+# 権利の確認結果は docs/decisions/usl-284-material-rights.md にある。
+DECK_DESCRIPTION = "TARGET-1900 source positions 1-50. Words, meanings, examples, images and audio created by the rights holder using generative AI."
+DECK_LICENSE = "proprietary-rights-holder"
 
 
 class TextExtractor(HTMLParser):
@@ -690,8 +694,8 @@ $$;
 
 insert into public.decks (id, deck_name, description, source_list_name, license)
 values ({DECK_DB_ID}, {sql_text(DECK_NAME)},
-  'First 50 TARGET-1900 source positions; local verification batch',
-  {sql_text(DECK_CODE)}, 'rights-review-pending')
+  {sql_text(DECK_DESCRIPTION)},
+  {sql_text(DECK_CODE)}, {sql_text(DECK_LICENSE)})
 on conflict (id) do update set
   deck_name = excluded.deck_name, description = excluded.description,
   source_list_name = excluded.source_list_name, license = excluded.license,
