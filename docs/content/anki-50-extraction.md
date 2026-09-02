@@ -3,6 +3,12 @@
 調査日: 2026-08-31
 対象: USL-280
 
+> [!IMPORTANT]
+> 2026-09-02以降、50語の**正本は [`target-1900-0001-0050.json`](target-1900-0001-0050.json)** です。
+> Ankiは「最初にどこから取り出したか」の記録として残しますが、以後の投入・検証はリポジトリ内の
+> JSONを読みます。Ankiの原本は変更しません。経緯は
+> [`../decisions/usl-286-repo-owned-content.md`](../decisions/usl-286-repo-owned-content.md) にあります。
+
 ## 結論
 
 最初の50語は、Ankiの画像付きTARGET-1900デッキの `00｜Number` が `0001`〜`0050` のノートを選びます。復習状況で変わるCardの `due` 順や画面表示順は使いません。
