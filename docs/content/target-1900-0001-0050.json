@@ -1,0 +1,3432 @@
+{
+  "schema_version": 1,
+  "source": {
+    "kind": "anki",
+    "deck_id": 1748673634399,
+    "deck_name": "【 ENGLISH 】\u001f単語｜TARGET-1900\u001f🔴｜01｜画像\u001fWords｜01｜800\u001f●｜0001-0100",
+    "notetype_id": 1751695639914,
+    "notetype_name": "Note｜🔴｜Word & Voice & Image｜Material（dark）",
+    "collection_sha256": "b5749b0b110d5f378a2a3da3bd926d1f7b4259fd09fd53a788875b528a23f3ad"
+  },
+  "batch": {
+    "deck_code": "target-1900-image",
+    "positions": [
+      1,
+      50
+    ],
+    "expected_words": 50
+  },
+  "entries": [
+    {
+      "source": {
+        "note_guid": "n[1<SPm:tH",
+        "deck_code": "target-1900-image",
+        "position": 1,
+        "index": "0001（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "make :: 作る :: 最も一般的で「無から有を生み出す」広い意味で使われる /&/ produce :: 生産する :: 工業的または農作物を「作り出す」結果に重点がある /&/ generate :: 生み出す :: 電気・利益・アイディアなどを「発生させる」際に使う"
+      },
+      "word": {
+        "id": 1001,
+        "word_text": "create"
+      },
+      "senses": [
+        {
+          "id": 2011,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "作り出す、創造する",
+          "etymology": "作るの意味の「creare」が語源で、「create」は\"創造する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3001,
+        "meaning_id": 2011,
+        "concept_code": "simple",
+        "sentence_en": "He wants to create a new app.",
+        "sentence_jp": "彼は新しいアプリを作りたい。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0001｜create.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3001.webp",
+          "exists": true,
+          "size_bytes": 23860,
+          "sha256": "5d7b2822680aa86067f9302f355ff132eabe24bc2088bb32bbb7058751d8c643"
+        },
+        "audio": {
+          "source_file": "say-4c556c9d-4b214d87-875043d7-030b292b-0dc924ab.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3001.mp3",
+          "exists": true,
+          "size_bytes": 6792,
+          "sha256": "cebd84a217dd98f3c30f482b2299c5854f760d5087facf4f0f47f167d736438c"
+        }
+      },
+      "pronunciation": {
+        "id": 4001,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-1cb36bde-da34a55d-9eef5c1d-e61163df-5c7f1ff4.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4001.mp3",
+          "exists": true,
+          "size_bytes": 2821,
+          "sha256": "f5374b94f3ba30e7b20a4cd9e1d19a31e3fb7171bfd84114479bf71f74ac5a95"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "ejayI76e-1",
+        "deck_code": "target-1900-image",
+        "position": 2,
+        "index": "0002（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "raise :: 上げる :: 他動詞として「何かを高くする・増やす」意図的な動作 /&/ grow :: 成長させる :: 規模や数量が自然に、あるいは努力して「大きくなる」プロセスを含む /&/ expand :: 拡大する :: 範囲や規模が「外側に広がる」イメージ"
+      },
+      "word": {
+        "id": 1002,
+        "word_text": "increase"
+      },
+      "senses": [
+        {
+          "id": 2021,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "増加する",
+          "etymology": "中にの「in-」と\"育つ\"の「crescere」が結合して\"増加する\"という意味になった。"
+        },
+        {
+          "id": 2022,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "増加",
+          "etymology": "中にの「in-」と\"育つ\"の「crescere」が結合して\"増加する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3002,
+        "meaning_id": 2021,
+        "concept_code": "simple",
+        "sentence_en": "The company wants to increase sales.",
+        "sentence_jp": "その会社は売上を増やしたい。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0002｜increase.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3002.webp",
+          "exists": true,
+          "size_bytes": 45236,
+          "sha256": "41b9163bad41f63e12f28c632bc717ee6ba6e64fb3e211b6014e840cdb26c80b"
+        },
+        "audio": {
+          "source_file": "say-76e9476d-167a24bb-928828f1-cb088135-957489e7.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3002.mp3",
+          "exists": true,
+          "size_bytes": 8464,
+          "sha256": "4c3a12eaf0332a4716406f73094bca00f862b735e918aa943ad0c70ce224da84"
+        }
+      },
+      "pronunciation": {
+        "id": 4002,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-ee9de705-65bdba7a-63d683a7-87f56ca2-9f6588f0.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4002.mp3",
+          "exists": true,
+          "size_bytes": 3135,
+          "sha256": "2b6c2d32a21e94654ecd547c52b105d86aa6d6019201d6fc0a42805ce7ea74f7"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "Pv$L8l0@?0",
+        "deck_code": "target-1900-image",
+        "position": 3,
+        "index": "0003（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "enhance :: 高める :: 質や価値、能力などを「さらに良くする」ニュアンス /&/ boost :: 押し上げる :: 向上を「後押しする・加速させる」力強い響き /&/ refine :: 磨きをかける :: 微調整を繰り返して「洗練させる」ことに重点がある"
+      },
+      "word": {
+        "id": 1003,
+        "word_text": "improve"
+      },
+      "senses": [
+        {
+          "id": 2031,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "改善する、向上させる",
+          "etymology": "中への「in-」と\"良くする\"の「probare」が結合して\"改善する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3003,
+        "meaning_id": 2031,
+        "concept_code": "simple",
+        "sentence_en": "She tries to improve her writing skills.",
+        "sentence_jp": "彼女は文章力を向上させようとしている。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0003｜improve.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3003.webp",
+          "exists": true,
+          "size_bytes": 33372,
+          "sha256": "7cca2ef9a4043b59613ad36dd12ea1210873e5d1346223905f6a43d3e1881f64"
+        },
+        "audio": {
+          "source_file": "say-fc8a6628-3af04686-b773346b-14686c7d-c6666a8f.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3003.mp3",
+          "exists": true,
+          "size_bytes": 9404,
+          "sha256": "261654e74c363c43724e6cf1ee66292628ebadedb5e705bd45daa6e14d0f7fef"
+        }
+      },
+      "pronunciation": {
+        "id": 4003,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-be18dc86-459a07f6-ad70b39b-f063bea5-2482d2da.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4003.mp3",
+          "exists": true,
+          "size_bytes": 2508,
+          "sha256": "a34b3739654677338d674976e9031838370b38f46dcd499c2dc6f31fbc1437bb"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "LM+!nQhTuw",
+        "deck_code": "target-1900-image",
+        "position": 4,
+        "index": "0004（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "signify :: 意味する :: 記号や言葉が「〜の印である・表す」という少し硬い表現 /&/ indicate :: 指し示す :: 兆候やデータが「〜ということを示す」客観的なニュアンス /&/ denote :: 表示する :: 言葉が直接的に「〜を指す」という辞書的な意味"
+      },
+      "word": {
+        "id": 1004,
+        "word_text": "mean"
+      },
+      "senses": [
+        {
+          "id": 2041,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "意味する、意図する",
+          "etymology": "古英語「mænan（意図する）」が語源で、「mean」は\"意味する\"という意味になった。"
+        },
+        {
+          "id": 2042,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "意味",
+          "etymology": "古英語「mænan（意図する）」が語源で、「mean」は\"意味する\"という意味になった。"
+        },
+        {
+          "id": 2043,
+          "priority": 3,
+          "part_of_speech_en": "adjective",
+          "part_of_speech_jp": "形容詞",
+          "definition_jp": "意地悪な",
+          "etymology": "古英語「mænan（意図する）」が語源で、「mean」は\"意味する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3004,
+        "meaning_id": 2041,
+        "concept_code": "simple",
+        "sentence_en": "What does this word mean?",
+        "sentence_jp": "この単語はどういう意味ですか？",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0004｜mean.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3004.webp",
+          "exists": true,
+          "size_bytes": 31520,
+          "sha256": "f1606c527d35fb19f5ac1d2a6e3ac93db064c6eba2baad6325c8f94e4822c172"
+        },
+        "audio": {
+          "source_file": "say-32cfbcc7-c8b70f2c-50325919-cf7775d5-46208e1d.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3004.mp3",
+          "exists": true,
+          "size_bytes": 5747,
+          "sha256": "1eb49c020c124167675c26497c27a4b26337260048661c18f64ae0c3a2e3fe93"
+        }
+      },
+      "pronunciation": {
+        "id": 4004,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-f7f29ccf-b9057acf-c2fc6b8f-638cb379-76f15332.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4004.mp3",
+          "exists": true,
+          "size_bytes": 2090,
+          "sha256": "4f40871274233b7b623189063b1c888298cf4313cc07ad0603b259c1d88d4475"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "oRH{d1I5+#",
+        "deck_code": "target-1900-image",
+        "position": 5,
+        "index": "0005（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "possess :: 所有する :: 財産や能力を「持っている」というフォーマルな語 /&/ hold :: 保持する :: 権利や地位、あるいは物理的に「手に持っている」状態 /&/ maintain :: 維持管理する :: 状態を保ちながら「持ち続ける」ニュアンス"
+      },
+      "word": {
+        "id": 1005,
+        "word_text": "own"
+      },
+      "senses": [
+        {
+          "id": 2051,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "所有する",
+          "etymology": "古英語「āgen（自身の）」が語源で、「own」は\"所有する\"という意味になった。"
+        },
+        {
+          "id": 2052,
+          "priority": 2,
+          "part_of_speech_en": "adjective",
+          "part_of_speech_jp": "形容詞",
+          "definition_jp": "自分自身の",
+          "etymology": "古英語「āgen（自身の）」が語源で、「own」は\"所有する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3005,
+        "meaning_id": 2051,
+        "concept_code": "simple",
+        "sentence_en": "He owns a small business.",
+        "sentence_jp": "彼は小さな会社を所有している。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0005｜own.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3005.webp",
+          "exists": true,
+          "size_bytes": 33188,
+          "sha256": "6db173cb121969bf6d9e14f61c83d960cff481cdee427424a2518af19fe3eaaf"
+        },
+        "audio": {
+          "source_file": "say-954b89e6-75cf0fac-a1cabae9-3dbf1aff-da11e75e.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3005.mp3",
+          "exists": true,
+          "size_bytes": 6165,
+          "sha256": "c52511af17aae736ef69ae4b5e243951e8098a5f75bbe62012b2e23590103dca"
+        }
+      },
+      "pronunciation": {
+        "id": 4005,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-dce9d0f7-5b5f641d-c0538fd0-ca002fe5-57379d54.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4005.mp3",
+          "exists": true,
+          "size_bytes": 1776,
+          "sha256": "7d21fcbd9af489fa43ba9b3bb5c8714982c375022aee1f7c692e8cc4cd4324d0"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "e;@N:i[K1%",
+        "deck_code": "target-1900-image",
+        "position": 6,
+        "index": "0006（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "contain :: 含む :: 容器や範囲の中に「中身として入っている」状態 /&/ incorporate :: 組み込む :: 全体の一部として「取り入れる・合体させる」ニュアンス /&/ involve :: 伴う :: 必然的な結果や要素として「巻き込む・含む」"
+      },
+      "word": {
+        "id": 1006,
+        "word_text": "include"
+      },
+      "senses": [
+        {
+          "id": 2061,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "含む、含める",
+          "etymology": "中にの「in-」と\"閉じる\"の「claudere」が結合して\"含む\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3006,
+        "meaning_id": 2061,
+        "concept_code": "simple",
+        "sentence_en": "The price includes tax.",
+        "sentence_jp": "その価格には税金が含まれている。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0006｜include.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3006.webp",
+          "exists": true,
+          "size_bytes": 68398,
+          "sha256": "e8f7029b0ab062c8b71baf158dc5e5da2e4def9a0d20f963836c3574e349d937"
+        },
+        "audio": {
+          "source_file": "say-ea618bee-8c9125aa-e98c54d6-cff2f5ed-a5ba8521.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3006.mp3",
+          "exists": true,
+          "size_bytes": 6478,
+          "sha256": "54faeb112392ab695be33e8fe85be5398b6eec0950ce4bc6a10320928abe7169"
+        }
+      },
+      "pronunciation": {
+        "id": 4006,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-ead67be3-9695cf62-d8e82af6-789c71fa-d8c3bf01.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4006.mp3",
+          "exists": true,
+          "size_bytes": 2717,
+          "sha256": "ee25f8455c4f95c34cca73f43bf85c32eab8e32c6fd50885b5b6d36945728156"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "kue6zR.#U0",
+        "deck_code": "target-1900-image",
+        "position": 7,
+        "index": "0007（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "contemplate :: 熟考する :: 選択肢を慎重に、時間をかけて「じっくり考える」 /&/ ponder :: 沈思黙考する :: 結論を出すために「深く思いを巡らせる」 /&/ weigh :: 比較検討する :: メリットとデメリットを「天秤にかけて考える」"
+      },
+      "word": {
+        "id": 1007,
+        "word_text": "consider"
+      },
+      "senses": [
+        {
+          "id": 2071,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "よく考える、みなす",
+          "etymology": "共にの「con-」と\"星を観る\"の「sidus」が結合して\"よく考える\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3007,
+        "meaning_id": 2071,
+        "concept_code": "simple",
+        "sentence_en": "Please consider my proposal.",
+        "sentence_jp": "私の提案をよく考えてください。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0007｜consider.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3007.webp",
+          "exists": true,
+          "size_bytes": 99294,
+          "sha256": "85ba313169a2981ef3bd2021f318825575f46bce0c0ea7057f66f06cb7ebfbda"
+        },
+        "audio": {
+          "source_file": "say-d7fe9522-02be4b50-152bb47f-3992614f-413e757c.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3007.mp3",
+          "exists": true,
+          "size_bytes": 6792,
+          "sha256": "63c6011895acea1425069838b81968877bd591bafa8a77b0573c1052ce5bdb94"
+        }
+      },
+      "pronunciation": {
+        "id": 4007,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-636b8efd-91735a08-1b3db297-a6ed49fb-7fef925c.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4007.mp3",
+          "exists": true,
+          "size_bytes": 2508,
+          "sha256": "c9b86bc7a9c5badf4112e2a010bce01045e972a92eb48f2c5d31cbc2dad01a9d"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "eMa3z+Jr9s",
+        "deck_code": "target-1900-image",
+        "position": 8,
+        "index": "0008（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "permit :: 許可する :: 公的なルールや権限に基づいて「容認する」硬い語 /&/ let :: させる :: 相手の望み通りに「させてあげる」口語的な表現 /&/ authorize :: 認可する :: 正式な権限を与えて「法的に許可する」"
+      },
+      "word": {
+        "id": 1008,
+        "word_text": "allow"
+      },
+      "senses": [
+        {
+          "id": 2081,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "許可する",
+          "etymology": "〜への「ad-」と\"束縛を緩める\"の「laxare」が変化して\"許す\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3008,
+        "meaning_id": 2081,
+        "concept_code": "simple",
+        "sentence_en": "Smoking is not allowed here.",
+        "sentence_jp": "ここでは喫煙は許可されていません。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0008｜allow.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3008.webp",
+          "exists": true,
+          "size_bytes": 33470,
+          "sha256": "9f54dbfa2cb139f6f41236162e9f3df33d9b5ae0f649d15bb760141760468793"
+        },
+        "audio": {
+          "source_file": "say-74846f68-ac8c8dce-395512fd-f7ac229c-e9d15f6d.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3008.mp3",
+          "exists": true,
+          "size_bytes": 6583,
+          "sha256": "516745959c3c6ec2d3602c7246133abd40176169ca96c963b4b749d81bdb4b72"
+        }
+      },
+      "pronunciation": {
+        "id": 4008,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-0f4f9c4e-50fb707a-06c2578c-3669920a-1e255333.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4008.mp3",
+          "exists": true,
+          "size_bytes": 2299,
+          "sha256": "9117ca7cbda1b913b01700d9af1e1f8faa6946bc0259bf464066df618d865484"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "lq94d>8b[Y",
+        "deck_code": "target-1900-image",
+        "position": 9,
+        "index": "0009（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "propose :: 提案する :: 会議や計画などで「公式に提示する」少し硬い語 /&/ recommend :: 勧める :: 自分の経験から「良いと思うものを勧める」ニュアンス /&/ advise :: 助言する :: 専門家が知識に基づいて「アドバイスする」"
+      },
+      "word": {
+        "id": 1009,
+        "word_text": "suggest"
+      },
+      "senses": [
+        {
+          "id": 2091,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "提案する",
+          "etymology": "下への「sub-」と\"持ち上げる\"の「gerere」が結合して\"提案する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3009,
+        "meaning_id": 2091,
+        "concept_code": "simple",
+        "sentence_en": "Can you suggest a good restaurant?",
+        "sentence_jp": "良いレストランを提案してくれますか？",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0009｜suggest.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3009.webp",
+          "exists": true,
+          "size_bytes": 83616,
+          "sha256": "825532b87c3b6bb77d27a911ecbd3bcfb8ef6e0ab7a5864dad228b633d33090f"
+        },
+        "audio": {
+          "source_file": "say-8d17e0bc-bfc51c09-58cf2082-6d88b9b0-c7c645a0.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3009.mp3",
+          "exists": true,
+          "size_bytes": 7732,
+          "sha256": "f670159712b8a9364d3e62482ab55b031b516759fbae332b998c8118b2bbd215"
+        }
+      },
+      "pronunciation": {
+        "id": 4009,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-7864a3da-e7ca5068-f2abfaca-a22e3e81-a6140dc2.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4009.mp3",
+          "exists": true,
+          "size_bytes": 3239,
+          "sha256": "a4383fa462a298881db29ced3e66c38afb8eb951f49112917dfc76d62697f736"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "OD!9im=s*]",
+        "deck_code": "target-1900-image",
+        "position": 10,
+        "index": "0010（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "manufacture :: 製造する :: 工場で機械などを使って「大量生産する」 /&/ create :: 創造する :: 独創的なものを「新しく作り出す」芸術的な響き /&/ generate :: 発生させる :: エネルギーや経済的利益などを「生み出す」"
+      },
+      "word": {
+        "id": 1010,
+        "word_text": "produce"
+      },
+      "senses": [
+        {
+          "id": 2101,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "生産する、作り出す",
+          "etymology": "前への「pro-」と\"導く\"の「ducere」が結合して\"生み出す\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3010,
+        "meaning_id": 2101,
+        "concept_code": "simple",
+        "sentence_en": "This factory produces cars.",
+        "sentence_jp": "この工場は車を生産している。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0010｜produce.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3010.webp",
+          "exists": true,
+          "size_bytes": 115004,
+          "sha256": "309f0fa93e029a11b92393723638c0c0be8d94669a62a642804eec0d07075ff7"
+        },
+        "audio": {
+          "source_file": "say-d3560cab-37849542-43f70914-2f7d5b9c-2e54fd0d.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3010.mp3",
+          "exists": true,
+          "size_bytes": 7210,
+          "sha256": "aab7702075aa087ba2e75424c9566db732785a809bbd876d171951ec2f032acb"
+        }
+      },
+      "pronunciation": {
+        "id": 4010,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-4406abb3-23cff5b3-52451a38-25763890-823018a0.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4010.mp3",
+          "exists": true,
+          "size_bytes": 3239,
+          "sha256": "80268d6be82a60aca5bfa304b7d0a0a2cd935bb074463cdde8bec9572a8c1eab"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "e]P371H99G",
+        "deck_code": "target-1900-image",
+        "position": 11,
+        "index": "0011（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "determine :: 決定する :: 調査や事実に基づいて「結論を出す」強い決意 /&/ settle :: 解決して決める :: 議論や迷いに「決着をつける」ニュアンス /&/ resolve :: 決心する :: 困難を解決するために「固く決める」"
+      },
+      "word": {
+        "id": 1011,
+        "word_text": "decide"
+      },
+      "senses": [
+        {
+          "id": 2111,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "決定する",
+          "etymology": "離れての「de-」と\"切る\"の「caedere」が結合して\"決定する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3011,
+        "meaning_id": 2111,
+        "concept_code": "simple",
+        "sentence_en": "I can't decide what to eat.",
+        "sentence_jp": "何を食べるか決められない。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0011｜decide.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3011.webp",
+          "exists": true,
+          "size_bytes": 114344,
+          "sha256": "79c7fe0986e18dd2663b2d318a432e69cc58d672466eb24bba2016c86c89994e"
+        },
+        "audio": {
+          "source_file": "say-e968c958-bb100b09-441b2519-0437c7ca-52a1d8d4.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3011.mp3",
+          "exists": true,
+          "size_bytes": 6583,
+          "sha256": "8b1817b075cde58da5e48f0a7ebf6022b5ee4d0d8b773ebca1b62ddcb2d4f800"
+        }
+      },
+      "pronunciation": {
+        "id": 4011,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-593c8252-7d8473e3-02df19b0-6267e730-20d62784.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4011.mp3",
+          "exists": true,
+          "size_bytes": 2821,
+          "sha256": "218703e118b61f27b88b98701a14bd2b622dcf03b870ad85c4a84def18c5831b"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "H&xaN#a2a",
+        "deck_code": "target-1900-image",
+        "position": 12,
+        "index": "0012（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "provide :: 提供する :: 必要なものを準備して「与える」フォーマルな語 /&/ present :: 提示する :: チャンスや案を相手の前に「差し出す」ニュアンス /&/ extend :: 差し伸べる :: 援助や招待などを「（手を伸ばすように）提供する」"
+      },
+      "word": {
+        "id": 1012,
+        "word_text": "offer"
+      },
+      "senses": [
+        {
+          "id": 2121,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "提供する",
+          "etymology": "〜への「ob-」と\"運ぶ\"の「ferre」が結合して\"差し出す\"という意味になった。"
+        },
+        {
+          "id": 2122,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "申し出",
+          "etymology": "〜への「ob-」と\"運ぶ\"の「ferre」が結合して\"差し出す\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3012,
+        "meaning_id": 2121,
+        "concept_code": "simple",
+        "sentence_en": "He offered me a job.",
+        "sentence_jp": "彼は私に仕事を提供してくれた。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0012｜offer.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3012.webp",
+          "exists": true,
+          "size_bytes": 41908,
+          "sha256": "39b324f3cc4b35ef4d8e5d14c39d5222b950420c55dea55913f0fa148fb4701d"
+        },
+        "audio": {
+          "source_file": "say-07945e47-e9327bd0-cd2360d7-3f6baa33-b312f5d2.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3012.mp3",
+          "exists": true,
+          "size_bytes": 4493,
+          "sha256": "7d39e6884c47d402a844a6214f0b391c1600fccbf5e3b5191f1f59450ab519f1"
+        }
+      },
+      "pronunciation": {
+        "id": 4012,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-e089b794-7e776621-3f679375-b4cfa09d-f3539fa8.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4012.mp3",
+          "exists": true,
+          "size_bytes": 1985,
+          "sha256": "82c8fc821d2af45a987e9d7e7189a1e83d81640c9da45dec228fcbdd13cedabd"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "dZ90gB4}7O",
+        "deck_code": "target-1900-image",
+        "position": 13,
+        "index": "0013（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "need :: 必要とする :: 欠かせないものとして「必要だ」という一般的な語 /&/ demand :: 要求する :: 強い態度で、あるいは権利として「強く求める」 /&/ entail :: 伴う :: ある事柄が必然的に「（代償や作業を）必要とする」"
+      },
+      "word": {
+        "id": 1013,
+        "word_text": "require"
+      },
+      "senses": [
+        {
+          "id": 2131,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "必要とする、要求する",
+          "etymology": "再びの「re-」と\"探し求める\"の「quaerere」が結合して\"要求する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3013,
+        "meaning_id": 2131,
+        "concept_code": "simple",
+        "sentence_en": "This job requires experience.",
+        "sentence_jp": "この仕事には経験が必要だ。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0013｜require.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3013.webp",
+          "exists": true,
+          "size_bytes": 45614,
+          "sha256": "6f83da4012603b0c24a9944b70ee8c3b6e7a5673382671825ab7451740145c41"
+        },
+        "audio": {
+          "source_file": "say-bf28291d-b7324ade-82f6bb2a-3648693b-5a8b1366.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3013.mp3",
+          "exists": true,
+          "size_bytes": 8046,
+          "sha256": "25f2c51c38a5a71996ad2e4a6d5908afcc91afecf3f73e027fbb9319bab2c7a7"
+        }
+      },
+      "pronunciation": {
+        "id": 4013,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-405db688-4ceb694a-43d34191-e5539c37-f12d2335.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4013.mp3",
+          "exists": true,
+          "size_bytes": 2926,
+          "sha256": "ff94cc417a144b53ba80599357f41f7e713c8986e24ff0a6622375e3d750e09d"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "vPeXw,+Iz9",
+        "deck_code": "target-1900-image",
+        "position": 14,
+        "index": "0014（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "divide :: 分ける :: 全体をいくつかの部分に「分割する」物理的な動作 /&/ distribute :: 配分する :: 多くの人に「割り当てる・配る」ニュアンス /&/ participate in :: 参加する :: 責任や経験などを「共にする」という抽象的な意味"
+      },
+      "word": {
+        "id": 1014,
+        "word_text": "share"
+      },
+      "senses": [
+        {
+          "id": 2141,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "共有する",
+          "etymology": "古英語「scearu（分け前）」が語源で、「share」は\"分け合う\"という意味になった。"
+        },
+        {
+          "id": 2142,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "分け前",
+          "etymology": "古英語「scearu（分け前）」が語源で、「share」は\"分け合う\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3014,
+        "meaning_id": 2141,
+        "concept_code": "simple",
+        "sentence_en": "Let's share this cake.",
+        "sentence_jp": "このケーキを分け合おう。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0014｜share.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3014.webp",
+          "exists": true,
+          "size_bytes": 31066,
+          "sha256": "c7fdd9719f9fd6d9233ab064b6310436482f7da3f65e24cf22f16c754671d9cd"
+        },
+        "audio": {
+          "source_file": "say-cb67caf0-562dc540-ce5eb4aa-5e9b6bb8-9ebbe14f.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3014.mp3",
+          "exists": true,
+          "size_bytes": 5433,
+          "sha256": "f9c4a394d6652b59a2a20cffa22b062a43811330cae705549221538083b8417d"
+        }
+      },
+      "pronunciation": {
+        "id": 4014,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-726d55c9-1f0435ca-bae38e3d-15b90bc8-87950882.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4014.mp3",
+          "exists": true,
+          "size_bytes": 2194,
+          "sha256": "6b52786ee57f3acaaa8704ae52f57b5fc12480db46127b3d0db37a529e03641e"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "nyf*zufO}f",
+        "deck_code": "target-1900-image",
+        "position": 15,
+        "index": "0015（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "keep :: 取っておく :: 後で使うために「手元に残しておく」日常的な語 /&/ preserve :: 保存する :: 傷まないように、または元の状態で「保護しつつ蓄える」 /&/ stash :: 隠し持つ :: 安全な場所や秘密の場所に「こっそり貯める」"
+      },
+      "word": {
+        "id": 1015,
+        "word_text": "store"
+      },
+      "senses": [
+        {
+          "id": 2151,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "保管する",
+          "etymology": "ラテン語「instaurare（補充する）」が変化して、「store」は\"蓄える\"という意味になった。"
+        },
+        {
+          "id": 2152,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "店",
+          "etymology": "ラテン語「instaurare（補充する）」が変化して、「store」は\"蓄える\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3015,
+        "meaning_id": 2151,
+        "concept_code": "simple",
+        "sentence_en": "You can store files on the cloud.",
+        "sentence_jp": "クラウドにファイルを保存できる。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0015｜store.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3015.webp",
+          "exists": true,
+          "size_bytes": 24288,
+          "sha256": "d08f624037ef9bfd03a9e951c6d77810479236fbe4110e3f3df7a4369c4d09d5"
+        },
+        "audio": {
+          "source_file": "say-49ab3655-35fe117f-a23034ea-db19bfb5-c9b1614f.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3015.mp3",
+          "exists": true,
+          "size_bytes": 7419,
+          "sha256": "c421efa4dff5a6cc09f05a85ae9d9675473a413d9c6311e53e67aef350e2503f"
+        }
+      },
+      "pronunciation": {
+        "id": 4015,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-59669734-14ca703d-1be26706-06a0e3c0-f84f4640.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4015.mp3",
+          "exists": true,
+          "size_bytes": 2403,
+          "sha256": "4fe449fc34764885692e9803764cfde108545a083f84c803117e055a3153751e"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "yj+F6XLTxZ",
+        "deck_code": "target-1900-image",
+        "position": 16,
+        "index": "0016（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "be inclined :: 傾向がある :: 心理的に「〜したい気持ちに傾いている」 /&/ care for :: 世話をする :: 人や動物の「面倒を見る」という別の意味の類義語 /&/ look after :: 世話をする :: 日常的な動作として「〜の面倒を見る」"
+      },
+      "word": {
+        "id": 1016,
+        "word_text": "tend"
+      },
+      "senses": [
+        {
+          "id": 2161,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "傾向がある、世話をする",
+          "etymology": "伸ばすの意味のラテン語「tendere」が語源で、「tend」は\"傾向がある\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3016,
+        "meaning_id": 2161,
+        "concept_code": "simple",
+        "sentence_en": "She tends to be late.",
+        "sentence_jp": "彼女は遅れがちだ。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0016｜tend.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3016.webp",
+          "exists": true,
+          "size_bytes": 51030,
+          "sha256": "e308d9461758918b743d0c230ce0b63222b1906e2265cd2bfbd359b53a78ac80"
+        },
+        "audio": {
+          "source_file": "say-3d522d2e-6d3f5e90-fee93331-ced0055c-eb6d2f87.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3016.mp3",
+          "exists": true,
+          "size_bytes": 5642,
+          "sha256": "79b4bf83bb9c2fb49622d35548988fca63672a1ee3e463915ffb610d56cecb05"
+        }
+      },
+      "pronunciation": {
+        "id": 4016,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-9fd4d367-fddd810c-6b40a1d2-fe183dce-0e2b4be3.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4016.mp3",
+          "exists": true,
+          "size_bytes": 1985,
+          "sha256": "3b9d52e9f412edc75f0a6e0cba873cfe09b497a1b9bfcbaef9dcf953d86110bc"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "B6F2HBA&`Q",
+        "deck_code": "target-1900-image",
+        "position": 17,
+        "index": "0017（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "relate to :: 関連する :: 物事の間に「つながりがある」客観的な関係 /&/ worry :: 心配させる :: 特定の事柄について「不安にさせる」感情的な側面 /&/ affect :: 影響する :: 相手に直接的な「作用を及ぼす」"
+      },
+      "word": {
+        "id": 1017,
+        "word_text": "concern"
+      },
+      "senses": [
+        {
+          "id": 2171,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "関係する、心配させる",
+          "etymology": "共にの「con-」と\"ふれる\"の「cernere」が結合して\"関係する\"という意味になった。"
+        },
+        {
+          "id": 2172,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "関心、懸念",
+          "etymology": "共にの「con-」と\"ふれる\"の「cernere」が結合して\"関係する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3017,
+        "meaning_id": 2171,
+        "concept_code": "simple",
+        "sentence_en": "This issue concerns everyone.",
+        "sentence_jp": "この問題は全員に関係する。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0017｜concern.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3017.webp",
+          "exists": true,
+          "size_bytes": 213672,
+          "sha256": "2e8cbe6ab48dbd2f71a56b415bfd5820b707b88109cd9ad353923d3ba23f5977"
+        },
+        "audio": {
+          "source_file": "say-79b32efd-19f6abec-357bbfc8-6ccd0267-a3929f2c.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3017.mp3",
+          "exists": true,
+          "size_bytes": 7105,
+          "sha256": "0eddf7a6a13843fc710b6d18c0e2cf55b94d71ac47dc4e8b4199f3430d85cb61"
+        }
+      },
+      "pronunciation": {
+        "id": 4017,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-1436ce08-b322bfee-51b69143-e9d37055-5a82ec2a.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4017.mp3",
+          "exists": true,
+          "size_bytes": 3030,
+          "sha256": "05a0463dd338b65f2da5385b26f79eff14c816c28205302bfe083ae28aa9228d"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "p:&/3/1ve`",
+        "deck_code": "target-1900-image",
+        "position": 18,
+        "index": "0018（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "depict :: 描写する :: 絵や言葉で細部まで「ありありと描く」 /&/ explain :: 説明する :: 理由や仕組みをわかりやすく「説き明かす」 /&/ portray :: 表現する :: 役者が演じたり、特定の視点から「人物像を描く」"
+      },
+      "word": {
+        "id": 1018,
+        "word_text": "describe"
+      },
+      "senses": [
+        {
+          "id": 2181,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "説明する、描写する",
+          "etymology": "下にの「de-」と\"書く\"の「scribere」が結合して\"記述する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3018,
+        "meaning_id": 2181,
+        "concept_code": "simple",
+        "sentence_en": "Can you describe the scene?",
+        "sentence_jp": "その場面を説明してくれますか？",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0018｜describe.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3018.webp",
+          "exists": true,
+          "size_bytes": 87282,
+          "sha256": "e6109d92c434ad44fde9aaf1571c7da716aef134234b4d5668b80221b2f7e06e"
+        },
+        "audio": {
+          "source_file": "say-0c88a308-cfc235e3-34cfd8bc-27830b95-bdc642e3.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3018.mp3",
+          "exists": true,
+          "size_bytes": 5642,
+          "sha256": "497dc1e392f169c9fba087f591055223dc4d376498978ba8852bbf04907a0377"
+        }
+      },
+      "pronunciation": {
+        "id": 4018,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-eb6e125f-810822f6-cea1cc07-1f84230d-64dc32ac.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4018.mp3",
+          "exists": true,
+          "size_bytes": 3239,
+          "sha256": "81cb24237581bc511f5dac6b33a841e52b92162d53c7bdf48a6f1432c2ceae59"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "i;?}kQHRYH",
+        "deck_code": "target-1900-image",
+        "position": 19,
+        "index": "0019（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "include :: 含む :: 全体の一部として「構成要素に入っている」 /&/ engage :: 従事させる :: 人を活動や仕事に「引き込む・参加させる」 /&/ entail :: 必然的に伴う :: 結果としてある事態を「不可避的に含む」"
+      },
+      "word": {
+        "id": 1019,
+        "word_text": "involve"
+      },
+      "senses": [
+        {
+          "id": 2191,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "含む、関与させる",
+          "etymology": "中にの「in-」と\"巻き込む\"の「volvere」が結合して\"巻き込む\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3019,
+        "meaning_id": 2191,
+        "concept_code": "simple",
+        "sentence_en": "The project involves many people.",
+        "sentence_jp": "そのプロジェクトには多くの人が関わっている。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0019｜involve.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3019.webp",
+          "exists": true,
+          "size_bytes": 103876,
+          "sha256": "ba68ad7ab5eb3b531703a08dfeb4c1e6ef212d22f54391b961a77d175e82a796"
+        },
+        "audio": {
+          "source_file": "say-bf5e9e4e-cd7a6b8f-c46d63a6-b0b96920-18b309c9.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3019.mp3",
+          "exists": true,
+          "size_bytes": 7941,
+          "sha256": "f8d2e1eda9a25ee42846e50504c4fd30c61ceddd50ae1fb2b0c1372be04b037d"
+        }
+      },
+      "pronunciation": {
+        "id": 4019,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-96935a98-e0f31b2f-38dae77a-647a0aba-781e1bb8.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4019.mp3",
+          "exists": true,
+          "size_bytes": 2508,
+          "sha256": "0f07f552ff3dd98a9fe5f43ef3597f28748f48bee1d8c0df97570411a19dba72"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "kpmKh~u(u9",
+        "deck_code": "target-1900-image",
+        "position": 20,
+        "index": "0020（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "decrease :: 減少させる :: 数量や程度が「低くなる・少なくなる」 /&/ cut :: 削減する :: 予算や時間を「切り詰める」直接的な表現 /&/ diminish :: 衰退させる :: 価値や影響力が徐々に「小さくなる・薄れる」"
+      },
+      "word": {
+        "id": 1020,
+        "word_text": "reduce"
+      },
+      "senses": [
+        {
+          "id": 2201,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "減らす、縮小する",
+          "etymology": "後ろへの「re-」と\"導く\"の「ducere」が結合して\"減少させる\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3020,
+        "meaning_id": 2201,
+        "concept_code": "simple",
+        "sentence_en": "We need to reduce costs.",
+        "sentence_jp": "コストを削減する必要がある。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0020｜reduce.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3020.webp",
+          "exists": true,
+          "size_bytes": 71888,
+          "sha256": "73cfd364328d934e5c1499924c42dc47a0d9cf8228b6ed4bb68441f2486fb2fb"
+        },
+        "audio": {
+          "source_file": "say-478c77ae-d0a2e7a3-6c9100cd-83a09f5d-636769a2.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3020.mp3",
+          "exists": true,
+          "size_bytes": 6374,
+          "sha256": "d0276330d9f988c3e6f23c5e93f98096be9f5cc7d86d5ce1d82eeab0286fa2d9"
+        }
+      },
+      "pronunciation": {
+        "id": 4020,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-442a9445-3a0435ea-909960a4-eeb22f58-3d7ce9a0.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4020.mp3",
+          "exists": true,
+          "size_bytes": 3344,
+          "sha256": "31ede896cfa4cf079aa909e8e5c5a8b4974799bef4f0f12a5cd23697e9a5153d"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "n*c+@cp[no",
+        "deck_code": "target-1900-image",
+        "position": 21,
+        "index": "0021（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "plan :: 計画する :: 実行するための手順や詳細を「練る」 /&/ devise :: 考案する :: 目的達成のために工夫して「仕組みを編み出す」 /&/ draft :: 起案する :: 計画や図面の「下書きを作る」段階"
+      },
+      "word": {
+        "id": 1021,
+        "word_text": "design"
+      },
+      "senses": [
+        {
+          "id": 2211,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "設計する",
+          "etymology": "下にの「de-」と\"印をつける\"の「signare」が結合して\"設計する\"という意味になった。"
+        },
+        {
+          "id": 2212,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "デザイン",
+          "etymology": "下にの「de-」と\"印をつける\"の「signare」が結合して\"設計する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3021,
+        "meaning_id": 2211,
+        "concept_code": "simple",
+        "sentence_en": "She designed the new logo.",
+        "sentence_jp": "彼女は新しいロゴをデザインした。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0021｜design.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3021.webp",
+          "exists": true,
+          "size_bytes": 35868,
+          "sha256": "6b97b1cf74f889fe492adeda3b009298b8b48cf7dfba4a79a1fde6969080cbd5"
+        },
+        "audio": {
+          "source_file": "say-c38723f9-d7115761-bffa8740-33c8e27d-97a78238.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3021.mp3",
+          "exists": true,
+          "size_bytes": 6269,
+          "sha256": "d2245e91b62eca55486ca2cd45751dd95d3bbbd4e31c6f7c64a8c36cc09fa254"
+        }
+      },
+      "pronunciation": {
+        "id": 4021,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-26df98db-1c9b7ec9-df9c95dc-7fcddbcc-2b41dea5.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4021.mp3",
+          "exists": true,
+          "size_bytes": 3030,
+          "sha256": "a9e64fa139df71a9147fc303cf75054263b98009df40a4de5a9f36fd3fbb6e68"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "G)>m;O22x-",
+        "deck_code": "target-1900-image",
+        "position": 22,
+        "index": "0022（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "compel :: 強いる :: 状況や権力が相手に「行動を強制する」硬い語 /&/ oblige :: 義務づける :: 法律や社会的な義務で「〜せざるを得なくする」 /&/ coerce :: 威圧してさせる :: 脅しや力を使って「無理やり従わせる」"
+      },
+      "word": {
+        "id": 1022,
+        "word_text": "force"
+      },
+      "senses": [
+        {
+          "id": 2221,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "強制する",
+          "etymology": "ラテン語「fortis（強い）」が語源で、「force」は\"力\"という意味になった。"
+        },
+        {
+          "id": 2222,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "力",
+          "etymology": "ラテン語「fortis（強い）」が語源で、「force」は\"力\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3022,
+        "meaning_id": 2221,
+        "concept_code": "simple",
+        "sentence_en": "Don't force yourself to eat.",
+        "sentence_jp": "無理に食べなくていいよ。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0022｜force.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3022.webp",
+          "exists": true,
+          "size_bytes": 79608,
+          "sha256": "4e9f87f8f138f88e059297ddf61068e7ad3b2645d3b63d31e3a6e4a18bb638f8"
+        },
+        "audio": {
+          "source_file": "say-21a8f52b-d96ad614-d89b00fc-8d0b6e5c-e3c6c053.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3022.mp3",
+          "exists": true,
+          "size_bytes": 6896,
+          "sha256": "3bcfcf366633ca6f04040ec32eabadebc316543f758a939db4aabd33ee1721ef"
+        }
+      },
+      "pronunciation": {
+        "id": 4022,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-8d2ded4f-a9f91992-54735ee8-00ba845e-5c75056a.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4022.mp3",
+          "exists": true,
+          "size_bytes": 2508,
+          "sha256": "a3ca590f2c8e915b574e6f68f61348c675e9ec76946590605606fe2f6df07950"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "d9^w*Z.+?@",
+        "deck_code": "target-1900-image",
+        "position": 23,
+        "index": "0023（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "restrict :: 制限する :: 法律や規則で範囲を「縛る・限定する」 /&/ curb :: 抑制する :: 好ましくない増大を「抑え込む・食い止める」 /&/ confine :: 閉じ込める :: 活動範囲を一定の枠内に「閉じ込める」"
+      },
+      "word": {
+        "id": 1023,
+        "word_text": "limit"
+      },
+      "senses": [
+        {
+          "id": 2231,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "制限",
+          "etymology": "ラテン語「limes（境界）」が語源で、「limit」は\"制限する\"という意味になった。"
+        },
+        {
+          "id": 2232,
+          "priority": 2,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "制限する",
+          "etymology": "ラテン語「limes（境界）」が語源で、「limit」は\"制限する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3023,
+        "meaning_id": 2231,
+        "concept_code": "simple",
+        "sentence_en": "The speed limit is 50 km/h.",
+        "sentence_jp": "制限速度は時速50kmだ。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0023｜limit.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3023.webp",
+          "exists": true,
+          "size_bytes": 47844,
+          "sha256": "c04151935f146216a010abcc88aef98a64883d905f30134dc56c0dfd150e7142"
+        },
+        "audio": {
+          "source_file": "say-70f9b2b5-2a502a17-a5d35df1-28ee647f-23ee06b2.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3023.mp3",
+          "exists": true,
+          "size_bytes": 10449,
+          "sha256": "211d3dea06f0200a8a01de8ec3bc47e3f72e0e9efd879cf9a7a8bc92a3917c11"
+        }
+      },
+      "pronunciation": {
+        "id": 4023,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-f6f618de-a059be85-7a579bb3-8577b682-a240bc05.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4023.mp3",
+          "exists": true,
+          "size_bytes": 2194,
+          "sha256": "b96f145c189ffee471ca45583ff7c03440b9900c0aee1cd29835bc5d975dba2b"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "BD_]Lr={88",
+        "deck_code": "target-1900-image",
+        "position": 24,
+        "index": "0024（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "endure :: 持ちこたえる :: 苦痛や困難を「じっと耐え抜く」継続的な強さ /&/ stand :: 我慢する :: 否定文で「（嫌なことに）耐えられない」と使う口語表現 /&/ tolerate :: 許容する :: 嫌なことだが「大目に見て我慢する」"
+      },
+      "word": {
+        "id": 1024,
+        "word_text": "bear"
+      },
+      "senses": [
+        {
+          "id": 2241,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "耐える、負担する",
+          "etymology": "古英語「beran（運ぶ）」が語源で、「bear」は\"耐える\"や\"産む\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3024,
+        "meaning_id": 2241,
+        "concept_code": "simple",
+        "sentence_en": "I can't bear this pain.",
+        "sentence_jp": "この痛みに耐えられない。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0024｜bear.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3024.webp",
+          "exists": true,
+          "size_bytes": 64620,
+          "sha256": "9a2b9de9b716aad3b62bda5f25c3f07a58221fc1503661f6c78799883edac3bc"
+        },
+        "audio": {
+          "source_file": "say-56930834-9c6e078b-4e3080fe-2eee296b-f6253d19.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3024.mp3",
+          "exists": true,
+          "size_bytes": 5433,
+          "sha256": "839866d02d8b6e83e798ccb3fa4dcc33997c9814b112160e80562b3c34031819"
+        }
+      },
+      "pronunciation": {
+        "id": 4024,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-1c97e356-7e068173-303cc5fd-b25ad7ed-bef7e371.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4024.mp3",
+          "exists": true,
+          "size_bytes": 1776,
+          "sha256": "3baea72f411c9efa40a71f5bbb61e5120c5a36eb1023fa0591620cc2ceb084dd"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "h!p%+eXf;e",
+        "deck_code": "target-1900-image",
+        "position": 25,
+        "index": "0025（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "influence :: 影響を及ぼす :: 相手の考えや行動を「間接的に変える」 /&/ impact :: 強い影響を与える :: 衝突のような「ガツンとした強い衝撃」を与える /&/ sway :: 揺り動かす :: 意見や決定を自分の望む方向に「左右する」"
+      },
+      "word": {
+        "id": 1025,
+        "word_text": "affect"
+      },
+      "senses": [
+        {
+          "id": 2251,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "影響を与える",
+          "etymology": "〜への「ad-」と\"作る・する\"の「facere」が結合して\"影響を与える\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3025,
+        "meaning_id": 2251,
+        "concept_code": "simple",
+        "sentence_en": "The weather affects my mood.",
+        "sentence_jp": "天気が私の気分に影響を与える。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0025｜affect.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3025.webp",
+          "exists": true,
+          "size_bytes": 81278,
+          "sha256": "d74181bb3fa7b2df3d82bff02379bfa4b5243b63d9a754a01f9e126af7348841"
+        },
+        "audio": {
+          "source_file": "say-dff84311-7aede0e3-db534e54-09fb5c69-0ffd8a52.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3025.mp3",
+          "exists": true,
+          "size_bytes": 5956,
+          "sha256": "8178311131dc39837104fef0ab31b5da55207af354dba57217d3f119f0b8794f"
+        }
+      },
+      "pronunciation": {
+        "id": 4025,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-e4cd07e7-998e6cdb-98448a55-76fe7ba1-125547b9.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4025.mp3",
+          "exists": true,
+          "size_bytes": 2612,
+          "sha256": "4e948a95f86eacc760b575811e4a9db29705bd9f4ff0f9fa54b3a726274de19c"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "q8?F^{RqGW",
+        "deck_code": "target-1900-image",
+        "position": 26,
+        "index": "0026（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "handle :: 扱う :: 道具や問題を「手際よく処理する」実務的な語 /&/ cope with :: 対処する :: 困難な状況に「何とか折り合いをつけてやっていく」 /&/ manage :: 管理する :: 複雑な事柄を「調整してうまく進める」"
+      },
+      "word": {
+        "id": 1026,
+        "word_text": "deal"
+      },
+      "senses": [
+        {
+          "id": 2261,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "対処する",
+          "etymology": "古英語「dælan（分ける）」が語源で、「deal」は\"扱う・分配する\"という意味になった。"
+        },
+        {
+          "id": 2262,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "取引",
+          "etymology": "古英語「dælan（分ける）」が語源で、「deal」は\"扱う・分配する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3026,
+        "meaning_id": 2261,
+        "concept_code": "simple",
+        "sentence_en": "He can deal with stress well.",
+        "sentence_jp": "彼はストレスにうまく対処できる。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0026｜deal.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3026.webp",
+          "exists": true,
+          "size_bytes": 50548,
+          "sha256": "210adb72c2a37801410db69fd5d5fa0a851063dd4f7b6f796c1e66f89df07c94"
+        },
+        "audio": {
+          "source_file": "say-64eabb1e-b6f341f9-103709d8-e81cad1c-c39ed056.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3026.mp3",
+          "exists": true,
+          "size_bytes": 6478,
+          "sha256": "910710760aeb120d3689cc5cb62b7b932a8f634ee29fff7c6fdaf063eab4eb8c"
+        }
+      },
+      "pronunciation": {
+        "id": 4026,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-a11a642c-fc11df86-f762935f-163af580-34141ccf.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4026.mp3",
+          "exists": true,
+          "size_bytes": 1985,
+          "sha256": "9e723e7d722c2faacd2820a6acdcdf0fae5e8d56fda7f4fede86f6f0c967ff3d"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "j2n3KozYwz",
+        "deck_code": "target-1900-image",
+        "position": 27,
+        "index": "0027（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "shun :: 避ける :: 嫌悪感から意図的に「遠ざける・遠ざかる」 /&/ evade :: 回避する :: 追及や義務を「巧みに逃れる・かわす」 /&/ refrain from :: 控える :: 自分の意志で行動を「慎む・やめる」"
+      },
+      "word": {
+        "id": 1027,
+        "word_text": "avoid"
+      },
+      "senses": [
+        {
+          "id": 2271,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "避ける",
+          "etymology": "ラテン語「evitare（避ける）」が語源で、「avoid」は\"避ける\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3027,
+        "meaning_id": 2271,
+        "concept_code": "simple",
+        "sentence_en": "You should avoid junk food.",
+        "sentence_jp": "ジャンクフードは避けるべきだ。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0027｜avoid.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3027.webp",
+          "exists": true,
+          "size_bytes": 38968,
+          "sha256": "43bc70c4b644f621e15dc78ab1e38826290692ed86dd974a8b8fe480dae1eeab"
+        },
+        "audio": {
+          "source_file": "say-0f28a3f3-a21b65b3-ae7b8c6d-430e0ba0-72d6ff75.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3027.mp3",
+          "exists": true,
+          "size_bytes": 6060,
+          "sha256": "5ad7589f702a753587c544c4f45cc13d1b82e2595fe8ee005427c258790adac1"
+        }
+      },
+      "pronunciation": {
+        "id": 4027,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-6f21adc6-9a5e9635-6cb4270c-3de56267-fcf0ceb9.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4027.mp3",
+          "exists": true,
+          "size_bytes": 2194,
+          "sha256": "d0b259fb0f04dc54545b7d22a137af38435541b633965b7cd4f333a26ec6cdde"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "vFvlaI#p}}",
+        "deck_code": "target-1900-image",
+        "position": 28,
+        "index": "0028（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "pertain to :: 関連する :: 特定の主題に「密接に属している」フォーマルな語 /&/ connect :: つなぐ :: 二つの事柄を「結びつける」直接的な関係 /&/ link :: 関連づける :: 鎖のように「つなぎ合わせる」客観的なつながり"
+      },
+      "word": {
+        "id": 1028,
+        "word_text": "relate"
+      },
+      "senses": [
+        {
+          "id": 2281,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "関係する",
+          "etymology": "再びの「re-」と\"運ぶ\"の「ferre」から派生した「relatus」が語源で、\"関係づける\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3028,
+        "meaning_id": 2281,
+        "concept_code": "simple",
+        "sentence_en": "This topic relates to history.",
+        "sentence_jp": "この話題は歴史に関係している。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0028｜relate.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3028.webp",
+          "exists": true,
+          "size_bytes": 61982,
+          "sha256": "580eaf397af2a52ce7dca84f3942764d587e3f50c54e35341f8ce97f4b3d9422"
+        },
+        "audio": {
+          "source_file": "say-69decc10-d9a2c1a0-7aeb567a-3c362ca5-fad9ef78.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3028.mp3",
+          "exists": true,
+          "size_bytes": 7628,
+          "sha256": "6460a4c8295069d8bcc1db86e658b0454f564223fbd85f253f08cae74a92dca3"
+        }
+      },
+      "pronunciation": {
+        "id": 4028,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-464a7b63-3e70abef-6545ef8c-52e64c2c-9e105254.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4028.mp3",
+          "exists": true,
+          "size_bytes": 2926,
+          "sha256": "46eff32b766d3141646bbcf1ae8f75fe7af2aa44077075fb2612cb4657432fe0"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "ylo.kmNawW",
+        "deck_code": "target-1900-image",
+        "position": 29,
+        "index": "0029（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "notice :: 気づく :: 五感や注意によって「ハッと気づく」直接的な感覚 /&/ understand :: 理解する :: 状況や事実を頭で「納得して把握する」 /&/ achieve :: 実現する :: 目的や計画を努力して「成し遂げる」"
+      },
+      "word": {
+        "id": 1029,
+        "word_text": "realize"
+      },
+      "senses": [
+        {
+          "id": 2291,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "気づく、実現する",
+          "etymology": "再びの「re-」と\"現実にする\"の「alis（実体の）」が結合して\"実現する・悟る\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3029,
+        "meaning_id": 2291,
+        "concept_code": "simple",
+        "sentence_en": "I just realized my mistake.",
+        "sentence_jp": "私は自分のミスに気づいた。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0029｜realize.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3029.webp",
+          "exists": true,
+          "size_bytes": 42378,
+          "sha256": "6690709bd976edbb0d112922ab388acd61f0d4d5480840e739d660f576cf0e83"
+        },
+        "audio": {
+          "source_file": "say-1edf90c9-cc2d77e8-c7daf516-b8c2f235-466d2703.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3029.mp3",
+          "exists": true,
+          "size_bytes": 7732,
+          "sha256": "a8152e0071d93777ea710aebc0093407231fa711f74621ba3b6f7d1d6947e118"
+        }
+      },
+      "pronunciation": {
+        "id": 4029,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-ef929782-8078644d-a9c0776d-5729ddcb-3aa41696.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4029.mp3",
+          "exists": true,
+          "size_bytes": 3030,
+          "sha256": "f7eb72884efa5a05c76dd73514a6b1a9480e1671ab44d4a8e3c40a08d2561b0c"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "BGJo_9F;0=",
+        "deck_code": "target-1900-image",
+        "position": 30,
+        "index": "0030（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "inspire :: 奮起させる :: 感情を刺激して「やる気を起こさせる」 /&/ urge :: 強く促す :: 相手に何かを「急かしたり強く勧めたりする」 /&/ promote :: 促進する :: 活動や発展がうまく進むように「後押しする」"
+      },
+      "word": {
+        "id": 1030,
+        "word_text": "encourage"
+      },
+      "senses": [
+        {
+          "id": 2301,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "励ます、促す",
+          "etymology": "中への「en-」と\"心\"の「courage」が結合して\"励ます\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3030,
+        "meaning_id": 2301,
+        "concept_code": "simple",
+        "sentence_en": "My teacher encouraged me to study more.",
+        "sentence_jp": "先生は私にもっと勉強するよう励ました。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0030｜encourage.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3030.webp",
+          "exists": true,
+          "size_bytes": 54422,
+          "sha256": "d073dd5d06c3cc6ad7cfad2431937bba9b379bcf94eb4f5a7af87890ec4606a6"
+        },
+        "audio": {
+          "source_file": "say-33c20a71-861293ad-c7180e8a-11c27584-0329c124.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3030.mp3",
+          "exists": true,
+          "size_bytes": 9300,
+          "sha256": "15c6a1d18edf9061b865e2b076c1523e70010399305dcb16eb0dd2ce8ab5010c"
+        }
+      },
+      "pronunciation": {
+        "id": 4030,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-305d26ef-b1f10dea-9b6a4e3b-24ed57e4-ea718293.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4030.mp3",
+          "exists": true,
+          "size_bytes": 3448,
+          "sha256": "b9ba9e6237a4c82e77000fe74b06813732a67fd43c777e41386736e8c6b2bb34"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "oz87)!Rt,#",
+        "deck_code": "target-1900-image",
+        "position": 31,
+        "index": "0031（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "contrast :: 対比させる :: 二つの「違い」を際立たせるために比べる /&/ evaluate :: 評価する :: どちらが良いか「価値を判断するために」比べる /&/ parallel :: 並記する :: 二つのものの「共通点」に注目して並べる"
+      },
+      "word": {
+        "id": 1031,
+        "word_text": "compare"
+      },
+      "senses": [
+        {
+          "id": 2311,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "比較する",
+          "etymology": "共にの「com-」と\"並べる\"の「parare」が結合して\"比較する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3031,
+        "meaning_id": 2311,
+        "concept_code": "simple",
+        "sentence_en": "Let's compare these two options.",
+        "sentence_jp": "この2つの選択肢を比較しよう。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0031｜compare.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3031.webp",
+          "exists": true,
+          "size_bytes": 74342,
+          "sha256": "24d9a2e7aa138b67bd5bfdbd7e19bb4a7dfb0cb29d79d3ac26bed9d81ba915fc"
+        },
+        "audio": {
+          "source_file": "say-455a07aa-72d11c91-9f55731f-1be73631-85970cfe.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3031.mp3",
+          "exists": true,
+          "size_bytes": 7628,
+          "sha256": "ae2f4aee6f8d09ec5a19be493911e116e6812cc85b037a7039706d1aa051bcc1"
+        }
+      },
+      "pronunciation": {
+        "id": 4031,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-727e02a5-3375b3ad-e57b4bce-b3b6bcee-2404c54e.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4031.mp3",
+          "exists": true,
+          "size_bytes": 2717,
+          "sha256": "f1ff83bd0b615584b076ba32313be44cca2e23716ba93aaeedac5642c111b3a5"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "OT+1wt=3xK",
+        "deck_code": "target-1900-image",
+        "position": 32,
+        "index": "0032（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "calculate :: 計算する :: 数学的に「値を算出する」ニュアンス /&/ assess :: 査定する :: 価値や質などを「客観的に評価・測定する」 /&/ gauge :: 測定する :: 器具を使って、あるいは判断基準で「推し量る」"
+      },
+      "word": {
+        "id": 1032,
+        "word_text": "measure"
+      },
+      "senses": [
+        {
+          "id": 2321,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "測る",
+          "etymology": "ラテン語「mensura（測定）」が語源で、「measure」は\"測る\"という意味になった。"
+        },
+        {
+          "id": 2322,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "尺度",
+          "etymology": "ラテン語「mensura（測定）」が語源で、「measure」は\"測る\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3032,
+        "meaning_id": 2321,
+        "concept_code": "simple",
+        "sentence_en": "Can you measure the table?",
+        "sentence_jp": "そのテーブルのサイズを測ってくれますか？",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0032｜measure.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3032.webp",
+          "exists": true,
+          "size_bytes": 59660,
+          "sha256": "c82b8e7272f74d8e7b45c4843fdd63155e0e283fae2a1676c1d4b7eb1fc65f9d"
+        },
+        "audio": {
+          "source_file": "say-70cc25cc-2f634539-a1c2a003-7fa60237-2e29f690.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3032.mp3",
+          "exists": true,
+          "size_bytes": 5224,
+          "sha256": "7eab0d1f6d41c19220050d56d4d99c34422a86e2f3ab94287c36a5910237f0ac"
+        }
+      },
+      "pronunciation": {
+        "id": 4032,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-bee665a3-61294e9e-87cddfc2-99d90236-27a3a0e5.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4032.mp3",
+          "exists": true,
+          "size_bytes": 2090,
+          "sha256": "5e9814885ff9dfd6689db76d787010f8c76cfea7074effbe4f89d6b673607839"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "MSIF#N/|V)",
+        "deck_code": "target-1900-image",
+        "position": 33,
+        "index": "0033（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "live :: 生きている :: 生命体として「生存している」 /&/ occur :: 存在する・起こる :: 抽象的な事象が特定の場所に「現れる・ある」 /&/ remain :: 存続する :: 消えずにそのまま「残り続けている」"
+      },
+      "word": {
+        "id": 1033,
+        "word_text": "exist"
+      },
+      "senses": [
+        {
+          "id": 2331,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "存在する",
+          "etymology": "外への「ex-」と\"立つ\"の「sistere」が結合して\"存在する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3033,
+        "meaning_id": 2331,
+        "concept_code": "simple",
+        "sentence_en": "Ghosts don't exist.",
+        "sentence_jp": "幽霊は存在しない。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0033｜exist.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3033.webp",
+          "exists": true,
+          "size_bytes": 75394,
+          "sha256": "9f52a16a67a044991c9f4ca5c55559fed04c406bb112c5664126bccef93449b3"
+        },
+        "audio": {
+          "source_file": "say-28d15818-b22b419e-289a45fb-bddce75e-7356099d.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3033.mp3",
+          "exists": true,
+          "size_bytes": 5329,
+          "sha256": "b0688c054a0b2c2fe9c7035547f8dd0ef5f2227525dc943dc027359b2fece568"
+        }
+      },
+      "pronunciation": {
+        "id": 4033,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-659c7017-7fb6ea7d-90ae2762-bfbc48b7-b0bcf4ad.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4033.mp3",
+          "exists": true,
+          "size_bytes": 2717,
+          "sha256": "65935f17b1c363af872c35e2f91972d5d27752b2e4d4868583ea7fef661ee302"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "oVXwZf~w64",
+        "deck_code": "target-1900-image",
+        "position": 34,
+        "index": "0034（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "label :: ラベルを貼る :: 分類や識別のために「名前や印をつける」 /&/ indicate :: 示す :: 記号などで場所や正解を「指し示す」 /&/ note :: 書き留める :: 忘れないように、あるいは注目させるために「記す」"
+      },
+      "word": {
+        "id": 1034,
+        "word_text": "mark"
+      },
+      "senses": [
+        {
+          "id": 2341,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "印をつける",
+          "etymology": "古英語「mearc（印）」が語源で、「mark」は\"印をつける\"という意味になった。"
+        },
+        {
+          "id": 2342,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "印、記号",
+          "etymology": "古英語「mearc（印）」が語源で、「mark」は\"印をつける\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3034,
+        "meaning_id": 2341,
+        "concept_code": "simple",
+        "sentence_en": "Please mark the correct answer.",
+        "sentence_jp": "正しい答えに印をつけてください。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0034｜mark.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3034.webp",
+          "exists": true,
+          "size_bytes": 91638,
+          "sha256": "8d52310da48feba24829cff2aebae865a80cf444bf916686e7fc89eab76ce178"
+        },
+        "audio": {
+          "source_file": "say-94504521-f4a3ae87-56e82131-1ae073e2-8558358b.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3034.mp3",
+          "exists": true,
+          "size_bytes": 6687,
+          "sha256": "367113f4fc26b791649311504233e125bfe62771648d1c100e9d16d4b9c538a4"
+        }
+      },
+      "pronunciation": {
+        "id": 4034,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-c6763bec-11bc3535-1ebb0d96-d4026ae8-9e94ab18.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4034.mp3",
+          "exists": true,
+          "size_bytes": 1985,
+          "sha256": "234a84ffe4a70ebd843afe8fe786810e6dadb74bed989f69bd602f0ce84e584c"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "D{5@?R`l#H",
+        "deck_code": "target-1900-image",
+        "position": 35,
+        "index": "0035（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "task :: 課題 :: やらなければならない「骨の折れる仕事」 /&/ trial :: 試練 :: 能力を試されるような「苦難やテスト」 /&/ venture :: 冒険的試み :: リスクを伴う「新しい挑戦」"
+      },
+      "word": {
+        "id": 1035,
+        "word_text": "challenge"
+      },
+      "senses": [
+        {
+          "id": 2351,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "挑戦",
+          "etymology": "ラテン語「calumnia（言いがかり）」が変化して、「challenge」は\"挑戦\"という意味になった。"
+        },
+        {
+          "id": 2352,
+          "priority": 2,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "挑戦する",
+          "etymology": "ラテン語「calumnia（言いがかり）」が変化して、「challenge」は\"挑戦\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3035,
+        "meaning_id": 2351,
+        "concept_code": "simple",
+        "sentence_en": "This task is a big challenge.",
+        "sentence_jp": "この課題は大きな挑戦だ。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0035｜challenge.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3035.webp",
+          "exists": true,
+          "size_bytes": 443082,
+          "sha256": "d948a7f326863940188ae9490d44f0e33eb195cb910601ee70200ae89afce447"
+        },
+        "audio": {
+          "source_file": "say-04f0b236-803e0b01-e36b2c49-4111326d-9882dc5c.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3035.mp3",
+          "exists": true,
+          "size_bytes": 6896,
+          "sha256": "39cc1c4ecbadc51143990ca6ca9d56444d141583adaaaa2e8a218775b5786077"
+        }
+      },
+      "pronunciation": {
+        "id": 4035,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-4fb71932-92bdf31d-02f58a1f-df5b2d7d-427f0601.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4035.mp3",
+          "exists": true,
+          "size_bytes": 2926,
+          "sha256": "3f67945c346c7c1ba4d8ce875d78ed5b8571580fdecd357a060626ce07656a77"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "k)s#n2ur4=",
+        "deck_code": "target-1900-image",
+        "position": 36,
+        "index": "0036（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "rely :: 頼る :: 信頼して「全面的に依存する・当てにする」 /&/ hinge on :: 〜次第である :: 物事の成否が特定の条件に「かかっている」 /&/ turn to :: 助けを求める :: 困った時に解決を求めて「〜に頼る」"
+      },
+      "word": {
+        "id": 1036,
+        "word_text": "depend"
+      },
+      "senses": [
+        {
+          "id": 2361,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "依存する",
+          "etymology": "下にの「de-」と\"ぶら下がる\"の「pendere」が結合して\"依存する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3036,
+        "meaning_id": 2361,
+        "concept_code": "simple",
+        "sentence_en": "It depends on the situation.",
+        "sentence_jp": "それは状況による。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0036｜depend.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3036.webp",
+          "exists": true,
+          "size_bytes": 30984,
+          "sha256": "028bc71d2da4c19068901d38d161157e901e7b078e40dfd28a4c170e4a35bc2c"
+        },
+        "audio": {
+          "source_file": "say-4c31071e-ab655f28-0f57cddb-ecfa2e22-6dbce885.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3036.mp3",
+          "exists": true,
+          "size_bytes": 7001,
+          "sha256": "2555be0fb9316871d4da2225fdaa4b690241ef92fdec49b4d56ca4c91cdbd6c4"
+        }
+      },
+      "pronunciation": {
+        "id": 4036,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-c1d59021-b4a4620f-7c060d65-10315bf6-9521f3f3.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4036.mp3",
+          "exists": true,
+          "size_bytes": 2508,
+          "sha256": "f5e018b9d5339fd389434f168fcb0e61f16fc8aea0bb98566f576740ea43685d"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "A*D~gzw)S0",
+        "deck_code": "target-1900-image",
+        "position": 37,
+        "index": "0037（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "oppose :: 反対する :: 計画や意見に「対抗して異議を唱える」 /&/ protest :: 抗議する :: 不当なことに対して「強く反対を表明する」 /&/ goal :: 目的 :: 物理的な「物体」ではなく、達成すべき「標的」の意味"
+      },
+      "word": {
+        "id": 1037,
+        "word_text": "object"
+      },
+      "senses": [
+        {
+          "id": 2371,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "反対する",
+          "etymology": "対しての「ob-」と\"投げる\"の「iacere」が結合して\"反対する・物体\"という意味になった。"
+        },
+        {
+          "id": 2372,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "物体、目的",
+          "etymology": "対しての「ob-」と\"投げる\"の「iacere」が結合して\"反対する・物体\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3037,
+        "meaning_id": 2371,
+        "concept_code": "simple",
+        "sentence_en": "He objected to the plan.",
+        "sentence_jp": "彼はその計画に反対した。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0037｜object.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3037.webp",
+          "exists": true,
+          "size_bytes": 61452,
+          "sha256": "3f6d9c12b376c37f651918a5af1b19eccf12912549f0560f0f4c4479518e1d71"
+        },
+        "audio": {
+          "source_file": "say-571b2112-4b2f3a11-076feedc-167a0ef9-15c36537.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3037.mp3",
+          "exists": true,
+          "size_bytes": 5851,
+          "sha256": "505aada77f74c1834361b203142aa32c8c482795bfb27e7863bc1191336eadab"
+        }
+      },
+      "pronunciation": {
+        "id": 4037,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-3b05e912-f92a5d1a-912ad37f-be2d4bbc-5620b58f.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4037.mp3",
+          "exists": true,
+          "size_bytes": 2717,
+          "sha256": "c6959454c55dc51371b5ddd3b57bfc371ec62fea703b269e3283d053ee8f50a6"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "h+%a?9=dVk",
+        "deck_code": "target-1900-image",
+        "position": 38,
+        "index": "0038（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "require :: 要求する :: 規則や状況が「〜を必要とする」硬い表現 /&/ insist :: 強く主張する :: 自分の要求を「譲らずに言い張る」 /&/ call for :: 必要とする :: 状況が特定の対応を「求めている・必要としている」"
+      },
+      "word": {
+        "id": 1038,
+        "word_text": "demand"
+      },
+      "senses": [
+        {
+          "id": 2381,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "要求する",
+          "etymology": "強くの「de-」と\"命じる\"の「mandare」が結合して\"要求する\"という意味になった。"
+        },
+        {
+          "id": 2382,
+          "priority": 2,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "需要",
+          "etymology": "強くの「de-」と\"命じる\"の「mandare」が結合して\"要求する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3038,
+        "meaning_id": 2381,
+        "concept_code": "simple",
+        "sentence_en": "The job demands a lot of effort.",
+        "sentence_jp": "その仕事は多大な努力を要求する。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0038｜demand.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3038.webp",
+          "exists": true,
+          "size_bytes": 72750,
+          "sha256": "364b58b51aecdb96191170a59e3d8286a7c1f72940193bf1291de63e8ca784f0"
+        },
+        "audio": {
+          "source_file": "say-c95068cf-e707caac-65f8668f-67193881-b7855f22.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3038.mp3",
+          "exists": true,
+          "size_bytes": 6896,
+          "sha256": "b37ebd6e561e27f8eb9a4c88823609d2e7cbf69e9e15a8769b407f1a4d53fe92"
+        }
+      },
+      "pronunciation": {
+        "id": 4038,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-02900222-f4ad5d7b-c571acd2-4fa1e5a5-673ea82a.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4038.mp3",
+          "exists": true,
+          "size_bytes": 2717,
+          "sha256": "96ba713cc0cc4320fac4ed01a6ea76f14e36fddc3ae24f3ee41a538109f83889"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "L4K$kf5)<5",
+        "deck_code": "target-1900-image",
+        "position": 39,
+        "index": "0039（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "establish :: 確立する :: 組織や制度を「確固たるものとして築く」 /&/ institute :: 制定する :: 組織や規則などを「正式に発足させる」 /&/ set up :: 設置する :: 会社や装置を「準備して立ち上げる」口語的な語"
+      },
+      "word": {
+        "id": 1039,
+        "word_text": "found"
+      },
+      "senses": [
+        {
+          "id": 2391,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "設立する",
+          "etymology": "底を築くのラテン語「fundare」が語源で、「found」は\"設立する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3039,
+        "meaning_id": 2391,
+        "concept_code": "simple",
+        "sentence_en": "He founded a new company.",
+        "sentence_jp": "彼は新しい会社を設立した。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0039｜found.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3039.webp",
+          "exists": true,
+          "size_bytes": 46284,
+          "sha256": "7ff6fe9ec3fb76a817cd9526046e1f75fb60050573a01391615cb09e790ad352"
+        },
+        "audio": {
+          "source_file": "say-c7a378dc-22e4fe68-5150fad8-d96566de-2092462a.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3039.mp3",
+          "exists": true,
+          "size_bytes": 6374,
+          "sha256": "ade23c0183ed519b02f48109650410b868adbc571c31a9bb8100fd351c318fd0"
+        }
+      },
+      "pronunciation": {
+        "id": 4039,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-1b6ec972-86dc99a7-db6c213e-902f4ddd-f7b43355.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4039.mp3",
+          "exists": true,
+          "size_bytes": 2403,
+          "sha256": "9cae92cea875866e7e7146f1eb3d0a0c6c2a043ecd0a625a37a1f892423a4dd0"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "xm-T.YF0]}",
+        "deck_code": "target-1900-image",
+        "position": 40,
+        "index": "0040（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "finish :: 終える :: 最後までやって「作業を完了させる」一般的な語 /&/ conclude :: 締めくくる :: 議論や行事を「正式に終了させる」 /&/ fulfill :: 満たす :: 条件や義務、約束を「完全に果たす」"
+      },
+      "word": {
+        "id": 1040,
+        "word_text": "complete"
+      },
+      "senses": [
+        {
+          "id": 2401,
+          "priority": 1,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "完了する",
+          "etymology": "共にの「com-」と\"満たす\"の「plere」が結合して\"完成させる\"という意味になった。"
+        },
+        {
+          "id": 2402,
+          "priority": 2,
+          "part_of_speech_en": "adjective",
+          "part_of_speech_jp": "形容詞",
+          "definition_jp": "完全な",
+          "etymology": "共にの「com-」と\"満たす\"の「plere」が結合して\"完成させる\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3040,
+        "meaning_id": 2401,
+        "concept_code": "simple",
+        "sentence_en": "I need to complete this task.",
+        "sentence_jp": "この作業を完了しなければならない。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0040｜complete.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3040.webp",
+          "exists": true,
+          "size_bytes": 153554,
+          "sha256": "456eb0861f6ce5849b9cf80b0a14be8dc849d6f73358f1e26939def013d80eaf"
+        },
+        "audio": {
+          "source_file": "say-b3a34acb-4fa60dd7-9addbdef-7bb4c379-eb092a91.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3040.mp3",
+          "exists": true,
+          "size_bytes": 7419,
+          "sha256": "da799b7f56acc06804a09d86a37881301a580d2f82611a0c4a8fc47bc82238f7"
+        }
+      },
+      "pronunciation": {
+        "id": 4040,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-c7e884fc-264676ae-06b385c6-b32a82ee-adcb9a0e.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4040.mp3",
+          "exists": true,
+          "size_bytes": 3030,
+          "sha256": "a99bbfa95eb891f55d51a8c630b167c35e421a4c049d2a67d042eaa949119f9c"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "q4{<I;,o71",
+        "deck_code": "target-1900-image",
+        "position": 41,
+        "index": "0041（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "concept :: 概念 :: 理論的、あるいは抽象的な「考えの枠組み」 /&/ notion :: 漠然とした考え :: 根拠は薄いが頭にある「考え・意見」 /&/ thought :: 思考 :: 頭の中で巡らせている「考え」そのもの"
+      },
+      "word": {
+        "id": 1041,
+        "word_text": "idea"
+      },
+      "senses": [
+        {
+          "id": 2411,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "アイデア、考え",
+          "etymology": "ギリシャ語「idéa（形・概念）」が語源で、「idea」は\"考え\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3041,
+        "meaning_id": 2411,
+        "concept_code": "simple",
+        "sentence_en": "That's a great idea!",
+        "sentence_jp": "それは素晴らしいアイデアだ！",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0041｜idea.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3041.webp",
+          "exists": true,
+          "size_bytes": 176994,
+          "sha256": "a6b89197cd1abf198d1abd332019da897172caa383905bcb0211737954f39440"
+        },
+        "audio": {
+          "source_file": "say-db669ec0-78311b1e-f5a64109-0d5de1be-8d37dcdf.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3041.mp3",
+          "exists": true,
+          "size_bytes": 4598,
+          "sha256": "47f7f1481ca1ec4975b375eb9c6aed68f5abbc698d98e65e78c47ca90b18d8c5"
+        }
+      },
+      "pronunciation": {
+        "id": 4041,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-c500e55f-75bf362c-2eab3a96-cafdaba6-ca0bb96a.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4041.mp3",
+          "exists": true,
+          "size_bytes": 2299,
+          "sha256": "c2f0886bb46b543bbb146f8240b4b16fa8faab64e7ee04f46e87b4c9de5a0833"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "HoH!R>r/AK",
+        "deck_code": "target-1900-image",
+        "position": 42,
+        "index": "0042（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "agreement :: 同意 :: 意見や条件が「一致していること」 /&/ harmony :: 調和 :: 複数の要素が矛盾なく「整っている状態」 /&/ correspondence :: 一致 :: 二つの事柄が「対応・適合していること」"
+      },
+      "word": {
+        "id": 1042,
+        "word_text": "accord"
+      },
+      "senses": [
+        {
+          "id": 2421,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "一致、合意",
+          "etymology": "〜への「ad-」と\"心\"の「cor」が結合して\"一致する\"という意味になった。"
+        },
+        {
+          "id": 2422,
+          "priority": 2,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "与える",
+          "etymology": "〜への「ad-」と\"心\"の「cor」が結合して\"一致する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3042,
+        "meaning_id": 2421,
+        "concept_code": "simple",
+        "sentence_en": "His words are in accord with his actions.",
+        "sentence_jp": "彼の言葉は行動と一致している。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0042｜accord.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3042.webp",
+          "exists": true,
+          "size_bytes": 57412,
+          "sha256": "4c678a9545aaa115502e8dff517c5f945a7dd81fc21a7291c6f13ad9cb9d08f8"
+        },
+        "audio": {
+          "source_file": "say-c766f1a9-2e9096e9-5c461490-0046c00e-b1324fcc.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3042.mp3",
+          "exists": true,
+          "size_bytes": 8568,
+          "sha256": "8bea3645dff8db19aa8121bbd053e0a572a52fd294285249b14a18be6986b4e9"
+        }
+      },
+      "pronunciation": {
+        "id": 4042,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-f8c7e199-bdee819a-1b21df53-c03d0fdd-4b5797ed.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4042.mp3",
+          "exists": true,
+          "size_bytes": 2194,
+          "sha256": "c6a2dbe832b4ddd8e932f59ca6e3e5b4ea8219027993b3cf384bd46de1e0392d"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "nF7>C6u9HX",
+        "deck_code": "target-1900-image",
+        "position": 43,
+        "index": "0043（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "firm :: 会社 :: 専門的なサービスを提供する「小規模〜中規模の会社」 /&/ corporation :: 大企業 :: 法律で認められた「法人格を持つ大きな組織」 /&/ companion :: 仲間 :: 一緒に時間を過ごす「連れ・仲間」の意味"
+      },
+      "word": {
+        "id": 1043,
+        "word_text": "company"
+      },
+      "senses": [
+        {
+          "id": 2431,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "会社、仲間",
+          "etymology": "共にの「com-」と\"パンを食べる仲間\"の「panis」が結合して\"仲間・会社\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3043,
+        "meaning_id": 2431,
+        "concept_code": "simple",
+        "sentence_en": "He works for a big company.",
+        "sentence_jp": "彼は大企業で働いている。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0043｜company.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3043.webp",
+          "exists": true,
+          "size_bytes": 28532,
+          "sha256": "b57406164023fd31f971b440f72f0f6d9f2d973e66ca0e4e1e7d4842ee39d76c"
+        },
+        "audio": {
+          "source_file": "say-cb508f78-cd54292d-ea21cf0b-48f23c00-b9c56f64.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3043.mp3",
+          "exists": true,
+          "size_bytes": 6792,
+          "sha256": "3ff3e63c497de214d9846a3d51e54cc7b54020cd80c4ae35a57d5c15facf15b2"
+        }
+      },
+      "pronunciation": {
+        "id": 4043,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-97f7d083-bbbf00e4-913ed4b5-9505ee91-e0df80a9.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4043.mp3",
+          "exists": true,
+          "size_bytes": 2717,
+          "sha256": "b1b83dcaf2bbf0c460641b3798b0929fe51a594642ed4a0d66b4890be70eed09"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "3.G[{}]y^",
+        "deck_code": "target-1900-image",
+        "position": 44,
+        "index": "0044（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "curiosity :: 好奇心 :: 未知のものについて「知りたいと思う気持ち」 /&/ attention :: 注目 :: 意識を特定の方向に「向けている状態」 /&/ fascination :: 魅了 :: 強く惹きつけられる「深い関心・情熱」"
+      },
+      "word": {
+        "id": 1044,
+        "word_text": "interest"
+      },
+      "senses": [
+        {
+          "id": 2441,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "興味、関心",
+          "etymology": "間にの「inter-」と\"ある\"の「esse」が結合して\"関心・利害\"という意味になった。"
+        },
+        {
+          "id": 2442,
+          "priority": 2,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "興味を持たせる",
+          "etymology": "間にの「inter-」と\"ある\"の「esse」が結合して\"関心・利害\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3044,
+        "meaning_id": 2441,
+        "concept_code": "simple",
+        "sentence_en": "He has a strong interest in science.",
+        "sentence_jp": "彼は科学に強い関心を持っている。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0044｜interest.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3044.webp",
+          "exists": true,
+          "size_bytes": 88578,
+          "sha256": "acbbb19cc3aa43e8c60c001498eb72d5626d3103de65b73c87efa76eca1f00f4"
+        },
+        "audio": {
+          "source_file": "say-3e9adedd-12fff086-acf81f94-efd88c90-6c0f63eb.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3044.mp3",
+          "exists": true,
+          "size_bytes": 8359,
+          "sha256": "fbdf7b7cb279d56d402cb16026545bb684c67036e2d9ab61aca0c637d0942af5"
+        }
+      },
+      "pronunciation": {
+        "id": 4044,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-cb07927b-c5f16681-05466bea-d87205a0-65cd688a.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4044.mp3",
+          "exists": true,
+          "size_bytes": 2821,
+          "sha256": "31dd49bab116a780dfe43e45b473d9bd94feaeb578e5d5cff06444b2eaaf00a2"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "J*)J}C|s$k",
+        "deck_code": "target-1900-image",
+        "position": 45,
+        "index": "0045（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "investigation :: 調査 :: 事件や事実を詳しく「究明するための調べ」 /&/ study :: 研究 :: 特定の分野を「学習・分析すること」 /&/ analysis :: 分析 :: データを分解して「詳しく調べること」"
+      },
+      "word": {
+        "id": 1045,
+        "word_text": "research"
+      },
+      "senses": [
+        {
+          "id": 2451,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "研究、調査",
+          "etymology": "再びの「re-」と\"探す\"の「cercher（フランス語）」が結合して\"研究する\"という意味になった。"
+        },
+        {
+          "id": 2452,
+          "priority": 2,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "研究する",
+          "etymology": "再びの「re-」と\"探す\"の「cercher（フランス語）」が結合して\"研究する\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3045,
+        "meaning_id": 2451,
+        "concept_code": "simple",
+        "sentence_en": "She is conducting research on cancer.",
+        "sentence_jp": "彼女はガンの研究を行っている。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0045｜research.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3045.webp",
+          "exists": true,
+          "size_bytes": 42382,
+          "sha256": "23ccfd93b12d132170c278a043b996485ba7bd7012efb7e75d2d11ccbfe559a4"
+        },
+        "audio": {
+          "source_file": "say-5bdbfdb6-b81536da-61def7be-4e10db97-7a4e3d79.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3045.mp3",
+          "exists": true,
+          "size_bytes": 9091,
+          "sha256": "8972bf57a3917b67d131cd04fdcb140f798425f06eff6605d533a449c8dcac83"
+        }
+      },
+      "pronunciation": {
+        "id": 4045,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-3c39ad5b-059811e9-118257a2-ea4f2906-3de7e577.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4045.mp3",
+          "exists": true,
+          "size_bytes": 3135,
+          "sha256": "92b92c4f7498b6999105b21a4bfac1ccddaf60252fe2b24b3355a4b6014d16c3"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "Po,-=#baR-",
+        "deck_code": "target-1900-image",
+        "position": 46,
+        "index": "0046（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "origin :: 起源 :: 物事が「始まり、発生した場所や理由」 /&/ lead to :: 引き起こす :: 特定の結果に「つながる・導く」という動詞的用法 /&/ trigger :: 誘発する :: 事件や反応を「一気に引き起こす」きっかけ"
+      },
+      "word": {
+        "id": 1046,
+        "word_text": "cause"
+      },
+      "senses": [
+        {
+          "id": 2461,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "原因",
+          "etymology": "ラテン語「causa（理由・訴訟）」が語源で、「cause」は\"原因\"という意味になった。"
+        },
+        {
+          "id": 2462,
+          "priority": 2,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "引き起こす",
+          "etymology": "ラテン語「causa（理由・訴訟）」が語源で、「cause」は\"原因\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3046,
+        "meaning_id": 2461,
+        "concept_code": "simple",
+        "sentence_en": "Smoking is a cause of lung cancer.",
+        "sentence_jp": "喫煙は肺がんの原因の一つだ。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0046｜cause.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3046.webp",
+          "exists": true,
+          "size_bytes": 24508,
+          "sha256": "6828cf304de01017ace78d0406d756d17cacdf14ef97635dd224624b3afc7a3e"
+        },
+        "audio": {
+          "source_file": "say-e07ae435-c33c6855-5e3caa03-9bbb1a21-bbd6ed75.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3046.mp3",
+          "exists": true,
+          "size_bytes": 8150,
+          "sha256": "bcef9da033ba734c848c97fb78c80e704313eb7e6023fbf71847f6e45b858c4f"
+        }
+      },
+      "pronunciation": {
+        "id": 4046,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-e2efdb57-4c0ab247-ab15208d-a81cc82d-38487ae9.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4046.mp3",
+          "exists": true,
+          "size_bytes": 1881,
+          "sha256": "124a365d3538ace1b78fa18face15d4a4ce3a2c9224b5c754d723b9fcf9ce2e8"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "b+L8zDX!,%",
+        "deck_code": "target-1900-image",
+        "position": 47,
+        "index": "0047（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "cause :: 原因 :: 結果を招いた「直接的な根拠」 /&/ logic :: 論理 :: 考えの筋道としての「妥当な理由」 /&/ excuse :: 言い訳 :: 失敗などを正当化するための「釈明としての理由」"
+      },
+      "word": {
+        "id": 1047,
+        "word_text": "reason"
+      },
+      "senses": [
+        {
+          "id": 2471,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "理由",
+          "etymology": "再びの「re-」と\"計算する・考える\"の「reri」が結合して\"理由\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3047,
+        "meaning_id": 2471,
+        "concept_code": "simple",
+        "sentence_en": "What is the reason for your absence?",
+        "sentence_jp": "あなたの欠席の理由は何ですか？",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0047｜reason.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3047.webp",
+          "exists": true,
+          "size_bytes": 79060,
+          "sha256": "87401518aa93ec2ff024260ba2ded5174308bdbc54dc39e3dc848ea186d73062"
+        },
+        "audio": {
+          "source_file": "say-ab134495-da347afb-d8ea5415-03403f00-3e3b6f6f.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3047.mp3",
+          "exists": true,
+          "size_bytes": 7837,
+          "sha256": "eef0eef7e61c63f4e1f2c1fe9d8331d63160a36d77e7b3df2ad5f31ccb61c736"
+        }
+      },
+      "pronunciation": {
+        "id": 4047,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-b81eab29-553ac067-0f8e4ab4-6ae70d5d-47727803.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4047.mp3",
+          "exists": true,
+          "size_bytes": 2403,
+          "sha256": "579cfe5e7767fbd6b423256cbf9f025b221d8b91738ba764cf57b3e76aa698e2"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "qBpOSTrKWT",
+        "deck_code": "target-1900-image",
+        "position": 48,
+        "index": "0048（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "impact :: 影響 :: 変化をもたらす「強い作用・衝撃」 /&/ result :: 結果 :: 原因から生じた「最終的な状態」 /&/ outcome :: 成果 :: プロセスの最後に出た「具体的な結果」"
+      },
+      "word": {
+        "id": 1048,
+        "word_text": "effect"
+      },
+      "senses": [
+        {
+          "id": 2481,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "効果、影響",
+          "etymology": "外への「ex-」と\"作る\"の「facere」が結合して\"結果\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3048,
+        "meaning_id": 2481,
+        "concept_code": "simple",
+        "sentence_en": "This medicine has strong effects.",
+        "sentence_jp": "この薬には強い効果がある。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0048｜effect.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3048.webp",
+          "exists": true,
+          "size_bytes": 75676,
+          "sha256": "aa16995f56daa7b5380f6ea4094b2c935d1f192f02b810294b3f01607a293a2a"
+        },
+        "audio": {
+          "source_file": "say-72aded8c-33bda4b3-b7203f22-e9cbde00-b44b4a0e.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3048.mp3",
+          "exists": true,
+          "size_bytes": 7941,
+          "sha256": "578f67a5b050bd77eee1ad7b23fcdce3552aa13308eb8c1959dbb6e26c838e5e"
+        }
+      },
+      "pronunciation": {
+        "id": 4048,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-7737d8de-39df3356-7a6444a5-e06f896d-605641df.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4048.mp3",
+          "exists": true,
+          "size_bytes": 2508,
+          "sha256": "9a2bb2da07ea2cf5b871dc49c58156135853c150cb786b6805fe34ad6b4ff56f"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "z2Dk`9;j-t",
+        "deck_code": "target-1900-image",
+        "position": 49,
+        "index": "0049（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "impact :: 影響 :: 社会や環境に対する「強力な感化・作用」 /&/ sway :: 支配力 :: 人の心や決定を「左右する力」 /&/ inspiration :: 刺激 :: 人に良い影響を与えて「やる気を出させるもの」"
+      },
+      "word": {
+        "id": 1049,
+        "word_text": "influence"
+      },
+      "senses": [
+        {
+          "id": 2491,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "影響",
+          "etymology": "中にの「in-」と\"流れ\"の「fluere」が結合して\"影響\"という意味になった。"
+        },
+        {
+          "id": 2492,
+          "priority": 2,
+          "part_of_speech_en": "verb",
+          "part_of_speech_jp": "動詞",
+          "definition_jp": "影響を与える",
+          "etymology": "中にの「in-」と\"流れ\"の「fluere」が結合して\"影響\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3049,
+        "meaning_id": 2491,
+        "concept_code": "simple",
+        "sentence_en": "His ideas had a great influence on me.",
+        "sentence_jp": "彼の考えは私に大きな影響を与えた。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0049｜influence.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3049.webp",
+          "exists": true,
+          "size_bytes": 73668,
+          "sha256": "ea20a476c2a664cdfef9b081448d86ec67fc6948e5ebed48d96eed0cae13fb28"
+        },
+        "audio": {
+          "source_file": "say-5f71cdc9-064fb6cd-d5f814d6-4869af4a-c07eed84.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3049.mp3",
+          "exists": true,
+          "size_bytes": 8986,
+          "sha256": "5f35528229c2bd875850c94d138497198cbab13f9a6d9fabd10ad4a6c2918ccd"
+        }
+      },
+      "pronunciation": {
+        "id": 4049,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-49e01a35-71446fe8-0375c9cc-4a74505e-00b6839b.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4049.mp3",
+          "exists": true,
+          "size_bytes": 3448,
+          "sha256": "5c01aa8d8d44706a94065275036a9d6d0b082e34562a3e620b9cf5e2738a81c6"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    },
+    {
+      "source": {
+        "note_guid": "AxS[)7~^ZW",
+        "deck_code": "target-1900-image",
+        "position": 50,
+        "index": "0050（Enhanced｜1900）",
+        "stage": "stage-1",
+        "synonym_raw": "condition :: 状態 :: その時の人や物の「置かれている様子」 /&/ circumstance :: 環境・状況 :: 周囲の事情や「付随する条件」 /&/ status :: 地位・状況 :: 現在進行中の「進捗や身分」"
+      },
+      "word": {
+        "id": 1050,
+        "word_text": "situation"
+      },
+      "senses": [
+        {
+          "id": 2501,
+          "priority": 1,
+          "part_of_speech_en": "noun",
+          "part_of_speech_jp": "名詞",
+          "definition_jp": "状況",
+          "etymology": "位置を表すラテン語「situatio」が語源で、「situation」は\"状況・位置\"という意味になった。"
+        }
+      ],
+      "example": {
+        "id": 3050,
+        "meaning_id": 2501,
+        "concept_code": "simple",
+        "sentence_en": "The situation is getting worse.",
+        "sentence_jp": "状況は悪化している。",
+        "display_order": 1,
+        "image": {
+          "source_file": "Anki｜1900｜GPT版｜0050｜situation.webp",
+          "planned_asset_path": "content-images/simple/3000-3499/3050.webp",
+          "exists": true,
+          "size_bytes": 51684,
+          "sha256": "e32f5fc287d937153ac5f9a4f6af4f6d746a0ae90d584f037bcd46c2451fd303"
+        },
+        "audio": {
+          "source_file": "say-1d410454-98980eaf-8a9972b7-55d3e752-b9f88f55.mp3",
+          "planned_asset_path": "content-audio/example/simple/3000-3499/3050.mp3",
+          "exists": true,
+          "size_bytes": 7314,
+          "sha256": "0718ed7cb145e4d90fafcde9029baa77ac0c1126f40b829e998d95f19959d2fe"
+        }
+      },
+      "pronunciation": {
+        "id": 4050,
+        "accent": "unspecified",
+        "ipa": null,
+        "ipa_state": "blank",
+        "voice_label": "default",
+        "is_primary": true,
+        "display_order": 1,
+        "audio": {
+          "source_file": "say-472b92f9-8eaec5b8-e54905b1-27a5d67c-5c0fb1a1.mp3",
+          "planned_asset_path": "content-audio/word/4000-4499/4050.mp3",
+          "exists": true,
+          "size_bytes": 3866,
+          "sha256": "e0ac9673667e9a7ae7129fbdac52fc30a0ad199d33bc1dcd89457b326b1245bf"
+        }
+      },
+      "forms": {},
+      "relations": {}
+    }
+  ],
+  "validation": {
+    "errors": [],
+    "warnings": [
+      "position 23: example is assigned to priority 1; review before production",
+      "position 17: example is assigned to priority 1; review before production",
+      "position 44: example is assigned to priority 1; review before production",
+      "position 26: example is assigned to priority 1; review before production",
+      "position 32: example is assigned to priority 1; review before production",
+      "position 14: example is assigned to priority 1; review before production",
+      "position 46: example is assigned to priority 1; review before production",
+      "position 21: example is assigned to priority 1; review before production",
+      "position 35: example is assigned to priority 1; review before production",
+      "position 49: example is assigned to priority 1; review before production",
+      "position 22: example is assigned to priority 1; review before production",
+      "position 4: example is assigned to priority 1; review before production",
+      "position 42: example is assigned to priority 1; review before production",
+      "position 5: example is assigned to priority 1; review before production",
+      "position 38: example is assigned to priority 1; review before production",
+      "position 12: example is assigned to priority 1; review before production",
+      "position 34: example is assigned to priority 1; review before production",
+      "position 15: example is assigned to priority 1; review before production",
+      "position 2: example is assigned to priority 1; review before production",
+      "position 40: example is assigned to priority 1; review before production",
+      "position 37: example is assigned to priority 1; review before production",
+      "position 45: example is assigned to priority 1; review before production"
+    ]
+  }
+}

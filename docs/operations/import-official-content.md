@@ -8,26 +8,36 @@ Anki原本は直接変更せず、読取用コピーから中間JSONを作り、
 ローカルSupabase用SQLを生成します。同じSQLは何度実行しても同じ固定IDを更新するため、
 単語、意味、例文、音声、Cardが重複しません。
 
-中間JSONと生成SQLには教材本文と原本ファイル名が含まれます。権利確認前の素材なので
-Gitへ追加せず、`/private/tmp` などの一時領域だけに置きます。本番DB・本番Storageには
-この手順を使いません。
+2026-09-02以降、50語の正本は [`../content/target-1900-0001-0050.json`](../content/target-1900-0001-0050.json)
+です。**通常はステップ1・2を飛ばし、この正本JSONからステップ3へ進みます。** ステップ1・2は、
+Ankiから取り直す必要が生じたときだけ使います。経緯は
+[`../decisions/usl-286-repo-owned-content.md`](../decisions/usl-286-repo-owned-content.md) にあります。
+
+生成SQLには教材本文が展開されるため、Gitへ追加せず `/private/tmp` などの一時領域に置きます。
+正本JSONはUSL-284の権利確認を経てリポジトリへ入れていますが、生成物は入れません。本番DB・
+本番Storageにはこの手順を使いません。
 
 ## 変換の流れ
 
 ```text
-Anki collection.anki2 の読取用コピー
-  → 必須値・番号・品詞・media 150件を検査した中間JSON
+docs/content/target-1900-0001-0050.json（正本）
   → 固定IDと衝突検査を持つ1トランザクションSQL
   → ローカルSupabase
+
+# Ankiから取り直すときだけ通る道
+Anki collection.anki2 の読取用コピー
+  → 必須値・番号・品詞・media 150件を検査した中間JSON
+  → 正本との差分を確認して正本を更新
 ```
 
 変換規則の正本は [`anki-50-extraction.md`](../content/anki-50-extraction.md)、DB列は
 [`source-database-v5.md`](../content/source-database-v5.md)、予定Storageパスは
 [`usl-283-media-delivery.md`](../decisions/usl-283-media-delivery.md) です。
 
-## 1. Ankiの読取用コピーを作る
+## 1. Ankiの読取用コピーを作る（取り直すときだけ）
 
 Ankiを終了してから実行します。profile名が違う場合は、推測せず実際の場所へ読み替えます。
+Ankiの原本へは書き込みません。教材の修正は正本JSON側で行います。
 
 ```sh
 cp "$HOME/Library/Application Support/Anki2/Anki｜Taiga（taiyahehe）/collection.anki2" \
@@ -37,7 +47,7 @@ chmod 644 /private/tmp/usalingo-286-anki-readonly.anki2
 
 コピー先だけを読みます。元の `collection.anki2` へは書き込みません。
 
-## 2. 中間JSONを作って検査する
+## 2. 中間JSONを作って検査する（取り直すときだけ）
 
 ```sh
 python3 scripts/prepare-official-content.py extract-anki \
@@ -54,15 +64,21 @@ python3 scripts/prepare-official-content.py validate \
 分割数不一致、画像・単語音声・例文音声の参照切れが行番号付きで出ます。
 
 複数senseの行では、例文をpriority 1へ接続したという警告が出ます。ローカル構造確認には
-使えますが、本番公開前に意味と例文の対応を人間が確認します。
+使えますが、本番公開前に意味と例文の対応を人間が確認します。2026-09-02にこの22件を全件
+照合し、3件（concern / limit / challenge）を正本JSON側で直しました。詳細は
+[`../decisions/usl-286-repo-owned-content.md`](../decisions/usl-286-repo-owned-content.md)
+にあります。取り直したときは、この3件が消えていないかを差分で確認します。
 
 ## 3. ローカル用SQLを作る
 
 ```sh
 python3 scripts/prepare-official-content.py render-sql \
-  --input /private/tmp/usalingo-286-content.json \
+  --input docs/content/target-1900-0001-0050.json \
   --output /private/tmp/usalingo-286-content.sql
 ```
+
+Ankiから取り直した場合だけ `--input` を `/private/tmp/usalingo-286-content.json` に読み替え、
+先に正本との差分を確認します。
 
 SQLは最初に、既存行が予約ID帯（word 1001〜1050、example 3001〜3050など）、
 Anki GUID、原本位置、英単語を別内容で使っていないか
