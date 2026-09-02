@@ -16,39 +16,46 @@ struct ProfileDashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: WireMetrics.spacingL) {
-                LazyVGrid(
-                    columns: [GridItem(.flexible()), GridItem(.flexible())],
-                    spacing: WireMetrics.spacingL
-                ) {
-                    ProfileTile(title: "\(stats.currentStreak)", symbol: "flame")
-                    HeatmapTile(reviewedDays: stats.reviewedDays)
-                    ProfileTile(title: "実績サマリー", symbol: "trophy")
-                    Button {
-                        if appState.isGuest {
-                            isShowingAuth = true
-                        } else {
-                            isEditingProfile = true
+                // まとまり1: アカウント。設定や手続きの入口だけを置く。
+                BentoGroup(title: "アカウント", tone: .l1) {
+                    tileGrid {
+                        Button {
+                            if appState.isGuest {
+                                isShowingAuth = true
+                            } else {
+                                isEditingProfile = true
+                            }
+                        } label: {
+                            ProfileTile(title: displayName, symbol: "person.crop.circle", tone: .l1)
                         }
-                    } label: {
-                        ProfileTile(title: displayName, symbol: "person.crop.circle")
+                        .buttonStyle(.plain)
+                        Button {
+                            isShowingStudyBackup = true
+                        } label: {
+                            ProfileTile(title: "学習記録のバックアップ", symbol: "externaldrive", tone: .l1)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("この端末の学習記録を預ける、または預けてある記録で置き換えます")
+                        Button {
+                            isShowingLegalInformation = true
+                        } label: {
+                            ProfileTile(title: "法務・ライセンス", symbol: "doc.text.magnifyingglass", tone: .l1)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("利用規約、プライバシー、ライセンス、クレジットの公開状況を開きます")
                     }
-                    .buttonStyle(.plain)
-                    Button {
-                        isShowingStudyBackup = true
-                    } label: {
-                        ProfileTile(title: "学習記録のバックアップ", symbol: "externaldrive")
+                }
+
+                // まとまり2: 学習の記録。数字と履歴だけを置く。
+                // 面は下のまとまりほど濃くする（BentoTone の決まり）。
+                BentoGroup(title: "学習の記録", tone: .l2) {
+                    tileGrid {
+                        ProfileTile(title: "\(stats.currentStreak)", symbol: "flame", caption: "連続日数", tone: .l2)
+                        HeatmapTile(reviewedDays: stats.reviewedDays, tone: .l2)
+                        ProfileTile(title: "実績サマリー", symbol: "trophy", tone: .l2)
+                        ProfileTile(title: "\(stats.studiedCount)", symbol: "sparkles", caption: "単語数", tone: .l2)
+                        ProfileTile(title: "\(stats.totalReviews)", symbol: "checkmark.circle", caption: "復習回数", tone: .l2)
                     }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("この端末の学習記録を預ける、または預けてある記録で置き換えます")
-                    Button {
-                        isShowingLegalInformation = true
-                    } label: {
-                        ProfileTile(title: "法務・ライセンス", symbol: "doc.text.magnifyingglass")
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("利用規約、プライバシー、ライセンス、クレジットの公開状況を開きます")
-                    ProfileTile(title: "\(stats.studiedCount)", symbol: "sparkles")
-                    ProfileTile(title: "\(stats.totalReviews)", symbol: "checkmark.circle")
                 }
 
                 if !message.isEmpty {
@@ -93,6 +100,15 @@ struct ProfileDashboardView: View {
                 isShowingAuth = false
             }
         }
+    }
+
+    /// まとまりの中に並べる2列のタイル。
+    private func tileGrid<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        LazyVGrid(
+            columns: [GridItem(.flexible()), GridItem(.flexible())],
+            spacing: WireMetrics.spacingL,
+            content: content
+        )
     }
 
     private var displayName: String {
@@ -441,6 +457,10 @@ private struct LegalTextRow: View {
 private struct ProfileTile: View {
     let title: String
     let symbol: String
+    /// 数字だけでは何の値か分からないタイルに添える名前。
+    var caption: String?
+    /// まとまりの面。タイルの枠が浮かないよう、囲っている面と同じ濃さで塗る。
+    var tone: BentoTone = .l1
 
     var body: some View {
         VStack(spacing: WireMetrics.spacingS) {
@@ -451,24 +471,35 @@ private struct ProfileTile: View {
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .minimumScaleFactor(0.72)
+            if let caption {
+                Text(caption)
+                    .wireFont(.caption)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.72)
+            }
         }
-        .wireTile()
+        .wireTile(tone: tone)
+        // 「0 連続日数」ではなく「連続日数 0」と読ませる。
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(caption.map { "\($0) \(title)" } ?? title)
     }
 }
 
 private extension View {
     /// プロフィールの正方形タイル。
-    func wireTile() -> some View {
+    func wireTile(tone: BentoTone) -> some View {
         frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(WireMetrics.spacingM)
             .frame(maxWidth: .infinity)
             .aspectRatio(1, contentMode: .fill)
-            .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
+            .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card, fill: tone.fill)
     }
 }
 
 private struct HeatmapTile: View {
     let reviewedDays: [Date]
+    var tone: BentoTone = .l1
 
     var body: some View {
         VStack(spacing: WireMetrics.spacingS) {
@@ -484,7 +515,7 @@ private struct HeatmapTile: View {
                 }
             }
         }
-        .wireTile()
+        .wireTile(tone: tone)
     }
 
     @ViewBuilder

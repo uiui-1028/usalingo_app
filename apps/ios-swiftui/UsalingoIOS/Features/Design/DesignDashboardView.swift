@@ -8,8 +8,6 @@ struct DesignDashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: WireMetrics.spacingXL) {
-                introCard
-
                 ForEach(DesignMockModule.all) { module in
                     DesignModuleBlock(module: module)
                 }
@@ -17,18 +15,6 @@ struct DesignDashboardView: View {
             .padding(WireMetrics.screenPadding)
         }
         .background(WireColor.background)
-    }
-
-    private var introCard: some View {
-        WireCard {
-            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                Label("ワイヤーフレーム開発モード", systemImage: "square.dashed")
-                    .wireFont(.titleS)
-                Text("アプリ全体の見た目・操作感・フィードバックを調整する設定モジュールです。現在は項目の並びだけを確認するモックで、選択しても表示は変わりません。")
-                    .wireFont(.caption)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
     }
 }
 
