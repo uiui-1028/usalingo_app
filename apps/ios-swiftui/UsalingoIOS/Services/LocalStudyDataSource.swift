@@ -461,6 +461,10 @@ final class LocalStudyDataSource: StudyDataSource {
         return deck
     }
 
+    /// 初期状態で学習タブへ並べる同梱デッキ。ここに無い同梱デッキは自動登録せず、
+    /// 「デッキを追加」の同梱デッキ一覧から利用者が選んで追加する。
+    private static let autoInstalledBundledDeckKeys: Set<String> = ["toeic-basic"]
+
     /// 同梱サンプルデッキを一覧へ自動登録する。ユーザーが消したものは再登録しない。
     /// 同梱JSONの差し替えでデッキ名が変わった場合も、ここで追従する。
     private func syncBundledDecks() {
@@ -473,7 +477,7 @@ final class LocalStudyDataSource: StudyDataSource {
                     library.decks[index].description = file.description
                     changed = true
                 }
-            } else if !removed.contains(file.deckId) {
+            } else if Self.autoInstalledBundledDeckKeys.contains(file.deckId), !removed.contains(file.deckId) {
                 _ = registerDeck(from: file, isBundled: true)
                 changed = true
             }
