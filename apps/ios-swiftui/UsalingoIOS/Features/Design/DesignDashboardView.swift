@@ -7,15 +7,6 @@ struct DesignDashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: WireMetrics.spacingL) {
-                WireCard {
-                    VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                        Label("ワイヤーフレーム開発モード", systemImage: "square.dashed")
-                            .wireFont(.titleS)
-                        Text("機能と画面構成を固める間は、白黒・枠線中心の仮デザインで表示します。")
-                            .wireFont(.caption)
-                    }
-                }
-
                 DesignSettingRow(
                     title: "UIテーマ設定",
                     subtitle: "現在は白黒ワイヤーフレームに固定",
