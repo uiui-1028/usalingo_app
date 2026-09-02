@@ -191,27 +191,14 @@ private struct LegalInformationView: View {
                         }
                     }
 
+                    // 各文書は上の節から開く。ここで一覧を作り直すと同じ行が二度並び、
+                    // どちらが入口か分からなくなる。空のときの説明だけを残す。
                     if documents.isEmpty {
                         ContentUnavailableView(
                             "公開済みの文書はまだありません",
                             systemImage: "clock",
                             description: Text("版、施行日、外部リンクを確認できる正式文書が登録されるまで、草案は表示しません。")
                         )
-                    } else {
-                        section("公開済みの文書") {
-                            ForEach(documents) { document in
-                                NavigationLink {
-                                    LegalDocumentDetailView(document: document)
-                                } label: {
-                                    LegalTextRow(
-                                        title: document.title,
-                                        detail: "\(document.version) ・施行日 \(document.effectiveDate)"
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityHint("正式文書をアプリ内で開きます。")
-                            }
-                        }
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -336,7 +323,8 @@ private struct LegalWebView: UIViewRepresentable {
     }
 }
 
-private struct LegalDocument: Identifiable {
+/// 正式公開済みの法務文書の台帳。表示内容をテストから確かめられるよう internal にしている。
+struct LegalDocument: Identifiable {
     enum Kind: CaseIterable {
         case terms
         case privacy
@@ -418,7 +406,7 @@ private struct OpenSourceLicenseView: View {
 ///
 /// 一覧は `scripts/generate-licenses.sh` の生成物であり、依存がゼロのあいだは存在しない。
 /// それが正しい状態なので、見つからないことを異常として扱わない。
-private enum OpenSourceLicenseCatalog {
+enum OpenSourceLicenseCatalog {
     static func load(bundle: Bundle = .main) -> String? {
         guard let url = bundle.url(
             forResource: "Acknowledgements",
