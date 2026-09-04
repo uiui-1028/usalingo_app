@@ -27,33 +27,20 @@ struct WordLibraryCard: View {
     @ViewBuilder
     private var illustration: some View {
         if let url = word.illustrationURL {
-            AsyncImage(url: url) { phase in
-                switch phase {
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                case .empty:
-                    imagePlaceholder(showProgress: true)
-                case .failure:
-                    imagePlaceholder(showProgress: false)
-                @unknown default:
-                    imagePlaceholder(showProgress: false)
-                }
+            CardImage(
+                url: url,
+                contentMode: .fill,
+                showsLoadingIndicator: true
+            ) {
+                imagePlaceholder()
             }
         } else {
-            imagePlaceholder(showProgress: false)
+            imagePlaceholder()
         }
     }
 
-    private func imagePlaceholder(showProgress: Bool) -> some View {
-        ZStack {
-            WireImagePlaceholder(radius: WireMetrics.radiusControl)
-            if showProgress {
-                ProgressView()
-                    .tint(WireColor.ink)
-            }
-        }
+    private func imagePlaceholder() -> some View {
+        WireImagePlaceholder(radius: WireMetrics.radiusControl)
     }
 }
 

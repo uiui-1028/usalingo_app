@@ -80,11 +80,8 @@ struct StudyCardView: View {
     @ViewBuilder
     private var illustration: some View {
         if let url = card.illustrationURL {
-            AsyncImage(url: url) { image in
-                image.resizable().scaledToFit()
-            } placeholder: {
-                ProgressView()
-                    .tint(WireColor.ink)
+            CardImage(url: url) {
+                Color.clear
             }
             .frame(maxHeight: 190)
             .frame(maxWidth: .infinity)
