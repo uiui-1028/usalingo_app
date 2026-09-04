@@ -8,6 +8,7 @@ struct ProfileDashboardView: View {
     @State private var isEditingProfile = false
     @State private var isShowingAuth = false
     @State private var isShowingLegalInformation = false
+    @State private var isConfirmingCacheRemoval = false
     @State private var message = ""
 
     private let studyService = StudyService()
@@ -35,6 +36,13 @@ struct ProfileDashboardView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint("利用規約、プライバシー、ライセンス、クレジットの公開状況を開きます")
+                        Button {
+                            isConfirmingCacheRemoval = true
+                        } label: {
+                            ProfileTile(title: "画像キャッシュを削除", symbol: "trash", tone: .l1)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("一度見たカードの画像をこの端末から削除します。必要になれば再び読み込みます。")
                     }
                 }
 
@@ -87,6 +95,15 @@ struct ProfileDashboardView: View {
             if !isGuest {
                 isShowingAuth = false
             }
+        }
+        .alert("画像キャッシュを削除しますか？", isPresented: $isConfirmingCacheRemoval) {
+            Button("削除", role: .destructive) {
+                CardImageCache.removeAll()
+                message = "画像キャッシュを削除しました。必要な画像は、次に開いたときにもう一度読み込みます。"
+            }
+            Button("やめる", role: .cancel) {}
+        } message: {
+            Text("この端末に保存したカード画像だけを片付けます。カードや学習記録は消えません。")
         }
     }
 

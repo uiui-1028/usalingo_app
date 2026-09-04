@@ -51,6 +51,9 @@
 		A1000000000000000000078 /* DeckConceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000078 /* DeckConceptView.swift */; };
 		A10000000000000000000019 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AudioPlaybackService.swift */; };
 		A1000000000000000000003E /* HapticFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003E /* HapticFeedbackService.swift */; };
+		A1000000000000000000003F /* CardImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002D /* CardImageLoader.swift */; };
+		A10000000000000000000040 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C1 /* Nuke */; };
+		A10000000000000000000041 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C2 /* NukeUI */; };
 		A1000000000000000000001A /* WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* WordEditSheet.swift */; };
 		A1000000000000000000001B /* TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TagSheet.swift */; };
 		A1000000000000000000001C /* DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* DesignSettings.swift */; };
@@ -80,6 +83,7 @@
 		B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000009 /* LocalStudyDataSourceTests.swift */; };
 		B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */; };
 		B1000000000000000000009B /* StudyBackupSyncerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009B /* StudyBackupSyncerTests.swift */; };
+		B1000000000000000000009C /* CardImageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009C /* CardImageCacheTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -150,6 +154,7 @@
 		A20000000000000000000027 /* SampleDecks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/SampleDecks; sourceTree = "<group>"; };
 		A2000000000000000000002B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
 		A2000000000000000000002C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A2000000000000000000002D /* CardImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ImageLoading/CardImageLoader.swift; sourceTree = "<group>"; };
 		A20000000000000000000023 /* DeckFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DeckFile.swift; sourceTree = "<group>"; };
 		A20000000000000000000024 /* StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
@@ -170,6 +175,7 @@
 		B20000000000000000000009 /* LocalStudyDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStudyDataSourceTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestStudyBackupServiceTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009B /* StudyBackupSyncerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyBackupSyncerTests.swift; sourceTree = "<group>"; };
+		B2000000000000000000009C /* CardImageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardImageCacheTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -177,6 +183,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10000000000000000000040 /* Nuke in Frameworks */,
+				A10000000000000000000041 /* NukeUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,6 +230,7 @@
 				A20000000000000000000017 /* SessionStore.swift */,
 				A20000000000000000000019 /* AudioPlaybackService.swift */,
 				A2000000000000000000003E /* HapticFeedbackService.swift */,
+				A2000000000000000000002D /* CardImageLoader.swift */,
 				A20000000000000000000030 /* WireColor.swift */,
 				A20000000000000000000031 /* WireMetrics.swift */,
 				A20000000000000000000032 /* WireTypography.swift */,
@@ -293,6 +302,7 @@
 				B20000000000000000000009 /* LocalStudyDataSourceTests.swift */,
 				B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */,
 				B2000000000000000000009B /* StudyBackupSyncerTests.swift */,
+				B2000000000000000000009C /* CardImageCacheTests.swift */,
 			);
 			path = UsalingoIOSTests;
 			sourceTree = "<group>";
@@ -311,6 +321,10 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			packageProductDependencies = (
+				A100000000000000000000C1 /* Nuke */,
+				A100000000000000000000C2 /* NukeUI */,
 			);
 			name = UsalingoIOS;
 			productName = UsalingoIOS;
@@ -365,6 +379,9 @@
 			productRefGroup = A40000000000000000000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
+			packageReferences = (
+				A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */,
+			);
 			targets = (
 				A50000000000000000000001 /* UsalingoIOS */,
 				B50000000000000000000001 /* UsalingoIOSTests */,
@@ -441,6 +458,7 @@
 				A100000000000000000075 /* WordDetailSheet.swift in Sources */,
 				A10000000000000000000019 /* AudioPlaybackService.swift in Sources */,
 				A1000000000000000000003E /* HapticFeedbackService.swift in Sources */,
+				A1000000000000000000003F /* CardImageLoader.swift in Sources */,
 				A1000000000000000000001A /* WordEditSheet.swift in Sources */,
 				A1000000000000000000001B /* TagSheet.swift in Sources */,
 				A1000000000000000000001C /* DesignSettings.swift in Sources */,
@@ -467,6 +485,7 @@
 				B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */,
 				B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */,
 				B1000000000000000000009B /* StudyBackupSyncerTests.swift in Sources */,
+				B1000000000000000000009C /* CardImageCacheTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -479,6 +498,30 @@
 			targetProxy = B00000000000000000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Nuke.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.0.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A100000000000000000000C1 /* Nuke */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = Nuke;
+		};
+		A100000000000000000000C2 /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A80000000000000000000001 /* Debug */ = {

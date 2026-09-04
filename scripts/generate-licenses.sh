@@ -48,6 +48,10 @@ run_license_plist \
   --force \
   ${GITHUB_TOKEN:+--github-token "$GITHUB_TOKEN"}
 
+# LicensePlist の版によっては末尾に空行を複数出す。内容に意味のない差分を
+# コミットへ混ぜないため、最後の改行は1つだけにそろえる。
+perl -0pi -e 's/\n+\z/\n/' "$markdown_path"
+
 if [ "$check_only" -eq 1 ]; then
   if ! git -C "$repo_root" diff --exit-code -- "apps/ios-swiftui/$markdown_path"; then
     echo "ライセンス一覧が古いままです。sh scripts/generate-licenses.sh を実行して差分をコミットしてください。" >&2
