@@ -2,17 +2,30 @@ import SwiftUI
 
 /// デザインカスタマイズタブ（モック）。
 ///
-/// アプリ全体の UI/UX 設定モジュールを、タブ内に直接並べた表面的なワイヤーフレーム。
-/// 実際の設定反映や永続化は行わず、項目と既定値の見え方だけを確認するための静的モック。
+/// テーマの入口だけを並べ、詳細はボトムシートで見せる静的モック。
+/// 実際の設定反映や永続化は行わず、項目と既定値の見え方だけを確認する。
 struct DesignDashboardView: View {
+    @State private var selectedModule: DesignMockModule?
+
     var body: some View {
         ScrollView {
             VStack(spacing: WireMetrics.spacingXL) {
                 ForEach(DesignMockModule.all) { module in
-                    DesignModuleBlock(module: module)
+                    Button {
+                        selectedModule = module
+                    } label: {
+                        DesignThemeBlock(module: module)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint("詳細設定を表示します")
                 }
             }
             .padding(WireMetrics.screenPadding)
+        }
+        .sheet(item: $selectedModule) { module in
+            DesignModuleSheet(module: module)
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
         }
     }
 }
@@ -211,11 +224,11 @@ extension DesignMockModule {
 
 // MARK: - 表示部品
 
-private struct DesignModuleBlock: View {
+private struct DesignThemeBlock: View {
     let module: DesignMockModule
 
     var body: some View {
-        VStack(alignment: .leading, spacing: WireMetrics.spacingM) {
+        HStack(spacing: WireMetrics.spacingM) {
             HStack(spacing: WireMetrics.spacingM) {
                 Image(systemName: module.symbol)
                     .wireFont(.titleS)
@@ -230,13 +243,46 @@ private struct DesignModuleBlock: View {
                 }
             }
 
-            ForEach(module.settings) { setting in
-                DesignSettingBlock(setting: setting)
-            }
+            Spacer(minLength: WireMetrics.spacingS)
+
+            Image(systemName: "chevron.up")
+                .wireFont(.label)
+                .accessibilityHidden(true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(WireMetrics.spacingL)
         .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
+    }
+}
+
+private struct DesignModuleSheet: View {
+    let module: DesignMockModule
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingL) {
+                HStack(spacing: WireMetrics.spacingM) {
+                    Image(systemName: module.symbol)
+                        .wireFont(.titleS)
+                        .frame(width: 44, height: 44)
+                        .outlineCircleSurface()
+
+                    VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+                        Text(module.name)
+                            .wireFont(.titleS)
+                        Text(module.description)
+                            .wireFont(.caption)
+                    }
+                }
+
+                ForEach(module.settings) { setting in
+                    DesignSettingBlock(setting: setting)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(WireMetrics.screenPadding)
+        }
+        .accessibilityElement(children: .contain)
     }
 }
 
