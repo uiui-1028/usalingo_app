@@ -50,10 +50,25 @@ final class LegalDocumentTests: XCTestCase {
     /// `docs/legal/published/` の版・施行日と揃っていること。
     /// 文書側だけ改訂してコードを直し忘れると、ここで気づける。
     func testVersionAndEffectiveDateMatchThePublishedDocuments() {
+        let expected: [LegalDocument.Kind: (version: String, effectiveDate: String)] = [
+            .terms: ("第1.0版", "2026年9月1日"),
+            .privacy: ("第1.0版", "2026年9月1日"),
+            .credits: ("第1.1版", "2026年9月4日")
+        ]
+
         for document in documents {
-            XCTAssertEqual(document.version, "第1.0版")
-            XCTAssertEqual(document.effectiveDate, "2026年9月1日")
+            let want = expected[document.kind]
+            XCTAssertEqual(document.version, want?.version, "\(document.title) の版")
+            XCTAssertEqual(document.effectiveDate, want?.effectiveDate, "\(document.title) の施行日")
         }
+    }
+
+    /// 版は文書ごとに持つ。1つの定数を3文書で使い回すと、1文書だけ改訂したときに
+    /// 残りの2つまで新しい版として表示してしまう。
+    func testDocumentsCanCarryDifferentVersions() {
+        let versions = Set(documents.map(\.version))
+
+        XCTAssertGreaterThan(versions.count, 1, "3文書が同じ版を共有している")
     }
 
     func testEveryPublishedDocumentUsesItsKindTitle() {
