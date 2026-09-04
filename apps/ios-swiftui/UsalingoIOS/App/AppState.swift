@@ -6,7 +6,12 @@ final class AppState: ObservableObject {
         static let hasCompletedSwipeTutorial = "hasCompletedSwipeTutorial"
     }
 
-    @Published var session: AuthSession?
+    @Published var session: AuthSession? {
+        didSet {
+            guard session?.user.id != oldValue?.user.id else { return }
+            handleSessionChange()
+        }
+    }
     @Published var isRestoringSession = true
     @Published var isResettingPassword = false
     @Published var isShellChromeHidden = false
@@ -27,10 +32,14 @@ final class AppState: ObservableObject {
         return makeRemoteStudy(session)
     }
 
+    /// 学習記録のバックアップを裏側で行う係（G-3）。画面からは触らない。
+    private lazy var backupSyncer = makeBackupSyncer(localStudy)
+
     private let authService: AuthService
     private let accountDeletionService: any AccountDeletionServicing
     private let defaults: UserDefaults
     private let makeRemoteStudy: (AuthSession) -> any StudyDataSource
+    private let makeBackupSyncer: @MainActor (LocalStudyDataSource) -> StudyBackupSyncer
 
     var isGuest: Bool {
         session == nil
@@ -42,13 +51,15 @@ final class AppState: ObservableObject {
         authService: AuthService = AuthService(),
         accountDeletionService: any AccountDeletionServicing = AccountDeletionService(),
         localStudy: LocalStudyDataSource = LocalStudyDataSource(),
-        makeRemoteStudy: @escaping (AuthSession) -> any StudyDataSource = { RemoteStudyDataSource(session: $0) }
+        makeRemoteStudy: @escaping (AuthSession) -> any StudyDataSource = { RemoteStudyDataSource(session: $0) },
+        makeBackupSyncer: @escaping @MainActor (LocalStudyDataSource) -> StudyBackupSyncer = { StudyBackupSyncer(localStudy: $0) }
     ) {
         self.localStudy = localStudy
         self.defaults = defaults
         self.authService = authService
         self.accountDeletionService = accountDeletionService
         self.makeRemoteStudy = makeRemoteStudy
+        self.makeBackupSyncer = makeBackupSyncer
         designSettings = DesignSettings(defaults: defaults)
         isSwipeTutorialPresented = !defaults.bool(forKey: TutorialKey.hasCompletedSwipeTutorial)
         guard restoresSession else {
@@ -150,6 +161,27 @@ final class AppState: ObservableObject {
 
     func markStudyDataChanged() {
         studyDataVersion += 1
+        guard let session else { return }
+        backupSyncer.scheduleUpload(session: session)
+    }
+
+    /// アプリが背面へ回るときに、待機中のバックアップを出しきる。
+    func flushStudyBackup() async {
+        guard let session else { return }
+        await backupSyncer.flush(session: session)
+    }
+
+    /// ログイン・セッション復元で利用者が変わったときだけ、バックアップの同期をやり直す。
+    private func handleSessionChange() {
+        guard let session else {
+            backupSyncer.stop()
+            return
+        }
+        Task { [weak self] in
+            await self?.backupSyncer.start(session: session) { [weak self] in
+                self?.studyDataVersion += 1
+            }
+        }
     }
 
     func showSwipeTutorial() {

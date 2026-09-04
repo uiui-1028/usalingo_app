@@ -64,7 +64,7 @@
 		A10000000000000000000024 /* StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* StudyDataSource.swift */; };
 		A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* LocalStudyDataSource.swift */; };
 		A10000000000000000000026 /* DeckLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* DeckLibraryView.swift */; };
-		A10000000000000000000029 /* StudyBackupSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* StudyBackupSheet.swift */; };
+		A10000000000000000000029 /* StudyBackupSyncer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* StudyBackupSyncer.swift */; };
 		A10000000000000000000028 /* GuestStudyBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* GuestStudyBackupService.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
 		B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000B /* UserFacingErrorTests.swift */; };
@@ -78,6 +78,7 @@
 		B1000000000000000000002A /* LegalDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* LegalDocumentTests.swift */; };
 		B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000009 /* LocalStudyDataSourceTests.swift */; };
 		B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */; };
+		B1000000000000000000009B /* StudyBackupSyncerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009B /* StudyBackupSyncerTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -151,7 +152,7 @@
 		A20000000000000000000024 /* StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000026 /* DeckLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckLibraryView.swift; sourceTree = "<group>"; };
-		A20000000000000000000029 /* StudyBackupSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/StudyBackupSheet.swift; sourceTree = "<group>"; };
+		A20000000000000000000029 /* StudyBackupSyncer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyBackupSyncer.swift; sourceTree = "<group>"; };
 		A20000000000000000000028 /* GuestStudyBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/GuestStudyBackupService.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000000B /* UserFacingErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingErrorTests.swift; sourceTree = "<group>"; };
@@ -166,6 +167,7 @@
 		B2000000000000000000002A /* LegalDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000009 /* LocalStudyDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStudyDataSourceTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestStudyBackupServiceTests.swift; sourceTree = "<group>"; };
+		B2000000000000000000009B /* StudyBackupSyncerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyBackupSyncerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -241,7 +243,7 @@
 				A2000000000000000000076 /* LearningConcept.swift */,
 				A2000000000000000000077 /* DeckSummaryViews.swift */,
 				A2000000000000000000078 /* DeckConceptView.swift */,
-				A20000000000000000000029 /* StudyBackupSheet.swift */,
+				A20000000000000000000029 /* StudyBackupSyncer.swift */,
 				A20000000000000000000028 /* GuestStudyBackupService.swift */,
 				A20000000000000000000015 /* DesignDashboardView.swift */,
 				A20000000000000000000016 /* ProfileDashboardView.swift */,
@@ -287,6 +289,7 @@
 				B2000000000000000000002A /* LegalDocumentTests.swift */,
 				B20000000000000000000009 /* LocalStudyDataSourceTests.swift */,
 				B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */,
+				B2000000000000000000009B /* StudyBackupSyncerTests.swift */,
 			);
 			path = UsalingoIOSTests;
 			sourceTree = "<group>";
@@ -420,7 +423,7 @@
 				A1000000000000000000076 /* LearningConcept.swift in Sources */,
 				A1000000000000000000077 /* DeckSummaryViews.swift in Sources */,
 				A1000000000000000000078 /* DeckConceptView.swift in Sources */,
-				A10000000000000000000029 /* StudyBackupSheet.swift in Sources */,
+				A10000000000000000000029 /* StudyBackupSyncer.swift in Sources */,
 				A10000000000000000000028 /* GuestStudyBackupService.swift in Sources */,
 				A10000000000000000000015 /* DesignDashboardView.swift in Sources */,
 				A10000000000000000000016 /* ProfileDashboardView.swift in Sources */,
@@ -459,6 +462,7 @@
 				B1000000000000000000002A /* LegalDocumentTests.swift in Sources */,
 				B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */,
 				B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */,
+				B1000000000000000000009B /* StudyBackupSyncerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -322,7 +322,7 @@ final class LocalStudyDataSource: StudyDataSource {
 
     // MARK: - バックアップ（G-1）
 
-    /// 学習記録が1件でもあるか。復元前の確認（G-D4）で使う。
+    /// 学習記録が1件でもあるか。自動バックアップが書き戻すかどうかの判断に使う（G-D4）。
     var hasStudyRecord: Bool {
         !progressByCardId.isEmpty
     }
@@ -344,7 +344,7 @@ final class LocalStudyDataSource: StudyDataSource {
     }
 
     /// 端末の内容をスナップショットで**全置き換え**する。
-    /// 置き換え前の状態は戻せないため、呼び出す前に確認を取ること（G-D3）。
+    /// 置き換え前の状態は戻せないため、端末に学習記録がないときだけ呼ぶ（G-D4）。
     func restore(_ snapshot: LocalStudySnapshot) throws {
         guard snapshot.schemaVersion == LocalStudySnapshot.currentSchemaVersion else {
             throw LocalStudyError.unsupportedSnapshotVersion(snapshot.schemaVersion)

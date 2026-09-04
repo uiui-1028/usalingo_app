@@ -6,6 +6,10 @@ import UniformTypeIdentifiers
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
+    /// シェルの浮動アクションバーが見えている間だけ、List の末尾へ確保する余白。
+    private let bottomActionBarClearance: CGFloat
+    private let setActionBarHidden: (Bool) -> Void
+
     @State private var decks: [Deck] = []
     @State private var countsByDeckId: [Int: StudyDeckCounts] = [:]
     @State private var selectedDeck: Deck?
@@ -18,6 +22,15 @@ struct LearningDashboardView: View {
     @State private var errorMessage: String?
     @State private var exportDocument: DeckDocument?
     @State private var exportFileName = "deck"
+    @State private var previousVerticalDragTranslation: CGFloat?
+
+    init(
+        bottomActionBarClearance: CGFloat = 0,
+        setActionBarHidden: @escaping (Bool) -> Void = { _ in }
+    ) {
+        self.bottomActionBarClearance = bottomActionBarClearance
+        self.setActionBarHidden = setActionBarHidden
+    }
 
     private var isEditing: Bool { editMode.isEditing }
 
@@ -211,7 +224,17 @@ struct LearningDashboardView: View {
         .gesture(TapGesture().onEnded { endEditing() }, including: isEditing ? .all : .none)
         .scrollContentBackground(.hidden)
         .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
+        // NavigationStack の内側にある List では、外側の safeAreaInset だけでは
+        // 最後の行が避けない。末尾をバー高ぶんだけ追加でスクロールできるようにする。
+        .contentMargins(.bottom, bottomActionBarClearance, for: .scrollContent)
+        // 並べ替え側は双方向 Binding が必要。constant にすると終了操作が反映されない。
         .environment(\.editMode, $editMode)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 1)
+                .onChanged(updateActionBarVisibility)
+                .onEnded { _ in previousVerticalDragTranslation = nil },
+            including: .subviews
+        )
         .fileExporter(
             isPresented: Binding(
                 get: { exportDocument != nil },
@@ -225,6 +248,20 @@ struct LearningDashboardView: View {
                 errorMessage = "デッキを書き出せませんでした。\(UserFacingError.advice(for: error))"
             }
         }
+    }
+
+    private func updateActionBarVisibility(_ value: DragGesture.Value) {
+        guard abs(value.translation.height) > abs(value.translation.width) else {
+            previousVerticalDragTranslation = nil
+            return
+        }
+
+        defer { previousVerticalDragTranslation = value.translation.height }
+        guard let previousVerticalDragTranslation else { return }
+
+        let verticalMovement = value.translation.height - previousVerticalDragTranslation
+        guard abs(verticalMovement) > 0.5 else { return }
+        setActionBarHidden(verticalMovement < 0)
     }
 
     /// 行の本体をタップしたら、確認を挟まずに学習画面へ入る（D-8）。

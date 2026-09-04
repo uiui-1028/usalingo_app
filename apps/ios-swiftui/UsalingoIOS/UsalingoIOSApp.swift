@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct UsalingoIOSApp: App {
     @StateObject private var appState = AppState()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -13,6 +14,11 @@ struct UsalingoIOSApp: App {
                 .preferredColorScheme(.light)
                 .onOpenURL { url in
                     appState.handleIncomingURL(url)
+                }
+                .onChange(of: scenePhase) { _, phase in
+                    // 背面へ回る前に、待機中の学習記録バックアップを出しきる。
+                    guard phase != .active else { return }
+                    Task { await appState.flushStudyBackup() }
                 }
         }
     }

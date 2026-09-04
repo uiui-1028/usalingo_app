@@ -7,7 +7,6 @@ struct ProfileDashboardView: View {
     @State private var profile = UserProfile(userId: "", nickname: nil, plan: "free")
     @State private var isEditingProfile = false
     @State private var isShowingAuth = false
-    @State private var isShowingStudyBackup = false
     @State private var isShowingLegalInformation = false
     @State private var message = ""
 
@@ -29,13 +28,6 @@ struct ProfileDashboardView: View {
                             ProfileTile(title: displayName, symbol: "person.crop.circle", tone: .l1)
                         }
                         .buttonStyle(.plain)
-                        Button {
-                            isShowingStudyBackup = true
-                        } label: {
-                            ProfileTile(title: "学習記録のバックアップ", symbol: "externaldrive", tone: .l1)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityHint("この端末の学習記録を預ける、または預けてある記録で置き換えます")
                         Button {
                             isShowingLegalInformation = true
                         } label: {
@@ -87,9 +79,6 @@ struct ProfileDashboardView: View {
         }
         .sheet(isPresented: $isShowingAuth) {
             AuthView()
-        }
-        .sheet(isPresented: $isShowingStudyBackup) {
-            StudyBackupSheet()
         }
         .sheet(isPresented: $isShowingLegalInformation) {
             LegalInformationView()
