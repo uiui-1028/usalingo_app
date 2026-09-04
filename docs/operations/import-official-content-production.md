@@ -144,6 +144,29 @@ select
 Storageの150 objectはこのSQLでは消えません。必要なら
 `/private/tmp/usalingo-288-paths.json` の一覧を示して別途承認を得ます。
 
+### 切り戻しの検証結果（2026-09-04・ローカルSupabase）
+
+50語一式が入ったローカルDBで3通り試し、いずれも期待どおりだった。**本番では未実行。**
+
+| 試験 | 仕込み | 結果 |
+|---|---|---|
+| 1 | `user_word_tags` を1件（word 1001） | `USL-286 rollback stopped: 0 user_word_overrides and 1 user_word_tags rows would be cascade-deleted` で停止。**1行も消えず** |
+| 2 | `user_card_progress` を1件（deck 286のcard） | `USL-286 rollback stopped: 1 user_card_progress rows depend on deck 286` で停止。**1行も消えず** |
+| 3 | 利用者データ 0件 | `DELETE 50 / 50 / 50 / 1` のあと消え残り検査を通過してCOMMIT |
+
+試験3の前後の全件数。対象だけが消え、他のデッキ・単語は残った。
+
+```text
+          decks words meanings examples pron exaudio deck_words cards forms relations
+before        2    51       74       51   50      50         51    51    50        50
+after         1     1        1        1    0       0          1     1     0         0
+restored      2    51       74       51   50      50         51    51    50        50
+```
+
+`restored` は `render-sql` の出力をもう一度流した結果で、`before` と完全に一致する。
+つまり**この切り戻しは、同じSQLで元に戻せる**。試験用に作った利用者・タグ・学習履歴は
+すべて削除済みで、ローカルDBは試験前の状態に戻している。
+
 ## この手順に含めないこと
 
 - 51語目以降の投入
