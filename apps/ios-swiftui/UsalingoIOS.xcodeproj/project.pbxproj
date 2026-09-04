@@ -46,6 +46,9 @@
 		A100000000000000000073 /* WordListRowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000073 /* WordListRowViews.swift */; };
 		A100000000000000000074 /* WordListErrorBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000074 /* WordListErrorBox.swift */; };
 		A100000000000000000075 /* WordDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000075 /* WordDetailSheet.swift */; };
+		A1000000000000000000076 /* LearningConcept.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000076 /* LearningConcept.swift */; };
+		A1000000000000000000077 /* DeckSummaryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000077 /* DeckSummaryViews.swift */; };
+		A1000000000000000000078 /* DeckConceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000078 /* DeckConceptView.swift */; };
 		A10000000000000000000019 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AudioPlaybackService.swift */; };
 		A1000000000000000000003E /* HapticFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003E /* HapticFeedbackService.swift */; };
 		A1000000000000000000001A /* WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* WordEditSheet.swift */; };
@@ -130,6 +133,9 @@
 		A200000000000000000073 /* WordListRowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListRowViews.swift; sourceTree = "<group>"; };
 		A200000000000000000074 /* WordListErrorBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListErrorBox.swift; sourceTree = "<group>"; };
 		A200000000000000000075 /* WordDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordDetailSheet.swift; sourceTree = "<group>"; };
+		A2000000000000000000076 /* LearningConcept.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningConcept.swift; sourceTree = "<group>"; };
+		A2000000000000000000077 /* DeckSummaryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckSummaryViews.swift; sourceTree = "<group>"; };
+		A2000000000000000000078 /* DeckConceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckConceptView.swift; sourceTree = "<group>"; };
 		A20000000000000000000019 /* AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AudioPlaybackService.swift; sourceTree = "<group>"; };
 		A2000000000000000000003E /* HapticFeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HapticFeedbackService.swift; sourceTree = "<group>"; };
 		A2000000000000000000001A /* WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
@@ -232,6 +238,9 @@
 				A20000000000000000000013 /* AppShellView.swift */,
 				A20000000000000000000014 /* LearningDashboardView.swift */,
 				A20000000000000000000026 /* DeckLibraryView.swift */,
+				A2000000000000000000076 /* LearningConcept.swift */,
+				A2000000000000000000077 /* DeckSummaryViews.swift */,
+				A2000000000000000000078 /* DeckConceptView.swift */,
 				A20000000000000000000029 /* StudyBackupSheet.swift */,
 				A20000000000000000000028 /* GuestStudyBackupService.swift */,
 				A20000000000000000000015 /* DesignDashboardView.swift */,
@@ -408,6 +417,9 @@
 				A10000000000000000000013 /* AppShellView.swift in Sources */,
 				A10000000000000000000014 /* LearningDashboardView.swift in Sources */,
 				A10000000000000000000026 /* DeckLibraryView.swift in Sources */,
+				A1000000000000000000076 /* LearningConcept.swift in Sources */,
+				A1000000000000000000077 /* DeckSummaryViews.swift in Sources */,
+				A1000000000000000000078 /* DeckConceptView.swift in Sources */,
 				A10000000000000000000029 /* StudyBackupSheet.swift in Sources */,
 				A10000000000000000000028 /* GuestStudyBackupService.swift in Sources */,
 				A10000000000000000000015 /* DesignDashboardView.swift in Sources */,
