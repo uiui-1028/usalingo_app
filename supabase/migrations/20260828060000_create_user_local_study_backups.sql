@@ -66,15 +66,6 @@ create policy "user_local_study_backups_delete_own"
   to authenticated
   using ((select auth.uid()) = user_id);
 
--- 退会手続き中のアカウントからは読み書きさせない。
--- 既存の利用者テーブル（user_card_progress など）と同じ扱いに揃える。
-drop policy if exists user_local_study_backups_require_active_account
-  on public.user_local_study_backups;
-create policy user_local_study_backups_require_active_account
-  on public.user_local_study_backups as restrictive for all to authenticated
-  using ((select public.is_current_user_active()))
-  with check ((select public.is_current_user_active()));
-
 revoke all on table public.user_local_study_backups from public, anon, authenticated;
 grant select, insert, update, delete
   on table public.user_local_study_backups to authenticated;

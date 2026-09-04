@@ -1,9 +1,8 @@
 import {
   AccountDeletionError,
   AccountDeletionGateway,
-  withdrawAccount,
-  WithdrawalRequest,
-  WithdrawalState,
+  deleteAccount,
+  DeletionRequest,
 } from "./core.ts";
 
 const json = (body: unknown, status = 200) =>
@@ -65,94 +64,19 @@ class SupabaseGateway implements AccountDeletionGateway {
     return { id: result.user.id as string };
   }
 
-  async getDeletion(userId: string, requestId: string) {
-    const response = await this.call(
-      "get_deletion",
-      "/rest/v1/rpc/get_account_deletion",
-      {
-        method: "POST",
-        body: JSON.stringify({ p_user_id: userId, p_request_id: requestId }),
-      },
-    );
-    const rows = await response.json() as WithdrawalState[];
-    return rows[0] ?? null;
-  }
-
-  async requestDeletion(
-    userId: string,
-    requestId: string,
-    reauthenticatedAt: string,
-  ) {
-    const response = await this.call(
-      "request_deletion",
-      "/rest/v1/rpc/request_account_deletion",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          p_user_id: userId,
-          p_request_id: requestId,
-          p_reauthenticated_at: reauthenticatedAt,
-        }),
-      },
-    );
-    const rows = await response.json() as WithdrawalState[];
-    if (!rows[0]) throw new Error("missing_deletion_state");
-    return rows[0];
-  }
-
-  async banUser(userId: string) {
+  async deleteOwnedStorageObjects(userId: string) {
     await this.call(
-      "ban_user",
-      `/auth/v1/admin/users/${encodeURIComponent(userId)}`,
-      {
-        method: "PUT",
-        body: JSON.stringify({ ban_duration: "876000h" }),
-      },
+      "delete_storage_objects",
+      `/rest/v1/objects?owner_id=eq.${encodeURIComponent(userId)}`,
+      { method: "DELETE", headers: { "accept-profile": "storage", "content-profile": "storage" } },
     );
   }
 
-  async revokeSessions(accessToken: string) {
-    const response = await fetch(`${this.url}/auth/v1/logout?scope=global`, {
-      method: "POST",
-      headers: { apikey: this.secret, authorization: `Bearer ${accessToken}` },
-    });
-    if (!response.ok && response.status !== 401) {
-      throw new Error(`upstream_${response.status}`);
-    }
-  }
-
-  async advance(
-    userId: string,
-    requestId: string,
-    step: "auth_banned" | "sessions_revoked" | "failed",
-    failureCode?: string,
-  ) {
-    await this.call(
-      "advance_deletion",
-      "/rest/v1/rpc/advance_account_deletion",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          p_user_id: userId,
-          p_request_id: requestId,
-          p_step: step,
-          p_failure_code: failureCode ?? null,
-        }),
-      },
-    );
-  }
-
-  async purgeExpiredUser(userId: string) {
-    await this.call("claim_purge", "/rest/v1/rpc/claim_expired_account_purge", {
-      method: "POST",
-      body: JSON.stringify({ p_user_id: userId }),
-    });
+  async deleteAuthUser(userId: string) {
     await this.call(
       "delete_auth_user",
       `/auth/v1/admin/users/${encodeURIComponent(userId)}`,
-      {
-        method: "DELETE",
-      },
+      { method: "DELETE" },
     );
   }
 }
@@ -173,29 +97,13 @@ Deno.serve(async (request) => {
   }
 
   try {
-    const input = await request.json() as WithdrawalRequest;
-    if (
-      (input as WithdrawalRequest & { operation?: string }).operation ===
-        "purge"
-    ) {
-      if (authorization.slice(7) !== secret || !input.user_id) {
-        return json({ code: "forbidden" }, 403);
-      }
-      await new SupabaseGateway(url, publishable, secret).purgeExpiredUser(
-        input.user_id,
-      );
-      return json({ status: "purged" });
-    }
-    const result = await withdrawAccount(
+    const input = await request.json() as DeletionRequest;
+    const receipt = await deleteAccount(
       new SupabaseGateway(url, publishable, secret),
       authorization.slice(7),
       input,
     );
-    return json({
-      request_id: result.request_id,
-      status: result.status,
-      restorable_until: result.restorable_until,
-    });
+    return json(receipt);
   } catch (error) {
     if (error instanceof AccountDeletionError) {
       return json({ code: error.code }, error.status);
