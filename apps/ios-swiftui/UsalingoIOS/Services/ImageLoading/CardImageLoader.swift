@@ -19,17 +19,32 @@ enum CardImageCache {
         )
     }()
 
+    /// 現在のカードを基準に、いくつ先まで完成させて待たせておくか。
+    static let prefetchWindow = 6
+
+    /// 行き先はディスクではなくメモリ。ディスクまでで止めると表示時に読み直しとデコードが
+    /// 残り、連続でめくったときに一瞬 ProgressView が出てしまう。
     private static let prefetcher = ImagePrefetcher(
         pipeline: pipeline,
-        destination: .diskCache,
-        maxConcurrentRequestCount: 3
+        destination: .memoryCache,
+        maxConcurrentRequestCount: 4
     )
 
+    /// すでにメモリに載っているものは要求自体を作らない。残りは Nuke 側が同じ URL の
+    /// 実行中タスクをまとめるので、何度呼ばれても取得は重複しない。
     static func prefetch(urls: [URL]) {
-        prefetcher.startPrefetching(with: urls)
+        let missing = urls.filter { pipeline.cache[$0] == nil }
+        guard !missing.isEmpty else { return }
+        prefetcher.startPrefetching(with: missing)
+    }
+
+    /// 学習画面を離れるときなど、もう使わない先読みを止める。
+    static func stopPrefetching() {
+        prefetcher.stopPrefetching()
     }
 
     static func removeAll() {
+        prefetcher.stopPrefetching()
         pipeline.cache.removeAll()
     }
 }

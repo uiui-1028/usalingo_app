@@ -18,7 +18,8 @@ struct StudySessionView: View {
     @State private var isCompletingBackSwipe = false
     @State private var hasCrossedSwipeThreshold = false
     @State private var showAnswer = false
-    @State private var answerAttempt = StudyAnswerAttempt()
+    @State private var answerQueue = StudyAnswerQueue()
+    @State private var flyawayCards: [FlyawayCard] = []
     @State private var isUndoingAnswer = false
     @State private var editingWord: WordCard?
     @State private var taggingWord: WordCard?
@@ -87,6 +88,7 @@ struct StudySessionView: View {
         }
         .onDisappear {
             audioPlaybackService.stop()
+            CardImageCache.stopPrefetching()
             appState.isShellChromeHidden = false
         }
         .sheet(item: $editingWord) { word in
@@ -144,17 +146,20 @@ struct StudySessionView: View {
         .padding(.bottom, WireMetrics.spacingM)
     }
 
+    /// 束の中のカードはすべて同じ寸法・同じ位置に重ねる。順位による拡大縮小も位置差も
+    /// つけないので、トップが抜けても次のカードは動かない。交代を待つアニメーションが
+    /// 無く、現れた瞬間から捌ける。
     private var cardStack: some View {
         ZStack {
             if index + 1 < cards.count {
                 StudyCardView(card: cards[index + 1], showAnswer: false)
-                    .scaleEffect(0.95)
-                    .offset(y: 12)
-                    .opacity(0.72)
                     .allowsHitTesting(false)
+                    .zIndex(0)
             }
 
             StudyCardView(card: cards[index], showAnswer: showAnswer)
+                .id(cards[index].id)
+                .zIndex(1)
                 .backSwipeProtectedRegion()
                 .offset(dragOffset)
                 .rotationEffect(.degrees(Double(dragOffset.width / 24)))
@@ -189,6 +194,15 @@ struct StudySessionView: View {
                         showAnswer.toggle()
                     }
                 }
+
+            // 見送ったカードは独立した層で飛ばす。トップカードの入れ替えはこの演出を
+            // 待たないので、飛んでいる最中でも次のカードをスワイプできる。
+            ForEach(flyawayCards) { item in
+                FlyawayCardView(item: item) { finished in
+                    flyawayCards.removeAll { $0.id == finished.id }
+                }
+                .zIndex(2)
+            }
         }
         .padding(.horizontal, 18)
     }
@@ -220,7 +234,7 @@ struct StudySessionView: View {
                     Image(systemName: "xmark")
                 }
                 .buttonStyle(.wireIcon(diameter: 52))
-                .disabled(answerAttempt.isSaving || isUndoingAnswer)
+                .disabled(isUndoingAnswer)
                 .accessibilityLabel("不正解")
 
                 toolbar
@@ -232,7 +246,7 @@ struct StudySessionView: View {
                     Image(systemName: "checkmark")
                 }
                 .buttonStyle(.wireIcon(diameter: 52, isSelected: true, invertsWhenSelected: true))
-                .disabled(answerAttempt.isSaving || isUndoingAnswer)
+                .disabled(isUndoingAnswer)
                 .accessibilityLabel("正解")
             }
             .padding(.horizontal, WireMetrics.screenPadding)
@@ -254,7 +268,7 @@ struct StudySessionView: View {
             toolbarButton(
                 "arrow.uturn.backward",
                 label: "ひとつ戻す",
-                isDisabled: answerHistory.isEmpty || answerAttempt.isSaving || isUndoingAnswer,
+                isDisabled: answerHistory.isEmpty || !answerQueue.isEmpty || isUndoingAnswer,
                 action: undo
             )
             toolbarButton("square.and.pencil", label: "単語を編集", action: editCurrentCard)
@@ -266,7 +280,7 @@ struct StudySessionView: View {
 
     @ViewBuilder
     private var saveFailureBanner: some View {
-        if let saveErrorMessage, index < cards.count {
+        if let saveErrorMessage, index < cards.count || !answerQueue.isEmpty {
             // 色相を使わずに異常を示す（破線 + 文言）。
             VStack(spacing: WireMetrics.spacingS) {
                 Text("回答を保存できませんでした")
@@ -278,7 +292,7 @@ struct StudySessionView: View {
                     retryAnswer()
                 }
                 .buttonStyle(.wireSecondary)
-                .disabled(answerAttempt.isSaving || isUndoingAnswer)
+                .disabled(answerQueue.isDraining || isUndoingAnswer)
             }
             .frame(maxWidth: .infinity)
             .padding(WireMetrics.spacingL)
@@ -316,7 +330,8 @@ struct StudySessionView: View {
             sessionAnswers = []
             sessionProgresses = []
             answerHistory = []
-            answerAttempt = StudyAnswerAttempt()
+            answerQueue.reset()
+            flyawayCards = []
             saveErrorMessage = nil
             prefetchUpcomingImages()
         } catch {
@@ -339,61 +354,73 @@ struct StudySessionView: View {
         }
     }
 
-    private func persistPendingAnswer() async {
-        guard let isCorrect = answerAttempt.pendingAnswer,
-              index < cards.count else {
-            answerAttempt.cancel()
-            return
-        }
-        do {
-            let originalCard = cards[index]
-            let savedAnswer = try await appState.studyDataSource.saveAnswerWithUndo(
-                card: originalCard,
-                isCorrect: isCorrect
-            )
-            cards[index] = originalCard.withLearningProgress(savedAnswer.progress)
-            sessionAnswers.append(isCorrect)
-            sessionProgresses.append(savedAnswer.progress)
-            answerHistory.append(
-                AnswerCheckpoint(
-                    cardIndex: index,
-                    originalCard: originalCard,
-                    previousProgress: savedAnswer.previousProgress
-                )
-            )
-            appState.markStudyDataChanged()
-            audioPlaybackService.stop()
-            index += 1
-            prefetchUpcomingImages()
-            answerAttempt.succeeded()
-            saveErrorMessage = nil
-            showAnswer = false
-            dragOffset = .zero
-        } catch {
-            answerAttempt.failed()
-            saveErrorMessage = UserFacingError.message(for: error)
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.78)) {
-                dragOffset = .zero
+    /// 溜まった回答を投入順に保存する。排出役は常に1本だけで、走っている間に積まれた
+    /// 回答も同じループが拾う。UI はこの完了を待たない。
+    private func drainAnswerQueue() {
+        guard answerQueue.beginDraining() else { return }
+        Task {
+            while let pending = answerQueue.next {
+                do {
+                    let savedAnswer = try await appState.studyDataSource.saveAnswerWithUndo(
+                        card: pending.card,
+                        isCorrect: pending.isCorrect
+                    )
+                    if pending.cardIndex < cards.count {
+                        cards[pending.cardIndex] = pending.card
+                            .withLearningProgress(savedAnswer.progress)
+                    }
+                    sessionAnswers.append(pending.isCorrect)
+                    sessionProgresses.append(savedAnswer.progress)
+                    answerHistory.append(
+                        AnswerCheckpoint(
+                            cardIndex: pending.cardIndex,
+                            originalCard: pending.card,
+                            previousProgress: savedAnswer.previousProgress
+                        )
+                    )
+                    answerQueue.completeFirst()
+                    appState.markStudyDataChanged()
+                    saveErrorMessage = nil
+                } catch {
+                    // 失敗した回答は先頭に残す。「もう一度保存」でここから再開する。
+                    saveErrorMessage = UserFacingError.message(for: error)
+                    break
+                }
             }
+            answerQueue.endDraining()
         }
     }
 
+    /// カードの見送りと保存を切り離す。行列へ積んだらすぐ次のカードへ進むので、
+    /// 飛ばす演出や通信の完了待ちでスワイプが塞がることはない。
     private func submitAnswer(isCorrect: Bool) {
-        guard index < cards.count, answerAttempt.begin(isCorrect: isCorrect) else { return }
+        guard index < cards.count else { return }
         saveErrorMessage = nil
+
+        let answeredCard = cards[index]
         let target: CGFloat = isCorrect ? 700 : -700
-        withAnimation(.easeIn(duration: 0.18)) {
-            dragOffset = CGSize(width: target, height: 0)
-        }
-        Task {
-            try? await Task.sleep(nanoseconds: 180_000_000)
-            await persistPendingAnswer()
-        }
+        flyawayCards.append(
+            FlyawayCard(
+                card: answeredCard,
+                showAnswer: showAnswer,
+                start: dragOffset,
+                end: CGSize(width: target, height: dragOffset.height)
+            )
+        )
+        answerQueue.enqueue(cardIndex: index, card: answeredCard, isCorrect: isCorrect)
+
+        audioPlaybackService.stop()
+        index += 1
+        showAnswer = false
+        dragOffset = .zero
+        prefetchUpcomingImages()
+
+        drainAnswerQueue()
     }
 
     private func retryAnswer() {
-        guard answerAttempt.beginRetry() else { return }
-        Task { await persistPendingAnswer() }
+        saveErrorMessage = nil
+        drainAnswerQueue()
     }
 
     private func swipe(isCorrect: Bool) {
@@ -402,7 +429,7 @@ struct StudySessionView: View {
 
     private func undo() {
         guard let checkpoint = answerHistory.last,
-              !answerAttempt.isSaving,
+              answerQueue.isEmpty,
               !isUndoingAnswer else { return }
         Task { await restore(checkpoint) }
     }
@@ -443,11 +470,12 @@ struct StudySessionView: View {
         audioPlaybackService.togglePlayback(url: currentAudioURL)
     }
 
-    /// 次にめくる数枚だけを低い優先度で温める。見ない一覧や表紙は取りに行かない。
+    /// 現在のカードから数枚先までを温める。1枚消費するたびに窓が1つ先へずれるので、
+    /// 常に読み込み済みの控えが残る。取得済みのものは `CardImageCache` 側で弾かれる。
     private func prefetchUpcomingImages() {
         let urls = cards
-            .dropFirst(index + 1)
-            .prefix(4)
+            .dropFirst(index)
+            .prefix(CardImageCache.prefetchWindow)
             .compactMap(\.illustrationURL)
         CardImageCache.prefetch(urls: urls)
     }
@@ -475,35 +503,79 @@ struct StudySessionView: View {
 
 }
 
-struct StudyAnswerAttempt {
-    private(set) var pendingAnswer: Bool?
-    private(set) var isSaving = false
+/// 保存待ちの回答を投入順に並べる行列。
+///
+/// 以前は「保存が終わるまで次の回答を受け付けない」作りだったため、通信のたびに
+/// スワイプが塞がっていた。ここでは投入は常に成功させ、詰まるのは保存側だけにする。
+struct StudyAnswerQueue {
+    struct PendingAnswer {
+        let cardIndex: Int
+        let card: WordCard
+        let isCorrect: Bool
+    }
 
-    mutating func begin(isCorrect: Bool) -> Bool {
-        guard !isSaving, pendingAnswer == nil else { return false }
-        pendingAnswer = isCorrect
-        isSaving = true
+    private(set) var pending: [PendingAnswer] = []
+    private(set) var isDraining = false
+
+    var isEmpty: Bool { pending.isEmpty }
+    var next: PendingAnswer? { pending.first }
+
+    mutating func enqueue(cardIndex: Int, card: WordCard, isCorrect: Bool) {
+        pending.append(PendingAnswer(cardIndex: cardIndex, card: card, isCorrect: isCorrect))
+    }
+
+    /// 排出役は1本だけ立てる。すでに走っていれば新しい回答は既存のループが拾う。
+    mutating func beginDraining() -> Bool {
+        guard !isDraining, !pending.isEmpty else { return false }
+        isDraining = true
         return true
     }
 
-    mutating func beginRetry() -> Bool {
-        guard !isSaving, pendingAnswer != nil else { return false }
-        isSaving = true
-        return true
+    mutating func completeFirst() {
+        guard !pending.isEmpty else { return }
+        pending.removeFirst()
     }
 
-    mutating func succeeded() {
-        pendingAnswer = nil
-        isSaving = false
+    mutating func endDraining() {
+        isDraining = false
     }
 
-    mutating func failed() {
-        isSaving = false
+    mutating func reset() {
+        pending.removeAll()
+        isDraining = false
     }
+}
 
-    mutating func cancel() {
-        pendingAnswer = nil
-        isSaving = false
+/// 見送ったカードを飛ばすためだけの控え。トップカードとは別の層に置くので、
+/// この演出が終わるのを待たずに次のカードを操作できる。
+private struct FlyawayCard: Identifiable {
+    let id = UUID()
+    let card: WordCard
+    let showAnswer: Bool
+    let start: CGSize
+    let end: CGSize
+}
+
+private struct FlyawayCardView: View {
+    let item: FlyawayCard
+    let onFinished: (FlyawayCard) -> Void
+
+    @State private var offset: CGSize?
+
+    var body: some View {
+        let current = offset ?? item.start
+        StudyCardView(card: item.card, showAnswer: item.showAnswer)
+            .offset(current)
+            .rotationEffect(.degrees(Double(current.width / 24)))
+            .opacity(offset == nil ? 1 : 0)
+            .allowsHitTesting(false)
+            .onAppear {
+                withAnimation(.easeIn(duration: 0.2)) {
+                    offset = item.end
+                } completion: {
+                    onFinished(item)
+                }
+            }
     }
 }
 
