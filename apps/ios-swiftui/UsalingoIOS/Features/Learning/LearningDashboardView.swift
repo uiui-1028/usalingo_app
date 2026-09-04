@@ -10,12 +10,16 @@ struct LearningDashboardView: View {
     @State private var countsByDeckId: [Int: StudyDeckCounts] = [:]
     @State private var selectedDeck: Deck?
     @State private var conceptDeck: Deck?
-    @State private var isEditing = false
+    /// 並べ替えモード。`.constant` で渡すと `List` 側から抜けられなくなるので、
+    /// 書き戻せる状態として持つ。
+    @State private var editMode: EditMode = .inactive
     @State private var isShowingLibrary = false
     @State private var isShowingWordList = false
     @State private var errorMessage: String?
     @State private var exportDocument: DeckDocument?
     @State private var exportFileName = "deck"
+
+    private var isEditing: Bool { editMode.isEditing }
 
     var body: some View {
         NavigationStack {
@@ -49,8 +53,21 @@ struct LearningDashboardView: View {
             Section {
                 // 見出しと行の左端を揃えるため、余白は行の中身側で持つ。
                 VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                    Text("デッキ一覧")
-                        .wireFont(.titleS)
+                    HStack(alignment: .firstTextBaseline, spacing: WireMetrics.spacingS) {
+                        Text("デッキ一覧")
+                            .wireFont(.titleS)
+                        Spacer(minLength: WireMetrics.spacingS)
+                        // 並べ替え中は、必ず見えるところに出口を置く。
+                        // 下のほうのボタンだけだと画面外になって戻れなくなる。
+                        if isEditing {
+                            Button {
+                                endEditing()
+                            } label: {
+                                WirePill(title: "並べ替えを終える", font: .caption)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
                     // 習得率と習得・苦手の数はまだデータ層から出せないので、
                     // 仮の数字であることをここで断る（デザインタブと同じ扱い）。
                     WireframeNotice(text: "習得率と、習得・苦手の数はまだ仮の数字です。")
@@ -58,9 +75,9 @@ struct LearningDashboardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(WireMetrics.spacingL)
                     .bentoListRow(
-                        position: .top,
+                        position: isEditing ? .single : .top,
                         tone: deckGroupTone,
-                        showsDivider: true
+                        showsDivider: !isEditing
                     )
 
                 if decks.isEmpty {
@@ -70,10 +87,16 @@ struct LearningDashboardView: View {
                     ForEach(decks) { deck in
                         let isLast = deck.id == decks.last?.id
                         deckRow(deck)
+                            // 並べ替え中は行が動くので、行をまたいで1つの枠を描く
+                            // 「はみ出させて切り取る」描き方をやめ、行ごとに閉じた枠にする。
+                            // そうしないと切り取られた枠だけが残って見た目が壊れる。
                             .bentoListRow(
-                                position: isLast ? .bottom : .middle,
+                                position: isEditing
+                                    ? .single
+                                    : (isLast ? .bottom : .middle),
                                 tone: deckGroupTone,
-                                showsDivider: !isLast
+                                showsDivider: !isEditing && !isLast,
+                                vertical: isEditing ? WireMetrics.spacingXS : 0
                             )
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 if appState.isGuest {
@@ -99,6 +122,7 @@ struct LearningDashboardView: View {
                     }
                     WireframeNotice(text: "保存先はまだありません。並びを見るためのサンプルです。")
                 }
+                .endsDeckEditingOnTap(isEditing) { endEditing() }
                 .wireListRow()
             }
 
@@ -132,6 +156,7 @@ struct LearningDashboardView: View {
                     }
                     .buttonStyle(.bentoRow(tone: .l2))
                 }
+                .endsDeckEditingOnTap(isEditing) { endEditing() }
                 .wireListRow()
             }
 
@@ -142,18 +167,19 @@ struct LearningDashboardView: View {
                         VStack(spacing: WireMetrics.spacingM) {
                             if isEditing {
                                 Button("編集を終える") {
-                                    isEditing = false
+                                    endEditing()
                                 }
                                 .buttonStyle(.wireSecondary)
                             }
 
                             Button("＋ デッキを追加") {
-                                isEditing = false
+                                endEditing()
                                 isShowingLibrary = true
                             }
                             .buttonStyle(.wirePrimary)
                         }
                     }
+                    .endsDeckEditingOnTap(isEditing) { endEditing() }
                     .wireListRow()
                 }
             }
@@ -174,14 +200,18 @@ struct LearningDashboardView: View {
                                 fill: BentoTone.l3.fill
                             )
                     }
+                    .endsDeckEditingOnTap(isEditing) { endEditing() }
                     .wireListRow()
                 }
             }
         }
         .listStyle(.plain)
+        // 行の隙間や余白など、どの行も受け取らなかったタップ。
+        // `gesture` は行の中身に負けるので、デッキ行の操作は邪魔しない。
+        .gesture(TapGesture().onEnded { endEditing() }, including: isEditing ? .all : .none)
         .scrollContentBackground(.hidden)
         .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
-        .environment(\.editMode, .constant(isEditing ? .active : .inactive))
+        .environment(\.editMode, $editMode)
         .fileExporter(
             isPresented: Binding(
                 get: { exportDocument != nil },
@@ -226,7 +256,8 @@ struct LearningDashboardView: View {
                 .buttonStyle(.bentoRow(tone: deckGroupTone))
                 .simultaneousGesture(
                     LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                        if appState.isGuest { isEditing = true }
+                        guard appState.isGuest, !isEditing else { return }
+                        withAnimation(.easeInOut(duration: 0.2)) { editMode = .active }
                     }
                 )
 
@@ -309,7 +340,7 @@ struct LearningDashboardView: View {
             decks = []
             countsByDeckId = [:]
             errorMessage = UserFacingError.message(for: error)
-            isEditing = false
+            editMode = .inactive
             return
         }
         for deck in decks {
@@ -322,8 +353,13 @@ struct LearningDashboardView: View {
         countsByDeckId = counts
         errorMessage = failed.isEmpty ? nil : "\(failed.joined(separator: "、")) のカードを読み込めませんでした。"
         if decks.isEmpty {
-            isEditing = false
+            editMode = .inactive
         }
+    }
+
+    /// 並べ替えモードを抜ける。出口はここ1か所にまとめる。
+    private func endEditing() {
+        withAnimation(.easeInOut(duration: 0.2)) { editMode = .inactive }
     }
 
     private var moveHandler: ((IndexSet, Int) -> Void)? {
@@ -373,3 +409,15 @@ struct LearningDashboardView: View {
         .environmentObject(DesignSettings())
 }
 #endif
+
+private extension View {
+    /// デッキ一覧の外側をタップしたら並べ替えを終える。
+    /// 画面下のアクションバーはこの `List` の外にあるので、ここでは反応しない。
+    func endsDeckEditingOnTap(_ isEditing: Bool, action: @escaping () -> Void) -> some View {
+        contentShape(Rectangle())
+            .simultaneousGesture(
+                TapGesture().onEnded { action() },
+                including: isEditing ? .all : .none
+            )
+    }
+}
