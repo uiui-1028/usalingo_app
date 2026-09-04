@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// 学習タブ。1列のデッキリスト（D-4）。行をタップしたら確認を挟まずに学習画面へ入る（D-8）。
-/// 「どう遊ぶか」を決める `DeckConceptView` は、行の右端のボタンから開く。
+/// 「どう遊ぶか」を決める `DeckConceptView` は、行の右端のボタンから下から開く。
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
@@ -23,15 +23,19 @@ struct LearningDashboardView: View {
                 .navigationDestination(item: $selectedDeck) { deck in
                     StudySessionView(deck: deck)
                 }
-                .navigationDestination(item: $conceptDeck) { deck in
-                    DeckConceptView(deck: deck, counts: countsByDeckId[deck.id])
-                }
                 .navigationDestination(isPresented: $isShowingLibrary) {
                     DeckLibraryView { Task { await reload() } }
                 }
                 .navigationDestination(isPresented: $isShowingWordList) {
                     WordListView()
                 }
+        }
+        .sheet(item: $conceptDeck) { deck in
+            NavigationStack {
+                DeckConceptView(deck: deck, counts: countsByDeckId[deck.id])
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
         }
         .task(id: reloadKey) { await reload() }
     }
@@ -194,7 +198,7 @@ struct LearningDashboardView: View {
     }
 
     /// 行の本体をタップしたら、確認を挟まずに学習画面へ入る（D-8）。
-    /// コンセプト画面は行の右端のボタンから開く。
+    /// コンセプト画面は行の右端のボタンから下から開く。
     private func deckRow(_ deck: Deck) -> some View {
         VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
             // 上段だけを2列に分ける。習得率バーと内訳チップは行の幅いっぱいを使えるので、
