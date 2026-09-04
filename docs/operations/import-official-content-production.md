@@ -208,6 +208,21 @@ python3 scripts/prepare-official-content.py render-merge-sql \
   --output /private/tmp/usalingo-286-merge.sql
 ```
 
+出力は**非ASCIIを1文字も含みません**。日本語はUnicodeエスケープ `U&'\6311\6226'` で
+書かれます。2026-09-04にこの対策なしで実行し、クリップボード経由の貼り付けで
+UTF-8がMac Romanとして読まれ、本番の日本語がすべて文字化けしました。経緯は
+[`../decisions/usl-286-ascii-only-sql.md`](../decisions/usl-286-ascii-only-sql.md) にあります。
+
+**実行後の確認は、画面の文字ではなくバイトで行います。** 表示側の解釈で正しく見える
+ことがあるためです。
+
+```sql
+select id, encode(convert_to(definition_jp,'UTF8'),'hex')
+from word_meanings where word_id in (17, 23, 35) order by id;
+```
+
+`挑戦` なら `e68c91e688a6` になります。ここが `c38ac3a5...` のように長ければ文字化けです。
+
 差し替えSQLは、更新の前に**同じトランザクションの中で差し替え前の値を
 `public.usl286_pre_merge_snapshot` へ控えます**。人が値を書き写さないので、転記ミスで
 戻せなくなることがありません。2回目以降の実行は最初の控えを残します。
