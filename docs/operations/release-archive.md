@@ -98,7 +98,7 @@ xcodebuild archive \
 ## 4. この手順に含まれないもの
 
 - **CI での自動化** — USL-291（`reserved`）
-- **App Store Connect への提出と内部テスターへの配布** — USL-287
+- **App Store Connect への提出と自分のiPhoneへの内部配布** — USL-287
 - **輸出コンプライアンス、プライバシー、年齢区分の申告** — [TestFlight配信の準備一覧](testflight-release-checklist.md) の6章
 - **テストターゲットの署名** — 実機でテストを走らせる場合は `UsalingoIOSTests` にも `DEVELOPMENT_TEAM` が要ります。アーカイブには不要なため設定していません。CI はシミュレータで `CODE_SIGNING_ALLOWED=NO` のため影響しません
 
