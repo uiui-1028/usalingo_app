@@ -6,7 +6,7 @@ import UIKit
 final class AccountDeletionTests: XCTestCase {
     func testServiceSendsAuthenticatedRequestWithoutUserID() async throws {
         let transport = CapturingDeletionNetworkSession(
-            data: Data(#"{"request_id":"550e8400-e29b-41d4-a716-446655440000","status":"disabled","restorable_until":"2027-08-26T00:00:00Z"}"#.utf8),
+            data: Data(#"{"status":"deleted","deleted_at":"2026-09-04T00:00:00Z"}"#.utf8),
             statusCode: 200
         )
         let service = AccountDeletionService(
@@ -14,12 +14,10 @@ final class AccountDeletionTests: XCTestCase {
             functionsURL: URL(string: "https://example.supabase.co/functions/v1")!,
             apiKey: "public-test-key"
         )
-        let requestID = UUID(uuidString: "550e8400-e29b-41d4-a716-446655440000")!
 
         let receipt = try await service.withdraw(
             password: "correct horse battery staple",
             confirmation: "退会",
-            requestID: requestID,
             accessToken: "user-access-token"
         )
 
@@ -29,10 +27,10 @@ final class AccountDeletionTests: XCTestCase {
         XCTAssertEqual(request.value(forHTTPHeaderField: "apikey"), "public-test-key")
         let body = try XCTUnwrap(request.httpBody)
         let object = try XCTUnwrap(JSONSerialization.jsonObject(with: body) as? [String: String])
-        XCTAssertEqual(object["request_id"], requestID.uuidString.lowercased())
         XCTAssertEqual(object["confirmation"], "退会")
         XCTAssertNil(object["user_id"])
-        XCTAssertEqual(receipt.status, "disabled")
+        XCTAssertEqual(receipt.status, "deleted")
+        XCTAssertEqual(receipt.deletedAt, "2026-09-04T00:00:00Z")
     }
 
     @MainActor
@@ -61,7 +59,6 @@ final class AccountDeletionTests: XCTestCase {
         try await appState.deleteAccount(
             password: "password123",
             confirmation: "退会",
-            requestID: UUID()
         )
 
         XCTAssertNil(appState.session)
@@ -93,7 +90,7 @@ final class AccountDeletionTests: XCTestCase {
             appState.setSession(testSession)
 
             do {
-                try await appState.deleteAccount(password: "password123", confirmation: "退会", requestID: UUID())
+                try await appState.deleteAccount(password: "password123", confirmation: "退会")
                 XCTFail("Expected deletion failure")
             } catch let error as AccountDeletionClientError {
                 XCTAssertEqual(error, expectedError)
@@ -124,12 +121,12 @@ final class AccountDeletionTests: XCTestCase {
         appState.setSession(testSession)
 
         let first = Task {
-            try await appState.deleteAccount(password: "password123", confirmation: "退会", requestID: UUID())
+            try await appState.deleteAccount(password: "password123", confirmation: "退会")
         }
         try await Task.sleep(nanoseconds: 20_000_000)
 
         do {
-            try await appState.deleteAccount(password: "password123", confirmation: "退会", requestID: UUID())
+            try await appState.deleteAccount(password: "password123", confirmation: "退会")
             XCTFail("Expected duplicate submission rejection")
         } catch let error as AccountDeletionClientError {
             XCTAssertEqual(error, .alreadyInProgress)
@@ -207,23 +204,23 @@ private final class DeletionSupabaseClient: SupabaseRequesting {
 }
 
 private struct SuccessfulDeletionService: AccountDeletionServicing {
-    func withdraw(password: String, confirmation: String, requestID: UUID, accessToken: String) async throws -> AccountDeletionReceipt {
-        AccountDeletionReceipt(requestID: requestID.uuidString, status: "disabled", restorableUntil: "2027-08-26T00:00:00Z")
+    func withdraw(password: String, confirmation: String, accessToken: String) async throws -> AccountDeletionReceipt {
+        AccountDeletionReceipt(status: "deleted", deletedAt: "2026-09-04T00:00:00Z")
     }
 }
 
 private struct FailingDeletionService: AccountDeletionServicing {
     let error: AccountDeletionClientError
-    func withdraw(password: String, confirmation: String, requestID: UUID, accessToken: String) async throws -> AccountDeletionReceipt {
+    func withdraw(password: String, confirmation: String, accessToken: String) async throws -> AccountDeletionReceipt {
         throw error
     }
 }
 
 private final class SlowDeletionService: AccountDeletionServicing {
     private(set) var callCount = 0
-    func withdraw(password: String, confirmation: String, requestID: UUID, accessToken: String) async throws -> AccountDeletionReceipt {
+    func withdraw(password: String, confirmation: String, accessToken: String) async throws -> AccountDeletionReceipt {
         callCount += 1
         try await Task.sleep(nanoseconds: 100_000_000)
-        return AccountDeletionReceipt(requestID: requestID.uuidString, status: "disabled", restorableUntil: "2027-08-26T00:00:00Z")
+        return AccountDeletionReceipt(status: "deleted", deletedAt: "2026-09-04T00:00:00Z")
     }
 }

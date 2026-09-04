@@ -690,7 +690,7 @@ private struct AccountSecuritySheet: View {
                             Label("アカウントを削除", systemImage: "person.crop.circle.badge.minus")
                         }
                         .buttonStyle(.wireDestructive)
-                        Text("退会後はログインできなくなります。課金中のサービスがある場合、解約は別の操作です。")
+                        Text("アカウントと学習記録をその場で削除します。復元はできません。課金中のサービスがある場合、解約は別の操作です。")
                             .wireFont(.caption)
                     }
 
@@ -771,7 +771,6 @@ struct AccountDeletionSheet: View {
     @State private var confirmation = ""
     @State private var acknowledged = false
     @State private var message = ""
-    @State private var requestID = UUID()
 
     var body: some View {
         NavigationStack {
@@ -780,9 +779,9 @@ struct AccountDeletionSheet: View {
                     WireSection("退会前に確認してください") {
                         WireCard {
                             VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-                                Text("退会すると、すべての端末でログインできなくなり、学習記録・プロフィール・単語設定は通常の画面から見られなくなります。")
+                                Text("退会すると、アカウントと学習記録・プロフィール・単語設定をその場ですべて削除します。")
                                     .wireFont(.body)
-                                Text("データは復元のため365日間停止状態で保持され、その後に削除されます。最終削除後は元に戻せません。")
+                                Text("復元はできません。取り消したくなっても元に戻せないため、必要な記録は先に控えてください。")
                                     .wireFont(.body)
                                 Text("App Storeなどの課金契約がある場合、退会だけでは解約されません。課金元で別に解約してください。")
                                     .wireFont(.caption)
@@ -813,12 +812,12 @@ struct AccountDeletionSheet: View {
                                 ProgressView()
                                     .tint(WireColor.ink)
                             }
-                            Text(appState.isDeletingAccount ? "退会手続き中…" : "最終確認して退会する")
+                            Text(appState.isDeletingAccount ? "削除しています…" : "最終確認して削除する")
                         }
                     }
                     .buttonStyle(.wireDestructive)
                     .disabled(!canSubmit)
-                    .accessibilityHint("本人確認後に退会状態へ変更します。最終削除までは365日間保持されます。")
+                    .accessibilityHint("本人確認のあと、アカウントと学習記録をその場で削除します。取り消せません。")
 
                     if !message.isEmpty {
                         WireSection("結果") {
@@ -831,7 +830,7 @@ struct AccountDeletionSheet: View {
                                     shadow: nil,
                                     dashed: true
                                 )
-                                .accessibilityLabel("退会手続きの結果。\(message)")
+                                .accessibilityLabel("退会の結果。\(message)")
                         }
                     }
                 }
@@ -868,8 +867,7 @@ struct AccountDeletionSheet: View {
         do {
             try await appState.deleteAccount(
                 password: password,
-                confirmation: confirmation,
-                requestID: requestID
+                confirmation: confirmation
             )
         } catch {
             message = UserFacingError.message(for: error)
