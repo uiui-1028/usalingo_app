@@ -38,15 +38,7 @@ struct LearningDashboardView: View {
         NavigationStack {
             list
                 .navigationDestination(item: $selectedDeck) { deck in
-                    // 前面の学習画面を戻る方向へ引いている間だけ、直前の一覧を下に見せる。
-                    // この一覧はプレビュー専用で、操作や VoiceOver の対象にはしない。
-                    ZStack {
-                        list
-                            .allowsHitTesting(false)
-                            .accessibilityHidden(true)
-
-                        StudySessionView(deck: deck)
-                    }
+                    StudySessionView(deck: deck)
                 }
                 .navigationDestination(isPresented: $isShowingLibrary) {
                     DeckLibraryView { Task { await reload() } }

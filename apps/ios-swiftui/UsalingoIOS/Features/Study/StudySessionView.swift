@@ -14,8 +14,6 @@ struct StudySessionView: View {
     @State private var loadErrorMessage: String?
     @State private var saveErrorMessage: String?
     @State private var dragOffset = CGSize.zero
-    @State private var backSwipeOffset: CGFloat = 0
-    @State private var isCompletingBackSwipe = false
     @State private var hasCrossedSwipeThreshold = false
     @State private var showAnswer = false
     @State private var answerAttempt = StudyAnswerAttempt()
@@ -74,11 +72,8 @@ struct StudySessionView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(WireColor.background)
-        .offset(x: backSwipeOffset)
         .background {
-            StudyBackSwipePanBridge(offset: $backSwipeOffset) { completionWidth in
-                completeBackSwipe(completionWidth: completionWidth)
-            }
+            StudyBackSwipeEnabler()
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
@@ -191,23 +186,6 @@ struct StudySessionView: View {
                 }
         }
         .padding(.horizontal, 18)
-    }
-
-    private func completeBackSwipe(completionWidth: CGFloat) {
-        guard !isCompletingBackSwipe else { return }
-        isCompletingBackSwipe = true
-
-        // dismiss は指を離してしきい値を超えた後だけ呼ぶ。先に前面を画面外まで
-        // 送り切ることで、NavigationStack の pop へ見た目を途切れず引き継ぐ。
-        withAnimation(.easeOut(duration: 0.18)) {
-            backSwipeOffset = completionWidth
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
-#if DEBUG
-            print("[StudyBackSwipe] dismiss after completed pan")
-#endif
-            dismiss()
-        }
     }
 
     @ViewBuilder
@@ -613,152 +591,155 @@ private struct StudyBackSwipeProtectedRegionMarker: UIViewRepresentable {
 
 private final class StudyBackSwipeProtectedRegionView: UIView {}
 
-/// SwiftUI の透明 View にドラッグを拾わせず、表示中の UIWindow で pan を観測する。
-/// 開始地点がカード／アクションバー等の marker 内なら recognizer 自体を開始しない。
-private struct StudyBackSwipePanBridge: UIViewRepresentable {
-    @Binding var offset: CGFloat
-    let onCommit: (CGFloat) -> Void
-
+/// 戻る操作は UIKit 標準の対話的 pop にそのまま任せる。iOS 26 以降はコンテンツ全体、
+/// それ以前は画面端からのスワイプ。指への追従・しきい値・前画面の視差は UIKit が持つので、
+/// ここでは「どこから始めたら戻さないか」だけを足す。
+private struct StudyBackSwipeEnabler: UIViewRepresentable {
     func makeCoordinator() -> Coordinator {
-        Coordinator(offset: $offset, onCommit: onCommit)
+        Coordinator()
     }
 
-    func makeUIView(context: Context) -> StudyBackSwipeGestureRegionView {
-        let view = StudyBackSwipeGestureRegionView()
+    func makeUIView(context: Context) -> StudyBackSwipeHostView {
+        let view = StudyBackSwipeHostView()
         view.isUserInteractionEnabled = false
         view.backgroundColor = .clear
         view.onWindowChange = { [weak coordinator = context.coordinator, weak view] in
-            coordinator?.syncInstallation(for: view)
+            coordinator?.attach(from: view)
         }
         return view
     }
 
-    func updateUIView(_ uiView: StudyBackSwipeGestureRegionView, context: Context) {
-        context.coordinator.offset = $offset
-        context.coordinator.onCommit = onCommit
-        context.coordinator.syncInstallation(for: uiView)
+    func updateUIView(_ uiView: StudyBackSwipeHostView, context: Context) {
+        context.coordinator.attach(from: uiView)
     }
 
-    static func dismantleUIView(_ uiView: StudyBackSwipeGestureRegionView, coordinator: Coordinator) {
-        coordinator.uninstall()
+    static func dismantleUIView(_ uiView: StudyBackSwipeHostView, coordinator: Coordinator) {
+        coordinator.detach()
     }
 
     final class Coordinator: NSObject, UIGestureRecognizerDelegate {
-        var offset: Binding<CGFloat>
-        var onCommit: (CGFloat) -> Void
+        private weak var hostView: StudyBackSwipeHostView?
+        private weak var gesture: UIGestureRecognizer?
+        private weak var originalDelegate: UIGestureRecognizerDelegate?
+        private var originalIsEnabled = true
 
-        private weak var regionView: StudyBackSwipeGestureRegionView?
-        private weak var installedWindow: UIWindow?
-        private lazy var panGesture: UIPanGestureRecognizer = {
-            let gesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
-            gesture.delegate = self
-            gesture.cancelsTouchesInView = false
-            gesture.delaysTouchesBegan = false
-            gesture.delaysTouchesEnded = false
-            gesture.maximumNumberOfTouches = 1
-            return gesture
-        }()
+        func attach(from view: StudyBackSwipeHostView?) {
+            guard let view,
+                  let navigationController = view.owningNavigationController,
+                  let target = navigationController.studyBackSwipeGesture else { return }
 
-        init(offset: Binding<CGFloat>, onCommit: @escaping (CGFloat) -> Void) {
-            self.offset = offset
-            self.onCommit = onCommit
-        }
-
-        func syncInstallation(for regionView: StudyBackSwipeGestureRegionView?) {
-            guard let regionView, let window = regionView.window else {
-                if self.regionView === regionView {
-                    uninstall()
-                }
-                return
+            if let current = gesture, current !== target {
+                restore(current)
             }
-            if installedWindow === window {
-                self.regionView = regionView
-                return
+            if gesture !== target {
+                gesture = target
+                originalDelegate = target.delegate
+                originalIsEnabled = target.isEnabled
             }
-            uninstall()
-            self.regionView = regionView
-            window.addGestureRecognizer(panGesture)
-            installedWindow = window
+            hostView = view
+
+            // 戻るボタンを隠している間 UIKit はこのジェスチャーを止めるので、明示的に戻す。
+            target.isEnabled = true
+            if target.delegate !== self {
+                target.delegate = self
+            }
         }
 
-        func uninstall() {
-            installedWindow?.removeGestureRecognizer(panGesture)
-            installedWindow = nil
-            regionView = nil
+        func detach() {
+            if let gesture {
+                restore(gesture)
+            }
+            gesture = nil
+            hostView = nil
         }
 
+        private func restore(_ gesture: UIGestureRecognizer) {
+            if gesture.delegate === self {
+                gesture.delegate = originalDelegate
+            }
+            gesture.isEnabled = originalIsEnabled
+            originalDelegate = nil
+        }
+
+        /// カードとアクションバーの marker から始まったタッチだけ、標準の戻るへ渡さない。
+        /// それ以外の判断はすべて UIKit 本来の delegate に戻す。
         func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
-            guard let window = installedWindow, let regionView else { return false }
+            guard let hostView, let window = hostView.window else { return false }
             let location = touch.location(in: window)
-            guard regionView.convert(regionView.bounds, to: window).contains(location) else { return false }
-
             let startsInProtectedRegion = window.studyBackSwipeProtectedRegions.contains { marker in
                 !marker.isHidden
                     && marker.alpha > 0.01
                     && marker.convert(marker.bounds, to: window).contains(location)
             }
-#if DEBUG
-            print("[StudyBackSwipe] began at \(location), protected: \(startsInProtectedRegion)")
-#endif
-            return !startsInProtectedRegion
+            if startsInProtectedRegion { return false }
+            return originalDelegate?.gestureRecognizer?(gestureRecognizer, shouldReceive: touch) ?? true
         }
 
         func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
-            guard let pan = gestureRecognizer as? UIPanGestureRecognizer,
-                  let view = pan.view else { return false }
-            let velocity = pan.velocity(in: view)
-            return velocity.x > 0 && abs(velocity.x) > abs(velocity.y)
+            originalDelegate?.gestureRecognizerShouldBegin?(gestureRecognizer) ?? true
         }
 
         func gestureRecognizer(
             _ gestureRecognizer: UIGestureRecognizer,
             shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
         ) -> Bool {
-            true
+            originalDelegate?.gestureRecognizer?(
+                gestureRecognizer,
+                shouldRecognizeSimultaneouslyWith: otherGestureRecognizer
+            ) ?? false
         }
 
-        @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
-            guard let window = installedWindow, let regionView else { return }
-            let width = regionView.bounds.width > 0 ? regionView.bounds.width : window.bounds.width
-            let translation = gesture.translation(in: window)
-
-            switch gesture.state {
-            case .changed:
-                // ドラッグ中は Animation を使わず、指の横移動をそのまま前面へ渡す。
-                offset.wrappedValue = min(max(translation.x, 0), width)
-            case .ended:
-                if translation.x >= 90 {
-#if DEBUG
-                    print("[StudyBackSwipe] committed at \(translation.x)pt")
-#endif
-                    onCommit(width)
-                } else {
-#if DEBUG
-                    print("[StudyBackSwipe] cancelled at \(translation.x)pt")
-#endif
-                    resetOffset()
-                }
-            case .cancelled, .failed:
-                resetOffset()
-            default:
-                break
-            }
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            originalDelegate?.gestureRecognizer?(
+                gestureRecognizer,
+                shouldRequireFailureOf: otherGestureRecognizer
+            ) ?? false
         }
 
-        private func resetOffset() {
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.82)) {
-                offset.wrappedValue = 0
-            }
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            originalDelegate?.gestureRecognizer?(
+                gestureRecognizer,
+                shouldBeRequiredToFailBy: otherGestureRecognizer
+            ) ?? false
         }
     }
 }
 
-private final class StudyBackSwipeGestureRegionView: UIView {
+private final class StudyBackSwipeHostView: UIView {
     var onWindowChange: (() -> Void)?
 
     override func didMoveToWindow() {
         super.didMoveToWindow()
         onWindowChange?()
+    }
+}
+
+private extension UIView {
+    var owningNavigationController: UINavigationController? {
+        var responder: UIResponder? = self
+        while let current = responder {
+            if let controller = current as? UIViewController {
+                return controller.navigationController
+            }
+            responder = current.next
+        }
+        return nil
+    }
+}
+
+private extension UINavigationController {
+    /// iOS 26 はコンテンツ全体で戻れる recognizer を持つ。無い世代は従来の端スワイプ。
+    var studyBackSwipeGesture: UIGestureRecognizer? {
+        if #available(iOS 26.0, *), let contentGesture = interactiveContentPopGestureRecognizer {
+            return contentGesture
+        }
+        return interactivePopGestureRecognizer
     }
 }
 
