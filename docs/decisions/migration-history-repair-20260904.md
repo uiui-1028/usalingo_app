@@ -46,28 +46,77 @@ SQLは一切実行していない。履歴表の記録だけを実態に合わ�
 
 結果、2026年分は**15本すべてが手元と本番で揃った**。
 
-## あえて直さなかったもの
+4. **`20260821133424_enforce_current_app_grants` を本番へ適用した。**
+   これは記録のずれではなく本当に未適用だったため、履歴だけ直さず実際に流した。
 
-### `20260821133424_enforce_current_app_grants`（手元だけ・未適用）
+   | | 適用前 | 適用後 |
+   |---|---|---|
+   | `anon` の select（3表） | 可 | **不可** |
+   | `authenticated` の `user_profiles` | 全操作可 | select / insert / update |
+   | `authenticated` の `user_word_tags` | 全操作可 | select / insert / delete |
+   | `authenticated` の `user_word_overrides` | 全操作可 | select / insert / update |
+   | `ensure_current_user_row()` | `search_path=public`・anon実行可 | `search_path=''`・authenticatedのみ |
 
-**これは記録のずれではなく、本当に適用されていない。** 履歴だけ「適用済み」にすると
-穴を永久に隠すことになるため、そのまま残した。
+   適用前に本番の関数定義を確認し、本文が `public.users` / `auth.users` と
+   完全修飾されていて `search_path=''` でも壊れないことを確かめてから流した。
+   migration内の検証3ブロックもすべて通っている。
 
-本番では `anon` が `public.user_profiles` と `public.user_word_tags` へ
-`select` 権限を持っている。このmigrationはそれをrevokeするために書かれたものである。
+   security advisor の指摘が2件解消した
+   （`function_search_path_mutable` と `anon_security_definer_function_executable`）。
 
-**実データの露出は無い。** 両表ともRLSが有効で、`user_profiles` のポリシーは
-`(select auth.uid()) = user_id`。`anon` には `auth.uid()` が無いため0行しか返らない。
-抜けているのは多層防御のGRANT層であって、行の保護ではない。
+5. **2025年の36件を履歴から削除した。** SQL Editor時代の記録で、
+   リポジトリに対応ファイルが無かったもの。作られたオブジェクトは
+   `20260830090000_record_production_only_objects.sql` がリポジトリ側へ写し取っている。
 
-適用は本番のGRANTを変える操作であり、別途判断すること。
+   削除した36件（記録として残す）:
 
-### 2025年の36本（本番だけ）
+   ```
+   20250807025516 create_illustrations_bucket
+   20250827021133 add_content_images_upload_policy
+   20250827021146 create_storage_trigger_function
+   20250827021153 create_storage_trigger
+   20250827021206 create_sync_existing_images_function
+   20250827021210 grant_function_permissions
+   20250827022024 fix_storage_trigger_function_variable_conflict
+   20250827022035 fix_sync_existing_images_function_variable_conflict
+   20250919074051 create_usgs_master_v2_deck
+   20250929022552 create_asset_buckets
+   20250929022557 setup_storage_policies
+   20250929022605 create_media_triggers
+   20250929022614 create_asset_linking_functions
+   20250929023953 create_asset_migration_functions
+   20250929024004 fix_migration_status_function
+   20250929024237 modify_asset_path_schema
+   20250929024342 update_triggers_for_existing_buckets
+   20250930011700 migration_system_setup
+   20251002122025 fix_security_definer_views
+   20251002122030 enable_rls_schema_migrations
+   20251002122042 fix_function_search_path_mutable
+   20251002122059 move_pg_trgm_extension_final
+   20251002122136 optimize_rls_policies_performance
+   20251002122155 remove_unused_indexes_short
+   20251002122313 setup_performance_monitoring_simple
+   20251002122330 fix_remaining_security_definer_views
+   20251002123850 create_storage_policy_helper_function
+   20251002123902 optimize_content_audio_policies
+   20251005084552 create_optimized_asset_path_functions_v2
+   20251005084601 create_performance_indexes
+   20251005090232 add_temp_asset_path_for_testing
+   20251005094837 update_asset_path_functions_corrected
+   20251005094920 recreate_views_corrected_approach
+   20251005100040 create_asset_linking_triggers
+   20251005100321 create_asset_processing_queue
+   20251005100530 create_improved_triggers
+   ```
 
-SQL Editor時代の記録で、リポジトリに対応ファイルが無い。
-これらが作ったオブジェクトは `20260830090000_record_production_only_objects.sql` が
-リポジトリ側へ写し取っている。履歴から消すと「実際に流れた」記録が失われるため、
-消さずに残した。消すかどうかは人間が決めること。
+## 結果
+
+`supabase migration list --linked` が**16本すべてで一致**した。手元だけ・本番だけは0件。
+
+## 残っている注意点
+
+`ensure_current_user_row()` は `authenticated` から実行できる（advisorが警告する）。
+これはアプリが起動時に自分の行を作るために呼ぶもので、意図した設計である。
 
 ## 再発を防ぐには
 
