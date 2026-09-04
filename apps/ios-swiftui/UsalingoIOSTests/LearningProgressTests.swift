@@ -338,20 +338,47 @@ final class StudyFlowTests: XCTestCase {
         XCTAssertNotNil(progressAfterRetry)
     }
 
-    func testAnswerAttemptBlocksDoubleSubmitAndKeepsChoiceForRetry() {
-        var attempt = StudyAnswerAttempt()
+    func testAnswerQueueAcceptsAnswersWhileSavingAndKeepsOrder() {
+        var queue = StudyAnswerQueue()
+        let first = Self.queueTestCard(id: 1)
+        let second = Self.queueTestCard(id: 2)
 
-        XCTAssertTrue(attempt.begin(isCorrect: false))
-        XCTAssertFalse(attempt.begin(isCorrect: true))
-        XCTAssertEqual(attempt.pendingAnswer, false)
+        queue.enqueue(cardIndex: 0, card: first, isCorrect: true)
+        XCTAssertTrue(queue.beginDraining())
 
-        attempt.failed()
-        XCTAssertTrue(attempt.beginRetry())
-        XCTAssertEqual(attempt.pendingAnswer, false)
+        // 保存中でも次の回答は必ず受け取る（ここで塞ぐと連続スワイプが止まる）。
+        queue.enqueue(cardIndex: 1, card: second, isCorrect: false)
+        XCTAssertFalse(queue.beginDraining())
+        XCTAssertEqual(queue.pending.count, 2)
+        XCTAssertEqual(queue.next?.cardIndex, 0)
 
-        attempt.succeeded()
-        XCTAssertNil(attempt.pendingAnswer)
-        XCTAssertFalse(attempt.isSaving)
+        queue.completeFirst()
+        XCTAssertEqual(queue.next?.cardIndex, 1)
+        XCTAssertEqual(queue.next?.isCorrect, false)
+
+        queue.endDraining()
+        XCTAssertTrue(queue.beginDraining())
+
+        queue.reset()
+        XCTAssertTrue(queue.isEmpty)
+        XCTAssertFalse(queue.isDraining)
+    }
+
+    private static func queueTestCard(id: Int) -> WordCard {
+        WordCard(
+            id: id,
+            cardId: id,
+            text: "word-\(id)",
+            meaning: "意味-\(id)",
+            partOfSpeech: nil,
+            sentenceEnglish: nil,
+            sentenceJapanese: nil,
+            imageAssetPath: nil,
+            audioAssetPath: nil,
+            tags: [],
+            learningStatus: nil,
+            learning: nil
+        )
     }
 
     private static let session = AuthSession(
