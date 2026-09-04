@@ -14,7 +14,6 @@ struct DesignDashboardView: View {
             }
             .padding(WireMetrics.screenPadding)
         }
-        .background(WireColor.background)
     }
 }
 

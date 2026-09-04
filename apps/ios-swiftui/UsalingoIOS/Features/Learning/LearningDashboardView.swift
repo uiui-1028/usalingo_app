@@ -176,7 +176,6 @@ struct LearningDashboardView: View {
         }
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
-        .background(WireColor.background)
         .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
         .environment(\.editMode, .constant(isEditing ? .active : .inactive))
         .fileExporter(

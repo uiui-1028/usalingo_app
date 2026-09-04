@@ -74,7 +74,6 @@ struct ProfileDashboardView: View {
             }
             .padding(WireMetrics.screenPadding)
         }
-        .background(WireColor.background)
         .task(id: appState.session?.user.id ?? "guest") { await load() }
         .task(id: appState.studyDataVersion) { await refreshStats() }
         .sheet(isPresented: $isEditingProfile) {

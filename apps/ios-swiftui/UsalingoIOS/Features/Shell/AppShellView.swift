@@ -6,16 +6,13 @@ struct AppShellView: View {
     @State private var selectedTab = 1
 
     private let tabs: [ShellTab] = [
-        .init(title: "デザイン", symbol: "paintpalette"),
-        .init(title: "学習", symbol: "bolt"),
-        .init(title: "プロフィール", symbol: "person.crop.circle")
+        .init(title: "デザイン", selectedTitle: "Design", symbol: "paintpalette"),
+        .init(title: "学習", selectedTitle: "Game", symbol: "bolt"),
+        .init(title: "プロフィール", selectedTitle: "Profile", symbol: "person.crop.circle")
     ]
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            WireColor.background
-                .ignoresSafeArea()
-
             VStack(spacing: 0) {
                 Group {
                     switch selectedTab {
@@ -27,7 +24,6 @@ struct AppShellView: View {
                         LearningDashboardView()
                     }
                 }
-                .padding(.bottom, appState.isShellChromeHidden ? 0 : 96)
             }
 
             if !appState.isShellChromeHidden {
@@ -42,27 +38,39 @@ struct AppShellView: View {
         HStack(spacing: 8) {
             ForEach(tabs.indices, id: \.self) { index in
                 let tab = tabs[index]
+                let isSelected = selectedTab == index
+
                 Button {
                     withAnimation(.spring(response: 0.26, dampingFraction: 0.82)) {
                         selectedTab = index
                     }
                 } label: {
-                    Image(systemName: tab.symbol)
+                    HStack(spacing: WireMetrics.spacingS) {
+                        Image(systemName: tab.symbol)
+
+                        if isSelected {
+                            Text(tab.selectedTitle)
+                                .wireFont(.label, color: WireColor.surface)
+                                .transition(.opacity.combined(with: .move(edge: .leading)))
+                        }
+                    }
+                    .foregroundStyle(isSelected ? WireColor.surface : WireColor.ink)
+                    .frame(minWidth: 48, minHeight: 48)
+                    .padding(.horizontal, isSelected ? WireMetrics.spacingM : 0)
+                    .background(Capsule().fill(isSelected ? WireColor.ink : WireColor.surface))
+                    .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
+                    .contentShape(Capsule())
                 }
-                .buttonStyle(
-                    .wireIcon(
-                        diameter: 48,
-                        isSelected: selectedTab == index,
-                        invertsWhenSelected: true
-                    )
-                )
+                .buttonStyle(.plain)
                 .accessibilityLabel(tab.title)
-                .accessibilityAddTraits(selectedTab == index ? .isSelected : [])
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+                .animation(.spring(response: 0.26, dampingFraction: 0.82), value: isSelected)
             }
         }
         .padding(WireMetrics.spacingM)
-        // 画面の一番下にある常設の部品なので、階調の一番濃い段に合わせる。
-        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card, fill: BentoTone.l3.fill)
+        .background(Capsule().fill(.clear))
+        .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
+        .offsetShadow(.card, in: Capsule())
         .padding(.horizontal, WireMetrics.screenPadding)
         .padding(.bottom, WireMetrics.spacingXL)
     }
@@ -70,6 +78,7 @@ struct AppShellView: View {
 
 private struct ShellTab {
     let title: String
+    let selectedTitle: String
     let symbol: String
 }
 
