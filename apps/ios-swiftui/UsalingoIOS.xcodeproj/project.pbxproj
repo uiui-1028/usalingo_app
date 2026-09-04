@@ -60,6 +60,7 @@
 		A10000000000000000000022 /* Licenses in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* Licenses */; };
 		A10000000000000000000027 /* SampleDecks in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* SampleDecks */; };
 		A1000000000000000000002B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002B /* Assets.xcassets */; };
+		A1000000000000000000002C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002C /* PrivacyInfo.xcprivacy */; };
 		A10000000000000000000023 /* DeckFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* DeckFile.swift */; };
 		A10000000000000000000024 /* StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* StudyDataSource.swift */; };
 		A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* LocalStudyDataSource.swift */; };
@@ -148,6 +149,7 @@
 		A20000000000000000000022 /* Licenses */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Licenses; sourceTree = "<group>"; };
 		A20000000000000000000027 /* SampleDecks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/SampleDecks; sourceTree = "<group>"; };
 		A2000000000000000000002B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
+		A2000000000000000000002C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A20000000000000000000023 /* DeckFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DeckFile.swift; sourceTree = "<group>"; };
 		A20000000000000000000024 /* StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
@@ -260,6 +262,7 @@
 				A20000000000000000000022 /* Licenses */,
 				A20000000000000000000027 /* SampleDecks */,
 				A2000000000000000000002B /* Assets.xcassets */,
+				A2000000000000000000002C /* PrivacyInfo.xcprivacy */,
 				A20000000000000000000012 /* Info.plist */,
 			);
 			path = UsalingoIOS;
@@ -377,6 +380,7 @@
 				A10000000000000000000022 /* Licenses in Resources */,
 				A10000000000000000000027 /* SampleDecks in Resources */,
 				A1000000000000000000002B /* Assets.xcassets in Resources */,
+				A1000000000000000000002C /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
