@@ -299,6 +299,7 @@ struct StudySessionView: View {
             answerHistory = []
             answerAttempt = StudyAnswerAttempt()
             saveErrorMessage = nil
+            prefetchUpcomingImages()
         } catch {
             cards = []
             loadErrorMessage = UserFacingError.message(for: error)
@@ -344,6 +345,7 @@ struct StudySessionView: View {
             appState.markStudyDataChanged()
             audioPlaybackService.stop()
             index += 1
+            prefetchUpcomingImages()
             answerAttempt.succeeded()
             saveErrorMessage = nil
             showAnswer = false
@@ -420,6 +422,15 @@ struct StudySessionView: View {
     private func playCurrentCardAudio() {
         guard let currentAudioURL else { return }
         audioPlaybackService.togglePlayback(url: currentAudioURL)
+    }
+
+    /// 次にめくる数枚だけを低い優先度で温める。見ない一覧や表紙は取りに行かない。
+    private func prefetchUpcomingImages() {
+        let urls = cards
+            .dropFirst(index + 1)
+            .prefix(4)
+            .compactMap(\.illustrationURL)
+        CardImageCache.prefetch(urls: urls)
     }
 
     private func editCurrentCard() {

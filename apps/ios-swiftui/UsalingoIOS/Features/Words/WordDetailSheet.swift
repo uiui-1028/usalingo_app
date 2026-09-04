@@ -16,14 +16,8 @@ struct WordDetailSheet: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: WireMetrics.spacingL) {
                     if let url = word.illustrationURL {
-                        AsyncImage(url: url) { image in
-                            image
-                                .resizable()
-                                .scaledToFit()
-                        } placeholder: {
-                            ProgressView()
-                                .tint(WireColor.ink)
-                                .frame(maxWidth: .infinity, minHeight: 180)
+                        CardImage(url: url) {
+                            Color.clear
                         }
                         .frame(maxWidth: .infinity)
                         .frame(minHeight: 180)
