@@ -45,7 +45,7 @@ struct StudyCardView: View {
 
 // MARK: - 表
 
-/// 表面。単語・イラスト・品詞・訳・例文・学習ステータスを、枠に収まる高さで並べる。
+/// 表面。単語・イラスト・品詞・訳・例文を、枠に収まる高さで並べる。
 /// スクロールしない面なので、長い文は行数を絞って縮める。
 private struct StudyCardFront: View {
     let card: WordCard
@@ -54,11 +54,6 @@ private struct StudyCardFront: View {
 
     var body: some View {
         VStack(spacing: WireMetrics.spacingS) {
-            StudyCardHeader(
-                title: showAnswer ? "ANSWER" : "QUESTION",
-                isSelected: showAnswer
-            )
-
             partOfSpeechRow
 
             Text(card.text)
@@ -82,14 +77,9 @@ private struct StudyCardFront: View {
                 if let sentence = card.sentenceJapanese, !sentence.isEmpty {
                     WireRecessedText(sentence)
                 }
-            } else {
-                Text("タップで答えを見る")
-                    .wireFont(.caption)
             }
 
             Spacer(minLength: 0)
-
-            statusPills
         }
     }
 
@@ -124,21 +114,6 @@ private struct StudyCardFront: View {
             parts[index] = .conjunction
         }
         return parts
-    }
-
-    private var statusPills: some View {
-        HStack(spacing: WireMetrics.spacingXS) {
-            StudyStatusBadge(status: card.learningStatus)
-            if let learning = card.learning {
-                WirePill(title: "Lv.\(learning.srsLevel)", font: .caption)
-                WirePill(title: "\(learning.repetitions)回", font: .caption)
-            }
-            if let tag = card.tags.first {
-                WirePill(title: tag, font: .caption)
-            }
-        }
-        .lineLimit(1)
-        .minimumScaleFactor(0.8)
     }
 
     /// 表はスクロールしないので、3:2 の枠が縦に伸びて他の要素を押し出さないよう上限を置く。
@@ -212,45 +187,41 @@ struct StudyCardBack: View {
     }
 
     var body: some View {
-        VStack(spacing: WireMetrics.spacingS) {
-            StudyCardHeader(title: "MORE", isSelected: true, showsSampleTag: content.usesSampleData)
-
-            GeometryReader { proxy in
-                Group {
-                    if isScrollEnabled {
-                        ScrollView(.vertical, showsIndicators: isOverflowing) {
-                            supplements
-                                .background(
-                                    ScrollMetricsReader(
-                                        coordinateSpace: Self.scrollSpace,
-                                        contentHeight: $contentHeight,
-                                        offset: $scrollOffset
-                                    )
-                                )
-                        }
-                        .coordinateSpace(name: Self.scrollSpace)
-                        .scrollBounceBehavior(.basedOnSize)
-                        .scrollDisabled(!isOverflowing)
-                    } else {
-                        // 回転中は器だけを外す。見た目は先頭を出したまま変わらない。
+        GeometryReader { proxy in
+            Group {
+                if isScrollEnabled {
+                    ScrollView(.vertical, showsIndicators: isOverflowing) {
                         supplements
-                            .frame(maxHeight: .infinity, alignment: .top)
-                            .clipped()
+                            .background(
+                                ScrollMetricsReader(
+                                    coordinateSpace: Self.scrollSpace,
+                                    contentHeight: $contentHeight,
+                                    offset: $scrollOffset
+                                )
+                            )
                     }
+                    .coordinateSpace(name: Self.scrollSpace)
+                    .scrollBounceBehavior(.basedOnSize)
+                    .scrollDisabled(!isOverflowing)
+                } else {
+                    // 回転中は器だけを外す。見た目は先頭を出したまま変わらない。
+                    supplements
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .clipped()
                 }
-                .onAppear { viewportHeight = proxy.size.height }
-                .onChange(of: proxy.size.height) { _, newValue in viewportHeight = newValue }
-                // 続きがあることは、下端を薄く消して示す。読み切ったら消える。
-                .overlay(alignment: .bottom) {
-                    if hasMoreBelow {
-                        LinearGradient(
-                            colors: [WireColor.surface.opacity(0), WireColor.surface],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .frame(height: WireMetrics.spacingXL)
-                        .allowsHitTesting(false)
-                    }
+            }
+            .onAppear { viewportHeight = proxy.size.height }
+            .onChange(of: proxy.size.height) { _, newValue in viewportHeight = newValue }
+            // 続きがあることは、下端を薄く消して示す。読み切ったら消える。
+            .overlay(alignment: .bottom) {
+                if hasMoreBelow {
+                    LinearGradient(
+                        colors: [WireColor.surface.opacity(0), WireColor.surface],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    .frame(height: WireMetrics.spacingXL)
+                    .allowsHitTesting(false)
                 }
             }
         }
@@ -330,24 +301,6 @@ struct StudyCardBack: View {
 
 // MARK: - 部品
 
-private struct StudyCardHeader: View {
-    let title: String
-    var isSelected: Bool = false
-    var showsSampleTag: Bool = false
-
-    var body: some View {
-        HStack {
-            Image(systemName: "bolt")
-                .wireFont(.titleS)
-            Spacer()
-            if showsSampleTag {
-                WirePill(title: "サンプル", font: .caption)
-            }
-            WirePill(title: title, isSelected: isSelected, font: .caption)
-        }
-    }
-}
-
 /// 例文・訳文・補足に使う凹んだ文章ブロック。
 private struct WireRecessedText: View {
     let text: String
@@ -415,21 +368,3 @@ private extension View {
     }
 }
 
-private struct StudyStatusBadge: View {
-    let status: String?
-
-    var body: some View {
-        WirePill(title: title, isSelected: status == "mastered", font: .caption)
-    }
-
-    private var title: String {
-        switch status {
-        case "learning":
-            "復習中"
-        case "mastered":
-            "習得済み"
-        default:
-            "未学習"
-        }
-    }
-}
