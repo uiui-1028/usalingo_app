@@ -44,8 +44,6 @@ struct WordCardContent {
     let partOfSpeech: WordPartOfSpeech?
     let synonyms: [WordSynonym]
     let etymology: String?
-    /// サンプルで埋めた項目があるか。画面に「サンプル」と明示するために使う。
-    let usesSampleData: Bool
 
     /// 裏面に載せるものが1つでもあるか。無ければ裏面はプレースホルダ1行になる。
     var hasSupplements: Bool {
@@ -62,7 +60,6 @@ struct WordCardContent {
 
         synonyms = hasRealSynonyms ? card.synonyms : sampleSynonyms
         etymology = hasRealEtymology ? card.etymology : sampleEtymology
-        usesSampleData = !sampleSynonyms.isEmpty || sampleEtymology != nil
     }
 
     // MARK: - サンプル
