@@ -156,39 +156,43 @@ struct WordDetailSheet: View {
     }
 }
 
+/// 詳細シートの主役カード。指の位置で傾き、横に払うと表裏がめくれる。
+///
+/// - 傾き: 指の「位置」を見る。カードの中心からの距離を角度に写す。
+/// - めくり: 指の「移動量」を見る。deadZone を越えた分だけ Y 軸に回し、
+///   離した時点で 0° か 180° の近い方へ寄せる。
+///   途中で止めても角度が飛ばないよう、離した瞬間に
+///   `baseAngle` へ現在角をそのまま引き継いでから寄せている。
+///
+/// 裏面は学習カードと同じ `StudyCardBack` を使う。裏の情報設計は1か所に置く。
 private struct InteractiveWordCard: View {
     let word: WordCard
     let reduceMotion: Bool
+
+    /// 指を離したあとに残る角度。0 が表、180 が裏。
+    @State private var baseAngle: Double = 0
+    /// いま指で動かしている分の横移動量。離すと 0 に戻る。
+    @State private var flipDrag: CGFloat = 0
+    /// カードが回っている最中か。裏面のスクロールを開けてよいかの判定に使う。
+    @State private var isTurning = false
     @GestureState private var touch: CGPoint?
+
+    /// この距離までは傾きだけ。越えた分からめくりが始まる。
+    private let deadZone: CGFloat = 26
 
     var body: some View {
         GeometryReader { geometry in
-            let x = touch.map { min(1, max(-1, ($0.x / max(1, geometry.size.width) - 0.5) * 2)) } ?? 0
-            let y = touch.map { min(1, max(-1, ($0.y / max(1, geometry.size.height) - 0.5) * 2)) } ?? 0
+            let width = max(1, geometry.size.width)
+            let height = max(1, geometry.size.height)
+            let x = touch.map { min(1, max(-1, ($0.x / width - 0.5) * 2)) } ?? 0
+            let y = touch.map { min(1, max(-1, ($0.y / height - 0.5) * 2)) } ?? 0
+            // めくり始めたら傾きを譲る。2つの回転が同じ軸で重ならないようにする。
+            let tilt = reduceMotion ? 0 : Double(max(0, 1 - abs(flipDrag) / deadZone))
+            let angle = baseAngle + flipAngle(for: flipDrag, width: width)
+            let showsBack = isBack(angle)
+
             ZStack {
-                RoundedRectangle(cornerRadius: 22).fill(.white)
-                VStack(spacing: 0) {
-                    Color.clear
-                        .overlay {
-                            if let url = word.illustrationURL {
-                                CardImage(url: url, contentMode: .fill, showsLoadingIndicator: true) {
-                                    placeholder
-                                }
-                            } else {
-                                placeholder
-                            }
-                        }
-                        .clipped()
-                    VStack(spacing: 5) {
-                        Text(word.text).font(.title2.bold()).lineLimit(2).minimumScaleFactor(0.6)
-                        Text(word.partOfSpeech?.uppercased() ?? "VOCABULARY")
-                            .font(.caption2.weight(.medium)).tracking(2)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(14)
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 18))
-                .padding(5)
+                face(showsBack: showsBack)
                 if !reduceMotion {
                     LinearGradient(colors: [.clear, .white.opacity(touch == nil ? 0.08 : 0.38), .clear],
                                    startPoint: UnitPoint(x: 0.1 + x * 0.4, y: y * 0.3),
@@ -200,17 +204,92 @@ private struct InteractiveWordCard: View {
             .overlay(RoundedRectangle(cornerRadius: 22).stroke(.white.opacity(0.75), lineWidth: 1))
             .shadow(color: .black.opacity(touch == nil ? 0.16 : 0.24),
                     radius: touch == nil ? 12 : 24, x: -x * 12, y: 12 - y * 10)
-            .rotation3DEffect(.degrees(reduceMotion ? 0 : -y * 13), axis: (x: 1, y: 0, z: 0), perspective: 0.5)
-            .rotation3DEffect(.degrees(reduceMotion ? 0 : x * 13), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
+            .rotation3DEffect(.degrees(-y * 13 * tilt), axis: (x: 1, y: 0, z: 0), perspective: 0.5)
+            .rotation3DEffect(.degrees(angle + x * 13 * tilt), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
             .scaleEffect(touch == nil || reduceMotion ? 1 : 1.025)
             .animation(touch == nil && !reduceMotion ? .spring(response: 0.4, dampingFraction: 0.7) : nil, value: touch)
-            .simultaneousGesture(DragGesture(minimumDistance: 3, coordinateSpace: .named("wordCardTouch"))
-                .updating($touch) { value, state, _ in state = value.location })
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 3, coordinateSpace: .named("wordCardTouch"))
+                    .updating($touch) { value, state, _ in state = value.location }
+                    .onChanged { value in
+                        if !isTurning, abs(value.translation.width) > deadZone { isTurning = true }
+                        flipDrag = value.translation.width
+                    }
+                    .onEnded { value in settle(value, width: width) }
+            )
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(word.text)
-            .accessibilityHint("タップで拡大。指を滑らせるとカードが傾きます")
+            .accessibilityLabel(showsBack ? "\(word.text) の裏面" : word.text)
+            .accessibilityHint("タップで拡大。左右に払うと裏返ります")
+            .accessibilityAction(named: showsBack ? "表に戻す" : "裏返す") { flip() }
         }
         .coordinateSpace(name: "wordCardTouch")
+    }
+
+    // MARK: - 面
+
+    /// 表裏は同じ外形に重ねる。半分より回ったところで入れ替える。
+    /// 裏面は 180° 逆に回してあり、カードが裏を向いたときに正しい向きで立つ。
+    @ViewBuilder
+    private func face(showsBack: Bool) -> some View {
+        ZStack {
+            front
+                .opacity(showsBack ? 0 : 1)
+                .allowsHitTesting(!showsBack)
+            back
+                .opacity(showsBack ? 1 : 0)
+                .allowsHitTesting(showsBack)
+                .rotation3DEffect(.degrees(180), axis: (x: 0, y: 1, z: 0))
+        }
+    }
+
+    private var front: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22).fill(.white)
+            VStack(spacing: 0) {
+                Color.clear
+                    .overlay {
+                        if let url = word.illustrationURL {
+                            CardImage(url: url, contentMode: .fill, showsLoadingIndicator: true) {
+                                placeholder
+                            }
+                        } else {
+                            placeholder
+                        }
+                    }
+                    .clipped()
+                VStack(spacing: 5) {
+                    Text(word.text).font(.title2.bold()).lineLimit(2).minimumScaleFactor(0.6)
+                    Text(word.partOfSpeech?.uppercased() ?? "VOCABULARY")
+                        .font(.caption2.weight(.medium)).tracking(2)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(14)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: 18))
+            .padding(5)
+            // 裏があることは、隠された操作なので小さく示しておく。
+            flipHint
+        }
+    }
+
+    private var back: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 22).fill(.white)
+            // 回っている間はスクロールを閉じる。理由は `StudyCardBack` 側に書いてある。
+            StudyCardBack(content: WordCardContent(card: word), isScrollEnabled: !isTurning)
+                .padding(16)
+        }
+    }
+
+    private var flipHint: some View {
+        Image(systemName: "arrow.2.squarepath")
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(.white)
+            .padding(7)
+            .background(.black.opacity(0.28), in: Circle())
+            .padding(12)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+            .allowsHitTesting(false)
     }
 
     private var placeholder: some View {
@@ -225,6 +304,54 @@ private struct InteractiveWordCard: View {
                     .font(.caption)
             }
             .foregroundStyle(.secondary)
+        }
+    }
+
+    // MARK: - 角度
+
+    /// 横移動量を角度に写す。deadZone のぶんは傾きに使うので差し引く。
+    /// カード幅の半分だけ払えば 180°、つまり1回ぶんめくれる。
+    private func flipAngle(for translation: CGFloat, width: CGFloat) -> Double {
+        let excess = max(0, abs(translation) - deadZone)
+        let turn = Double(excess / (width * 0.5)) * 180
+        return (translation < 0 ? -1 : 1) * min(360, turn)
+    }
+
+    private func isBack(_ angle: Double) -> Bool {
+        let normalized = (angle.truncatingRemainder(dividingBy: 360) + 360)
+            .truncatingRemainder(dividingBy: 360)
+        return normalized > 90 && normalized < 270
+    }
+
+    /// 指を離したときに、いちばん近い面へ寄せる。
+    /// 勢いを少し足すので、浅く速く払っただけでもめくれる。
+    private func settle(_ value: DragGesture.Value, width: CGFloat) {
+        let current = baseAngle + flipAngle(for: value.translation.width, width: width)
+        let momentum = value.predictedEndTranslation.width - value.translation.width
+        let predicted = current + Double(momentum / (width * 0.5)) * 180 * 0.35
+        let snapped = (predicted / 180).rounded() * 180
+
+        // 角度を飛ばさずに引き継ぐ。ここは見た目が変わらないので animation を切る。
+        var handover = Transaction()
+        handover.disablesAnimations = true
+        withTransaction(handover) {
+            baseAngle = current
+            flipDrag = 0
+        }
+        turn(to: snapped)
+    }
+
+    private func flip() {
+        isTurning = true
+        turn(to: baseAngle + 180)
+    }
+
+    /// 目的の角度まで回し、止まったところで裏面のスクロールを開け直す。
+    private func turn(to angle: Double) {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.45, dampingFraction: 0.82)) {
+            baseAngle = angle
+        } completion: {
+            isTurning = false
         }
     }
 }

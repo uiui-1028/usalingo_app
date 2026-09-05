@@ -156,8 +156,18 @@ private struct StudyCardFront: View {
 // MARK: - 裏
 
 /// 裏面。補足情報だけを載せ、枠に収まらないときだけ縦スクロールさせる。
-private struct StudyCardBack: View {
+///
+/// 単語リストの詳細カード（`WordDetailSheet`）の裏面もこれを使う。
+/// 裏面の情報設計を1か所に保つため、内部公開にしてある。
+struct StudyCardBack: View {
     let content: WordCardContent
+    /// 縦スクロールを開けてよいか。
+    ///
+    /// カードを 3D で回している最中は `false` にする。`ScrollView` の実体は
+    /// UIKit のスクロールビューで、回転が 90° を通る瞬間に座標が NaN になり
+    /// `CALayerInvalidGeometry` で落ちる。回っている間は器を外し、
+    /// 止まってから開け直す。
+    var isScrollEnabled: Bool = true
 
     private static let scrollSpace = "StudyCardBackScroll"
 
@@ -168,7 +178,7 @@ private struct StudyCardBack: View {
     /// 中身が枠に収まらないときだけスクロールを開ける。収まるときは
     /// スクロールもバウンスも起こさない。
     private var isOverflowing: Bool {
-        contentHeight > viewportHeight + 1
+        isScrollEnabled && contentHeight > viewportHeight + 1
     }
 
     /// まだ下に続きがあるか。読み切ったらフェードを消す。
@@ -178,30 +188,28 @@ private struct StudyCardBack: View {
 
     var body: some View {
         GeometryReader { proxy in
-            ScrollView(.vertical, showsIndicators: isOverflowing) {
-                VStack(spacing: WireMetrics.spacingM) {
-                    if content.hasSupplements {
-                        synonymSection
-                        etymologySection
-                    } else {
-                        Text("補足情報はまだありません")
-                            .wireFont(.caption)
-                            .frame(maxWidth: .infinity)
-                            .padding(.top, WireMetrics.spacingL)
+            Group {
+                if isScrollEnabled {
+                    ScrollView(.vertical, showsIndicators: isOverflowing) {
+                        supplements
+                            .background(
+                                ScrollMetricsReader(
+                                    coordinateSpace: Self.scrollSpace,
+                                    contentHeight: $contentHeight,
+                                    offset: $scrollOffset
+                                )
+                            )
                     }
+                    .coordinateSpace(name: Self.scrollSpace)
+                    .scrollBounceBehavior(.basedOnSize)
+                    .scrollDisabled(!isOverflowing)
+                } else {
+                    // 回転中は器だけを外す。見た目は先頭を出したまま変わらない。
+                    supplements
+                        .frame(maxHeight: .infinity, alignment: .top)
+                        .clipped()
                 }
-                .frame(maxWidth: .infinity)
-                .background(
-                    ScrollMetricsReader(
-                        coordinateSpace: Self.scrollSpace,
-                        contentHeight: $contentHeight,
-                        offset: $scrollOffset
-                    )
-                )
             }
-            .coordinateSpace(name: Self.scrollSpace)
-            .scrollBounceBehavior(.basedOnSize)
-            .scrollDisabled(!isOverflowing)
             .onAppear { viewportHeight = proxy.size.height }
             .onChange(of: proxy.size.height) { _, newValue in viewportHeight = newValue }
             // 続きがあることは、下端を薄く消して示す。読み切ったら消える。
@@ -217,6 +225,21 @@ private struct StudyCardBack: View {
                 }
             }
         }
+    }
+
+    private var supplements: some View {
+        VStack(spacing: WireMetrics.spacingM) {
+            if content.hasSupplements {
+                synonymSection
+                etymologySection
+            } else {
+                Text("補足情報はまだありません")
+                    .wireFont(.caption)
+                    .frame(maxWidth: .infinity)
+                    .padding(.top, WireMetrics.spacingL)
+            }
+        }
+        .frame(maxWidth: .infinity)
     }
 
     @ViewBuilder
