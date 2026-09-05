@@ -735,8 +735,14 @@ private extension UIView {
 
 private extension UINavigationController {
     /// iOS 26 はコンテンツ全体で戻れる recognizer を持つ。無い世代は従来の端スワイプ。
+    ///
+    /// CI の Xcode は iOS 26 SDK を持たない世代があり、シンボルを直に書くと
+    /// `cannot find ... in scope` でビルドできない。宣言に依存しないよう
+    /// セレクタで引き、応答しない実行環境では従来の端スワイプへ落ちる。
     var studyBackSwipeGesture: UIGestureRecognizer? {
-        if #available(iOS 26.0, *), let contentGesture = interactiveContentPopGestureRecognizer {
+        let contentPopSelector = NSSelectorFromString("interactiveContentPopGestureRecognizer")
+        if responds(to: contentPopSelector),
+           let contentGesture = perform(contentPopSelector)?.takeUnretainedValue() as? UIGestureRecognizer {
             return contentGesture
         }
         return interactivePopGestureRecognizer
