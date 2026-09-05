@@ -102,6 +102,15 @@ struct WordListView: View {
                 .presentationDetents([.medium, .large])
         }
         .task(id: appState.session?.user.id ?? "guest") { await viewModel.load(dataSource: appState.studyDataSource) }
+        // 単語リストは絞り込みと並べ替えの操作が縦に長い。浮いているタブバーが
+        // 一覧の末尾に重なるので、この画面にいる間はシェルの操作面を隠す。
+        // 戻る導線はナビゲーションバーの戻るボタンとスワイプが担う。
+        .onAppear {
+            appState.isShellChromeHidden = true
+        }
+        .onDisappear {
+            appState.isShellChromeHidden = false
+        }
     }
 
     private var cardColumns: [GridItem] {
