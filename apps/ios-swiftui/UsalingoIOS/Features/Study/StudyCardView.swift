@@ -77,22 +77,33 @@ struct StudyCardView: View {
     }
 
     /// イラスト枠。読み込めないときは対角クロスのプレースホルダを出す。
+    ///
+    /// `Color.clear` で 3:2 の枠を先に決めてから overlay で画像を敷き、角丸で切り抜く。
+    /// こうしないと `scaledToFill` の画像が枠線の外へはみ出す（単語リストのカードと同じ約束）。
     @ViewBuilder
     private var illustration: some View {
         if let url = card.illustrationURL {
-            CardImage(url: url) {
-                Color.clear
-            }
-            .frame(maxHeight: 190)
-            .frame(maxWidth: .infinity)
-            .outlineSurface(
-                radius: WireMetrics.radiusLarge,
-                stroke: WireMetrics.strokeBase,
-                shadow: nil
-            )
+            Color.clear
+                .aspectRatio(3 / 2, contentMode: .fit)
+                .overlay {
+                    CardImage(url: url, contentMode: .fill) {
+                        Color.clear
+                    }
+                }
+                .clipShape(
+                    RoundedRectangle(cornerRadius: WireMetrics.radiusLarge, style: .continuous)
+                )
+                .outlineSurface(
+                    radius: WireMetrics.radiusLarge,
+                    stroke: WireMetrics.strokeBase,
+                    shadow: nil
+                )
         } else {
-            WireImagePlaceholder(radius: WireMetrics.radiusLarge)
-                .frame(height: 170)
+            Color.clear
+                .aspectRatio(3 / 2, contentMode: .fit)
+                .overlay {
+                    WireImagePlaceholder(radius: WireMetrics.radiusLarge)
+                }
         }
     }
 }
