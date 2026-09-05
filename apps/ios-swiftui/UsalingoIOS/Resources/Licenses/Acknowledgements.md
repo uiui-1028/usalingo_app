@@ -1,7 +1,7 @@
 # Acknowledgements
 This project makes use of the following third party libraries:
 
-## Nuke (13.2.0)
+## Nuke (12.9.0)
 
 The MIT License (MIT)
 
