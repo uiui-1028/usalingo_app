@@ -38,23 +38,6 @@ struct WordListView: View {
                         .wireListRow(vertical: WireMetrics.spacingXS)
                 }
 
-                if !viewModel.availableTags.isEmpty {
-                    Section {
-                        WordListTagFilterBar(tags: viewModel.availableTags, selectedTag: $viewModel.selectedTagFilter)
-                            .wireListRow(vertical: WireMetrics.spacingXS)
-                    }
-                }
-
-                Section {
-                    WordListStatusFilterBar(selectedFilter: $viewModel.selectedStatusFilter)
-                        .wireListRow(vertical: WireMetrics.spacingXS)
-                }
-
-                Section {
-                    WordListDueFilterBar(selectedFilter: $viewModel.selectedDueFilter)
-                        .wireListRow(vertical: WireMetrics.spacingXS)
-                }
-
                 if viewModel.filteredWords.isEmpty {
                     ContentUnavailableView("単語がありません", systemImage: "magnifyingglass", description: Text("検索条件またはタグを変更してください"))
                         .wireListRow()
@@ -91,6 +74,15 @@ struct WordListView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
+                WordListFilterMenu(
+                    tags: viewModel.availableTags,
+                    selectedTag: $viewModel.selectedTagFilter,
+                    selectedStatusFilter: $viewModel.selectedStatusFilter,
+                    selectedDueFilter: $viewModel.selectedDueFilter
+                )
+            }
+
+            ToolbarItem(placement: .primaryAction) {
                 WordListSortMenu(selectedSort: $viewModel.selectedSort)
             }
         }
@@ -102,8 +94,8 @@ struct WordListView: View {
                 .presentationDetents([.medium, .large])
         }
         .task(id: appState.session?.user.id ?? "guest") { await viewModel.load(dataSource: appState.studyDataSource) }
-        // 単語リストは絞り込みと並べ替えの操作が縦に長い。浮いているタブバーが
-        // 一覧の末尾に重なるので、この画面にいる間はシェルの操作面を隠す。
+        // 浮いているタブバーが一覧の末尾に重なるので、この画面にいる間は
+        // シェルの操作面を隠す。
         // 戻る導線はナビゲーションバーの戻るボタンとスワイプが担う。
         .onAppear {
             appState.isShellChromeHidden = true
