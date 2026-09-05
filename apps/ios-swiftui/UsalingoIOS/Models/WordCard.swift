@@ -13,6 +13,10 @@ struct WordCard: Identifiable, Hashable {
     let tags: [String]
     let learningStatus: String?
     let learning: WordLearningSnapshot?
+    /// 類義語。まだ配信データが無いため、未指定なら表示側でサンプルを当てる。
+    let synonyms: [WordSynonym]
+    /// 語源。まだ配信データが無いため、未指定なら表示側でサンプルを当てる。
+    let etymology: String?
 
     var id: Int {
         cardId ?? wordId
@@ -30,7 +34,9 @@ struct WordCard: Identifiable, Hashable {
         audioAssetPath: String?,
         tags: [String],
         learningStatus: String?,
-        learning: WordLearningSnapshot?
+        learning: WordLearningSnapshot?,
+        synonyms: [WordSynonym] = [],
+        etymology: String? = nil
     ) {
         self.wordId = wordId
         self.cardId = cardId
@@ -44,6 +50,8 @@ struct WordCard: Identifiable, Hashable {
         self.tags = tags
         self.learningStatus = learningStatus
         self.learning = learning
+        self.synonyms = synonyms
+        self.etymology = etymology
     }
 
     var illustrationURL: URL? {
@@ -71,7 +79,9 @@ struct WordCard: Identifiable, Hashable {
             audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
-            learning: learning
+            learning: learning,
+            synonyms: synonyms,
+            etymology: etymology
         )
     }
 
@@ -88,7 +98,9 @@ struct WordCard: Identifiable, Hashable {
             audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
-            learning: learning
+            learning: learning,
+            synonyms: synonyms,
+            etymology: etymology
         )
     }
 
@@ -105,7 +117,9 @@ struct WordCard: Identifiable, Hashable {
             audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: status,
-            learning: learning
+            learning: learning,
+            synonyms: synonyms,
+            etymology: etymology
         )
     }
 
@@ -122,7 +136,9 @@ struct WordCard: Identifiable, Hashable {
             audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: progress?.status,
-            learning: progress.map(WordLearningSnapshot.init(progress:))
+            learning: progress.map(WordLearningSnapshot.init(progress:)),
+            synonyms: synonyms,
+            etymology: etymology
         )
     }
 
@@ -139,7 +155,9 @@ struct WordCard: Identifiable, Hashable {
             audioAssetPath: audioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
-            learning: learning
+            learning: learning,
+            synonyms: synonyms,
+            etymology: etymology
         )
     }
 }
@@ -275,5 +293,41 @@ struct ExampleContent: Decodable {
         case sentenceJapanese = "sentence_jp"
         case imageAssetPath = "image_asset_path"
         case audioAssetPath = "audio_asset_path"
+    }
+}
+
+/// 類義語1件。Anki の `単語 :: 訳 :: 補足` を1件ずつ持ち直したもの。
+struct WordSynonym: Decodable, Hashable, Identifiable {
+    let word: String
+    let meaning: String
+    let note: String?
+
+    var id: String { word }
+
+    init(word: String, meaning: String, note: String? = nil) {
+        self.word = word
+        self.meaning = meaning
+        self.note = note
+    }
+
+    /// Anki 09 フィールドの `A :: 訳 :: 補足 /&/ B :: ...` を解く。
+    /// 3つ目以降の `::` は補足へまとめて、区切りが増えても崩れないようにする。
+    static func parse(_ raw: String) -> [WordSynonym] {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed.lowercased() != "none" else { return [] }
+        return trimmed.components(separatedBy: "/&/").compactMap { entry in
+            let parts = entry.components(separatedBy: "::").map {
+                $0.trimmingCharacters(in: .whitespacesAndNewlines)
+            }
+            let word = parts.first ?? ""
+            guard !word.isEmpty else { return nil }
+            let meaning = parts.count > 1 ? parts[1] : ""
+            let note = parts.count > 2 ? parts[2...].joined(separator: " :: ") : ""
+            return WordSynonym(
+                word: word,
+                meaning: meaning,
+                note: note.isEmpty ? nil : note
+            )
+        }
     }
 }
