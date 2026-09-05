@@ -21,6 +21,19 @@ enum WordDueFilter: String, CaseIterable, Identifiable {
         }
     }
 
+    var symbol: String {
+        switch self {
+        case .all:
+            "calendar"
+        case .unset:
+            "calendar.badge.minus"
+        case .due:
+            "calendar.badge.exclamationmark"
+        case .future:
+            "calendar.badge.clock"
+        }
+    }
+
     func matches(_ word: WordCard) -> Bool {
         switch self {
         case .all:
@@ -156,6 +169,19 @@ enum WordStatusFilter: String, CaseIterable, Identifiable {
             "復習中"
         case .mastered:
             "習得済み"
+        }
+    }
+
+    var symbol: String {
+        switch self {
+        case .all:
+            "circle.dashed"
+        case .new:
+            "circle"
+        case .learning:
+            "arrow.triangle.2.circlepath"
+        case .mastered:
+            "checkmark.seal"
         }
     }
 

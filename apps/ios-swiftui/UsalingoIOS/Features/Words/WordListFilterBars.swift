@@ -32,74 +32,75 @@ struct WordListDisplayModePicker: View {
     }
 }
 
-/// 選択は黒ベタ反転ではなく、枠線の昇格と太字で示す（Section 3.2）。
-struct WordFilterPillButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            WirePill(title: title, isSelected: isSelected, font: .caption)
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-}
-
-struct WordListTagFilterBar: View {
+/// 絞り込みは並べ替えと対になる操作なので、同じツールバーの Menu で提供する。
+/// タグ・学習状態・復習予定の3種類をセクションで束ねる。
+struct WordListFilterMenu: View {
     let tags: [String]
     @Binding var selectedTag: String?
+    @Binding var selectedStatusFilter: WordStatusFilter
+    @Binding var selectedDueFilter: WordDueFilter
 
     var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: WireMetrics.spacingS) {
-                WordFilterPillButton(title: "すべて", isSelected: selectedTag == nil) {
-                    selectedTag = nil
-                }
+        Menu {
+            if !tags.isEmpty {
+                Section("タグ") {
+                    Button {
+                        selectedTag = nil
+                    } label: {
+                        Label("すべて", systemImage: selectedTag == nil ? "checkmark" : "tag")
+                    }
 
-                ForEach(tags, id: \.self) { tag in
-                    WordFilterPillButton(title: tag, isSelected: selectedTag == tag) {
-                        selectedTag = tag
+                    ForEach(tags, id: \.self) { tag in
+                        Button {
+                            selectedTag = tag
+                        } label: {
+                            Label(tag, systemImage: selectedTag == tag ? "checkmark" : "tag")
+                        }
                     }
                 }
             }
-            .padding(.vertical, WireMetrics.spacingXS)
-        }
-    }
-}
 
-struct WordListStatusFilterBar: View {
-    @Binding var selectedFilter: WordStatusFilter
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: WireMetrics.spacingS) {
+            Section("学習状態") {
                 ForEach(WordStatusFilter.allCases) { filter in
-                    WordFilterPillButton(title: filter.title, isSelected: selectedFilter == filter) {
-                        selectedFilter = filter
+                    Button {
+                        selectedStatusFilter = filter
+                    } label: {
+                        Label(filter.title, systemImage: selectedStatusFilter == filter ? "checkmark" : filter.symbol)
                     }
                 }
             }
-            .padding(.vertical, WireMetrics.spacingXS)
-        }
-    }
-}
 
-struct WordListDueFilterBar: View {
-    @Binding var selectedFilter: WordDueFilter
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: WireMetrics.spacingS) {
+            Section("復習予定") {
                 ForEach(WordDueFilter.allCases) { filter in
-                    WordFilterPillButton(title: filter.title, isSelected: selectedFilter == filter) {
-                        selectedFilter = filter
+                    Button {
+                        selectedDueFilter = filter
+                    } label: {
+                        Label(filter.title, systemImage: selectedDueFilter == filter ? "checkmark" : filter.symbol)
                     }
                 }
             }
-            .padding(.vertical, WireMetrics.spacingXS)
+
+            if isFiltering {
+                Section {
+                    Button(role: .destructive) {
+                        selectedTag = nil
+                        selectedStatusFilter = .all
+                        selectedDueFilter = .all
+                    } label: {
+                        Label("フィルターを解除", systemImage: "arrow.counterclockwise")
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: isFiltering
+                ? "line.3.horizontal.decrease.circle.fill"
+                : "line.3.horizontal.decrease.circle")
         }
+        .accessibilityLabel("フィルター")
+    }
+
+    private var isFiltering: Bool {
+        selectedTag != nil || selectedStatusFilter != .all || selectedDueFilter != .all
     }
 }
 
