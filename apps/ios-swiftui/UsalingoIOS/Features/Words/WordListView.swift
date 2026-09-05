@@ -87,11 +87,10 @@ struct WordListView: View {
             }
         }
         .searchable(text: $viewModel.searchText, prompt: "英単語・意味・例文を検索")
-        .sheet(item: $selectedWord) { word in
+        .fullScreenCover(item: $selectedWord) { word in
             WordDetailSheet(word: word) { savedWord in
                 selectedWord = viewModel.replaceWord(savedWord)
             }
-                .presentationDetents([.medium, .large])
         }
         .task(id: appState.session?.user.id ?? "guest") { await viewModel.load(dataSource: appState.studyDataSource) }
         // 浮いているタブバーが一覧の末尾に重なるので、この画面にいる間は

@@ -6,8 +6,6 @@ struct WordLibraryCard: View {
     var body: some View {
         VStack(spacing: 0) {
             illustration
-                .aspectRatio(3 / 4, contentMode: .fit)
-                .clipped()
 
             Text(word.text)
                 .wireFont(.titleS)
@@ -18,14 +16,28 @@ struct WordLibraryCard: View {
                 .padding(.horizontal, WireMetrics.spacingS)
                 .padding(.vertical, WireMetrics.spacingXS)
         }
+        .clipShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
         .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
+        .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
         .accessibilityElement(children: .combine)
         .accessibilityLabel(word.text)
         .accessibilityHint("単語の詳細を開きます")
     }
 
-    @ViewBuilder
+    /// 画像は必ず 3:4 の枠へ収め、はみ出した分は枠の内側で切り落とす。
+    /// `Color.clear` で枠の大きさを先に決めてから overlay で敷くことで、
+    /// `scaledToFill` の画像がカードの外へ広がらないようにする。
     private var illustration: some View {
+        Color.clear
+            .aspectRatio(3 / 4, contentMode: .fit)
+            .overlay {
+                illustrationContent
+            }
+            .clipped()
+    }
+
+    @ViewBuilder
+    private var illustrationContent: some View {
         if let url = word.illustrationURL {
             CardImage(
                 url: url,
