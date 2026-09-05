@@ -2,31 +2,50 @@ import SwiftUI
 
 /// デザインカスタマイズタブ（モック）。
 ///
-/// テーマの入口だけを並べ、詳細はボトムシートで見せる静的モック。
+/// 画面上 4 割はデザインのプレビュー枠、下 6 割は 4 つの設定モジュールの入口。
 /// 実際の設定反映や永続化は行わず、項目と既定値の見え方だけを確認する。
 struct DesignDashboardView: View {
+    /// 上（プレビュー）と下（ボタン）の高さの比率。
+    private static let previewHeightRatio: CGFloat = 0.4
+    /// ボトムシートの上端を、プレビュー枠の下端からどれだけ離すか。
+    private static let sheetGapBelowPreview: CGFloat = 10
+
     @State private var selectedModule: DesignMockModule?
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: WireMetrics.spacingXL) {
-                ForEach(DesignMockModule.all) { module in
-                    Button {
-                        selectedModule = module
-                    } label: {
-                        DesignThemeBlock(module: module)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityHint("詳細設定を表示します")
+        GeometryReader { proxy in
+            let spacing = WireMetrics.spacingL
+            let contentHeight = max(proxy.size.height - WireMetrics.screenPadding * 2 - spacing, 0)
+            let previewHeight = contentHeight * Self.previewHeightRatio
+            // プレビュー枠の下端をウインドウ座標で求め、その 10pt 下をシートの上端にする。
+            let previewBottom = proxy.frame(in: .global).minY + WireMetrics.screenPadding + previewHeight
+            let sheetHeight = max(windowHeight - previewBottom - Self.sheetGapBelowPreview, 0)
+
+            VStack(spacing: spacing) {
+                DesignPreviewStage()
+                    .frame(height: previewHeight)
+
+                DesignModuleGrid(spacing: spacing) { module in
+                    selectedModule = module
                 }
+                .frame(height: contentHeight - previewHeight)
             }
             .padding(WireMetrics.screenPadding)
+            .sheet(item: $selectedModule) { module in
+                DesignModuleSheet(module: module)
+                    .presentationDetents(sheetHeight > 0 ? [.height(sheetHeight)] : [.medium, .large])
+                    .presentationDragIndicator(.visible)
+            }
         }
-        .sheet(item: $selectedModule) { module in
-            DesignModuleSheet(module: module)
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-        }
+    }
+
+    /// シートはウインドウの下端から立ち上がるので、タブバー用の余白を含まない
+    /// ウインドウそのものの高さを基準にする。
+    private var windowHeight: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { ($0 as? UIWindowScene)?.keyWindow }
+            .first?
+            .bounds.height ?? 0
     }
 }
 
@@ -224,33 +243,54 @@ extension DesignMockModule {
 
 // MARK: - 表示部品
 
-private struct DesignThemeBlock: View {
+/// 4 つのモジュールを 2 x 2 に敷き詰めるグリッド。説明文は載せない。
+private struct DesignModuleGrid: View {
+    let spacing: CGFloat
+    let onSelect: (DesignMockModule) -> Void
+
+    private var rows: [[DesignMockModule]] {
+        stride(from: 0, to: DesignMockModule.all.count, by: 2).map { start in
+            Array(DesignMockModule.all[start..<min(start + 2, DesignMockModule.all.count)])
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: spacing) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                HStack(spacing: spacing) {
+                    ForEach(row) { module in
+                        Button {
+                            onSelect(module)
+                        } label: {
+                            DesignModuleTile(module: module)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(module.name)
+                        .accessibilityHint("詳細設定を表示します")
+                    }
+                }
+            }
+        }
+    }
+}
+
+/// グリッド 1 マス分のボタン。アイコンと名前だけを見せる。
+private struct DesignModuleTile: View {
     let module: DesignMockModule
 
     var body: some View {
-        HStack(spacing: WireMetrics.spacingM) {
-            HStack(spacing: WireMetrics.spacingM) {
-                Image(systemName: module.symbol)
-                    .wireFont(.titleS)
-                    .frame(width: 44, height: 44)
-                    .outlineCircleSurface()
+        VStack(spacing: WireMetrics.spacingM) {
+            Image(systemName: module.symbol)
+                .wireFont(.titleS)
+                .frame(width: 44, height: 44)
+                .outlineCircleSurface()
 
-                VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                    Text(module.name)
-                        .wireFont(.titleS)
-                    Text(module.description)
-                        .wireFont(.caption)
-                }
-            }
-
-            Spacer(minLength: WireMetrics.spacingS)
-
-            Image(systemName: "chevron.up")
+            Text(module.name)
                 .wireFont(.label)
-                .accessibilityHidden(true)
+                .multilineTextAlignment(.center)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(WireMetrics.spacingL)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
     }
 }

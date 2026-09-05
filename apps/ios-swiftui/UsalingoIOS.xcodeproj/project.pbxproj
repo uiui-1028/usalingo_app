@@ -38,6 +38,7 @@
 		A10000000000000000000013 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* AppShellView.swift */; };
 		A10000000000000000000014 /* LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* LearningDashboardView.swift */; };
 		A10000000000000000000015 /* DesignDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* DesignDashboardView.swift */; };
+		A10000000000000000000F02 /* DesignPreviewStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000F02 /* DesignPreviewStage.swift */; };
 		A10000000000000000000016 /* ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ProfileDashboardView.swift */; };
 		A10000000000000000000017 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SessionStore.swift */; };
 		A10000000000000000000018 /* WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* WordListView.swift */; };
@@ -132,6 +133,7 @@
 		A20000000000000000000013 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/AppShellView.swift; sourceTree = "<group>"; };
 		A20000000000000000000014 /* LearningDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningDashboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000015 /* DesignDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000F02 /* DesignPreviewStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignPreviewStage.swift; sourceTree = "<group>"; };
 		A20000000000000000000016 /* ProfileDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileDashboardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000017 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SessionStore.swift; sourceTree = "<group>"; };
 		A20000000000000000000018 /* WordListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListView.swift; sourceTree = "<group>"; };
@@ -260,6 +262,7 @@
 				A20000000000000000000029 /* StudyBackupSyncer.swift */,
 				A20000000000000000000028 /* GuestStudyBackupService.swift */,
 				A20000000000000000000015 /* DesignDashboardView.swift */,
+				A20000000000000000000F02 /* DesignPreviewStage.swift */,
 				A20000000000000000000016 /* ProfileDashboardView.swift */,
 				A20000000000000000000018 /* WordListView.swift */,
 				A200000000000000000070 /* WordListViewModel.swift */,
@@ -451,6 +454,7 @@
 				A10000000000000000000029 /* StudyBackupSyncer.swift in Sources */,
 				A10000000000000000000028 /* GuestStudyBackupService.swift in Sources */,
 				A10000000000000000000015 /* DesignDashboardView.swift in Sources */,
+				A10000000000000000000F02 /* DesignPreviewStage.swift in Sources */,
 				A10000000000000000000016 /* ProfileDashboardView.swift in Sources */,
 				A10000000000000000000017 /* SessionStore.swift in Sources */,
 				A10000000000000000000018 /* WordListView.swift in Sources */,
