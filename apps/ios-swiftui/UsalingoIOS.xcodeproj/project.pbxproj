@@ -34,6 +34,7 @@
 		A1000000000000000000000C /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* AuthView.swift */; };
 		A1000000000000000000000E /* StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* StudySessionView.swift */; };
 		A1000000000000000000000F /* StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* StudyCardView.swift */; };
+		A10000000000000000000FA1 /* WordCardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000FA1 /* WordCardContent.swift */; };
 		A10000000000000000000013 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* AppShellView.swift */; };
 		A10000000000000000000014 /* LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* LearningDashboardView.swift */; };
 		A10000000000000000000015 /* DesignDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* DesignDashboardView.swift */; };
@@ -124,6 +125,7 @@
 		A2000000000000000000000C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000F /* StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000FA1 /* WordCardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/WordCardContent.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* UsalingoIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UsalingoIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000011 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Local.xcconfig; sourceTree = "<group>"; };
 		A20000000000000000000012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -248,6 +250,7 @@
 				A2000000000000000000000C /* AuthView.swift */,
 				A2000000000000000000000E /* StudySessionView.swift */,
 				A2000000000000000000000F /* StudyCardView.swift */,
+				A20000000000000000000FA1 /* WordCardContent.swift */,
 				A20000000000000000000013 /* AppShellView.swift */,
 				A20000000000000000000014 /* LearningDashboardView.swift */,
 				A20000000000000000000026 /* DeckLibraryView.swift */,
@@ -438,6 +441,7 @@
 				A1000000000000000000000C /* AuthView.swift in Sources */,
 				A1000000000000000000000E /* StudySessionView.swift in Sources */,
 				A1000000000000000000000F /* StudyCardView.swift in Sources */,
+				A10000000000000000000FA1 /* WordCardContent.swift in Sources */,
 				A10000000000000000000013 /* AppShellView.swift in Sources */,
 				A10000000000000000000014 /* LearningDashboardView.swift in Sources */,
 				A10000000000000000000026 /* DeckLibraryView.swift in Sources */,

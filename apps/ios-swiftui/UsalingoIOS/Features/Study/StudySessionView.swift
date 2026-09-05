@@ -16,6 +16,9 @@ struct StudySessionView: View {
     @State private var dragOffset = CGSize.zero
     @State private var hasCrossedSwipeThreshold = false
     @State private var showAnswer = false
+    @State private var isFlipped = false
+    /// ドラッグを横（カード送り）と縦（裏面のスクロール）のどちらに割り当てたか。
+    @State private var dragAxis: DragAxis?
     @State private var answerQueue = StudyAnswerQueue()
     @State private var flyawayCards: [FlyawayCard] = []
     @State private var isUndoingAnswer = false
@@ -152,15 +155,22 @@ struct StudySessionView: View {
                     .zIndex(0)
             }
 
-            StudyCardView(card: cards[index], showAnswer: showAnswer)
+            StudyCardView(card: cards[index], showAnswer: showAnswer, isFlipped: isFlipped)
                 .id(cards[index].id)
                 .zIndex(1)
                 .backSwipeProtectedRegion()
                 .offset(dragOffset)
                 .rotationEffect(.degrees(Double(dragOffset.width / 24)))
-                .gesture(
+                // 裏面の ScrollView に横方向のドラッグを食われないよう、同時認識にする。
+                // どちらの操作かは動き出しの向きで決め、決めた後は最後まで変えない。
+                .simultaneousGesture(
                     DragGesture()
                         .onChanged { value in
+                            if dragAxis == nil {
+                                dragAxis = DragAxis(translation: value.translation)
+                            }
+
+                            guard dragAxis == .horizontal else { return }
                             dragOffset = value.translation
                             let threshold: CGFloat = 110
                             let crossed = abs(value.translation.width) > threshold
@@ -170,7 +180,10 @@ struct StudySessionView: View {
                             hasCrossedSwipeThreshold = crossed
                         }
                         .onEnded { value in
+                            let axis = dragAxis
+                            dragAxis = nil
                             hasCrossedSwipeThreshold = false
+                            guard axis == .horizontal else { return }
                             let threshold: CGFloat = 110
                             if value.translation.width > threshold {
                                 swipe(isCorrect: true)
@@ -184,10 +197,7 @@ struct StudySessionView: View {
                         }
                 )
                 .onTapGesture {
-                    HapticFeedbackService.tap()
-                    withAnimation(.easeInOut(duration: 0.18)) {
-                        showAnswer.toggle()
-                    }
+                    advanceCardFace()
                 }
 
             // 見送ったカードは独立した層で飛ばす。トップカードの入れ替えはこの演出を
@@ -381,6 +391,7 @@ struct StudySessionView: View {
             FlyawayCard(
                 card: answeredCard,
                 showAnswer: showAnswer,
+                isFlipped: isFlipped,
                 start: dragOffset,
                 end: CGSize(width: target, height: dragOffset.height)
             )
@@ -390,10 +401,24 @@ struct StudySessionView: View {
         audioPlaybackService.stop()
         index += 1
         showAnswer = false
+        isFlipped = false
         dragOffset = .zero
         prefetchUpcomingImages()
 
         drainAnswerQueue()
+    }
+
+    /// タップ1回で1段ずつ進める。回答前→回答表示→裏、裏からは回答表示の表へ戻す。
+    /// 回答前には戻さない。
+    private func advanceCardFace() {
+        HapticFeedbackService.tap()
+        withAnimation(.easeInOut(duration: 0.32)) {
+            if !showAnswer {
+                showAnswer = true
+            } else {
+                isFlipped.toggle()
+            }
+        }
     }
 
     private func retryAnswer() {
@@ -430,6 +455,7 @@ struct StudySessionView: View {
                 sessionProgresses.removeLast()
                 answerHistory.removeLast()
                 showAnswer = false
+                isFlipped = false
                 dragOffset = .zero
             }
             appState.markStudyDataChanged()
@@ -524,12 +550,26 @@ struct StudyAnswerQueue {
     }
 }
 
+/// ドラッグの向き。動き出しの成分が大きいほうへ倒し、その操作だけを通す。
+private enum DragAxis {
+    case horizontal
+    case vertical
+
+    /// 動き出しの数ポイントは指のぶれで向きが定まらないので、
+    /// 一定距離を超えるまで判定を保留する。
+    init?(translation: CGSize) {
+        guard hypot(translation.width, translation.height) >= 8 else { return nil }
+        self = abs(translation.width) >= abs(translation.height) ? .horizontal : .vertical
+    }
+}
+
 /// 見送ったカードを飛ばすためだけの控え。トップカードとは別の層に置くので、
 /// この演出が終わるのを待たずに次のカードを操作できる。
 private struct FlyawayCard: Identifiable {
     let id = UUID()
     let card: WordCard
     let showAnswer: Bool
+    let isFlipped: Bool
     let start: CGSize
     let end: CGSize
 }
@@ -542,7 +582,7 @@ private struct FlyawayCardView: View {
 
     var body: some View {
         let current = offset ?? item.start
-        StudyCardView(card: item.card, showAnswer: item.showAnswer)
+        StudyCardView(card: item.card, showAnswer: item.showAnswer, isFlipped: item.isFlipped)
             .offset(current)
             .rotationEffect(.degrees(Double(current.width / 24)))
             .opacity(offset == nil ? 1 : 0)
