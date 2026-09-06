@@ -7,6 +7,7 @@ import SwiftUI
 struct DeckConceptView: View {
     let deck: Deck
     let counts: StudyDeckCounts?
+    var onStart: ((StudyMode) -> Void)? = nil
 
     @State private var selectedMode: StudyMode = .all
     @State private var selectedFormat: ConceptAnswerFormat = .englishToJapanese
@@ -33,6 +34,20 @@ struct DeckConceptView: View {
                 actionGroup
             }
             .padding(WireMetrics.screenPadding)
+        }
+        .safeAreaInset(edge: .top, spacing: 0) {
+            Button("始める", systemImage: "play.fill") {
+                if let onStart {
+                    onStart(selectedMode)
+                } else {
+                    launch = StudyLaunch(deck: deck, mode: selectedMode)
+                }
+            }
+            .buttonStyle(.wirePrimary)
+            .accessibilityHint("選択した学習モードで学習を始めます")
+            .padding(.horizontal, WireMetrics.screenPadding)
+            .padding(.vertical, WireMetrics.spacingS)
+            .background(WireColor.background)
         }
         .background(WireColor.background)
         .navigationTitle(deck.deckName)
@@ -239,10 +254,6 @@ struct DeckConceptView: View {
                         )
                 }
 
-                Button("はじめる（\(selectedVolume.startSummary)）") {
-                    launch = StudyLaunch(deck: deck, mode: selectedMode)
-                }
-                .buttonStyle(.wirePrimary)
             }
         }
     }
@@ -305,7 +316,7 @@ struct DeckConceptView: View {
 }
 
 /// 学習画面へ渡す組み合わせ。`navigationDestination(item:)` に載せるためだけの入れ物。
-private struct StudyLaunch: Identifiable, Hashable {
+struct StudyLaunch: Identifiable, Hashable {
     let deck: Deck
     let mode: StudyMode
 
