@@ -1,8 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 学習タブ。1列のデッキリスト（D-4）。行をタップしたら確認を挟まずに学習画面へ入る（D-8）。
-/// 「どう遊ぶか」を決める `DeckConceptView` は、行の右端のボタンから下から開く。
+/// 学習タブ。デッキをタップして学習モード設定を開き、上部の開始ボタンから学習へ進む。
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
@@ -12,7 +11,8 @@ struct LearningDashboardView: View {
 
     @State private var decks: [Deck] = []
     @State private var countsByDeckId: [Int: StudyDeckCounts] = [:]
-    @State private var selectedDeck: Deck?
+    @State private var studyLaunch: StudyLaunch?
+    @State private var pendingStudyLaunch: StudyLaunch?
     @State private var conceptDeck: Deck?
     /// 並べ替えモード。`.constant` で渡すと `List` 側から抜けられなくなるので、
     /// 書き戻せる状態として持つ。
@@ -37,8 +37,8 @@ struct LearningDashboardView: View {
     var body: some View {
         NavigationStack {
             list
-                .navigationDestination(item: $selectedDeck) { deck in
-                    StudySessionView(deck: deck)
+                .navigationDestination(item: $studyLaunch) { launch in
+                    StudySessionView(deck: launch.deck, studyMode: launch.mode)
                 }
                 .navigationDestination(isPresented: $isShowingLibrary) {
                     DeckLibraryView { Task { await reload() } }
@@ -47,9 +47,17 @@ struct LearningDashboardView: View {
                     WordListView()
                 }
         }
-        .sheet(item: $conceptDeck) { deck in
+        .sheet(item: $conceptDeck, onDismiss: {
+            // Wait until the sheet is gone before pushing the study screen.
+            guard let pendingStudyLaunch else { return }
+            self.pendingStudyLaunch = nil
+            studyLaunch = pendingStudyLaunch
+        }) { deck in
             NavigationStack {
-                DeckConceptView(deck: deck, counts: countsByDeckId[deck.id])
+                DeckConceptView(deck: deck, counts: countsByDeckId[deck.id]) { mode in
+                    pendingStudyLaunch = StudyLaunch(deck: deck, mode: mode)
+                    conceptDeck = nil
+                }
             }
             .presentationDetents([.medium, .large])
             .presentationDragIndicator(.visible)
@@ -264,64 +272,46 @@ struct LearningDashboardView: View {
         setActionBarHidden(verticalMovement < 0)
     }
 
-    /// 行の本体をタップしたら、確認を挟まずに学習画面へ入る（D-8）。
-    /// コンセプト画面は行の右端のボタンから下から開く。
+    /// デッキ全体を設定への入口にする。長押しによる並べ替えは維持する。
     private func deckRow(_ deck: Deck) -> some View {
-        VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-            // 上段だけを2列に分ける。習得率バーと内訳チップは行の幅いっぱいを使えるので、
-            // 文字が「…」で切れない。
-            HStack(alignment: .top, spacing: WireMetrics.spacingM) {
-                Button {
-                    guard !isEditing else { return }
-                    selectedDeck = deck
-                } label: {
-                    HStack(alignment: .top, spacing: WireMetrics.spacingM) {
-                        // B-12 見分けの記号。色相を使えないので枠と記号で区別する。
-                        DeckCoverMark(symbol: sample(for: deck).coverSymbol)
-
-                        VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                            Text(deck.deckName)
-                                .wireFont(.titleS)
-                            // B-1 説明文。取得済みなのに出していなかった。
-                            Text(deck.description ?? "説明はまだありません")
-                                .wireFont(.caption)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+        Button {
+            guard !isEditing else { return }
+            conceptDeck = deck
+        } label: {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
+                HStack(alignment: .top, spacing: WireMetrics.spacingM) {
+                    DeckCoverMark(symbol: sample(for: deck).coverSymbol)
+                    VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+                        Text(deck.deckName)
+                            .wireFont(.titleS)
+                        Text(deck.description ?? "説明はまだありません")
+                            .wireFont(.caption)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: "chevron.right")
+                        .wireFont(.caption)
+                        .accessibilityHidden(true)
                 }
-                // 行は枠を持たない。押せることは押下中の面の濃さと縮小で示す。
-                .buttonStyle(.bentoRow(tone: deckGroupTone))
-                .simultaneousGesture(
-                    LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                        guard appState.isGuest, !isEditing else { return }
-                        withAnimation(.easeInOut(duration: 0.2)) { editMode = .active }
-                    }
+                DeckMasteryBar(
+                    masteredCount: sample(for: deck).masteredCount,
+                    totalCount: sample(for: deck).totalCount,
+                    ratio: sample(for: deck).masteryRatio,
+                    percentText: sample(for: deck).masteryPercentText
                 )
-
-                Button {
-                    guard !isEditing else { return }
-                    conceptDeck = deck
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                        .wireFont(.titleS)
-                        .frame(width: 40, height: 40)
-                }
-                .buttonStyle(.bentoRow(tone: deckGroupTone))
-                .accessibilityLabel("\(deck.deckName) のコンセプトを選ぶ")
+                DeckStatusChips(sample: sample(for: deck))
             }
-
-            // B-2 / B-3 分母と習得率。
-            DeckMasteryBar(
-                masteredCount: sample(for: deck).masteredCount,
-                totalCount: sample(for: deck).totalCount,
-                ratio: sample(for: deck).masteryRatio,
-                percentText: sample(for: deck).masteryPercentText
-            )
-            // B-4 状態内訳。
-            DeckStatusChips(sample: sample(for: deck))
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(WireMetrics.spacingL)
+            .contentShape(Rectangle())
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(WireMetrics.spacingL)
+        .buttonStyle(.bentoRow(tone: deckGroupTone))
+        .accessibilityHint("学習モード設定を開きます")
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.45).onEnded { _ in
+                guard appState.isGuest, !isEditing else { return }
+                withAnimation(.easeInOut(duration: 0.2)) { editMode = .active }
+            }
+        )
     }
 
     /// 単語画面への入口の1行。枠は外側のグループが持つので重ねない。

@@ -2,6 +2,44 @@ import XCTest
 @testable import UsalingoIOS
 
 final class WordListViewModelTests: XCTestCase {
+    func testDetailPagingWrapsBothEndsInDisplayedOrder() {
+        let words = [makeWord(id: 3, text: "carrot"), makeWord(id: 1, text: "apple"), makeWord(id: 2, text: "banana")]
+        var selection = WordDetailSelection(word: words[0], words: words)
+        selection.move(by: -1)
+        XCTAssertEqual(selection.current.id, 2)
+        selection.move(by: 1)
+        XCTAssertEqual(selection.current.id, 3)
+        selection.move(by: 1)
+        XCTAssertEqual(selection.current.id, 1)
+    }
+
+    func testDetailPagingSingleWordAndMissingSelectionStayValid() {
+        let apple = makeWord(id: 1, text: "apple")
+        for words in [[], [apple], [makeWord(id: 2, text: "banana")]] {
+            var selection = WordDetailSelection(word: apple, words: words)
+            selection.move(by: -1)
+            selection.move(by: 1)
+            XCTAssertEqual(selection.current, apple)
+            XCTAssertEqual(selection.words.count, 1)
+        }
+    }
+
+    func testDetailPagingPreservesEditsWhenReturningToWord() {
+        let apple = makeWord(id: 1, text: "apple")
+        let banana = makeWord(id: 2, text: "banana")
+        var selection = WordDetailSelection(word: apple, words: [apple, banana])
+        selection.select(id: banana.id)
+        let edited = makeWord(id: 2, text: "edited banana")
+        selection.replace(edited)
+        selection.move(by: 1)
+        XCTAssertEqual(selection.current, apple)
+        selection.move(by: 1)
+        XCTAssertEqual(selection.current, edited)
+        XCTAssertEqual(selection.words.map(\.id), [1, 2])
+        selection.select(id: 99)
+        XCTAssertEqual(selection.current, edited)
+    }
+
     @MainActor
     func testLoadWithoutDeckFetchesWordList() async {
         let apple = makeWord(id: 1, text: "apple")

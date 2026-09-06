@@ -1,9 +1,11 @@
 import SwiftUI
+import UIKit
 
 struct WordDetailSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var word: WordCard
+    @State private var selection: WordDetailSelection
+    @State private var pagingDirection: UIPageViewController.NavigationDirection = .forward
     @State private var isEditing = false
     @State private var isTagging = false
     @State private var isExpanded = false
@@ -11,8 +13,10 @@ struct WordDetailSheet: View {
     @GestureState private var sheetDrag: CGFloat = 0
     let onSaved: (WordCard) -> Void
 
-    init(word: WordCard, onSaved: @escaping (WordCard) -> Void) {
-        _word = State(initialValue: word)
+    private var word: WordCard { selection.current }
+
+    init(word: WordCard, words: [WordCard] = [], onSaved: @escaping (WordCard) -> Void) {
+        _selection = State(initialValue: WordDetailSelection(word: word, words: words))
         self.onSaved = onSaved
     }
 
@@ -82,14 +86,14 @@ struct WordDetailSheet: View {
         }
         .sheet(isPresented: $isEditing) {
             WordEditSheet(word: word) { savedWord in
-                word = savedWord
+                selection.replace(savedWord)
                 onSaved(savedWord)
             }
             .presentationDetents([.large])
         }
         .sheet(isPresented: $isTagging) {
             TagSheet(word: word) { savedWord in
-                word = savedWord
+                selection.replace(savedWord)
                 onSaved(savedWord)
             }
             .presentationDetents([.medium, .large])
@@ -119,30 +123,34 @@ struct WordDetailSheet: View {
             .buttonStyle(.plain)
             .accessibilityLabel(isExpanded ? "詳細シートを縮小" : "詳細シートを展開")
             .simultaneousGesture(DragGesture(minimumDistance: 12)
-                .updating($sheetDrag) { value, state, _ in state = value.translation.height }
+                .updating($sheetDrag) { value, state, _ in
+                    guard abs(value.translation.height) > abs(value.translation.width) else { return }
+                    state = value.translation.height
+                }
                 .onEnded { value in
+                    guard abs(value.translation.height) > abs(value.translation.width) else {
+                        if abs(value.translation.width) > 45 {
+                            moveWord(by: value.translation.width < 0 ? 1 : -1)
+                        }
+                        return
+                    }
                     animate {
                         if value.predictedEndTranslation.height < -35 { isExpanded = true }
                         if value.predictedEndTranslation.height > 35 { isExpanded = false }
                     }
                 })
             Divider().opacity(0.3)
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text(word.text).font(.largeTitle.bold())
-                    Text(word.meaning).font(.title3)
-                    WordMetaRow(word: word)
-                    if !word.tags.isEmpty { TagChipRow(tags: word.tags) }
-                    DetailBlock(title: "例文", text: word.sentenceEnglish ?? "例文は準備中です。")
-                    if let japanese = word.sentenceJapanese {
-                        DetailBlock(title: "日本語", text: japanese)
-                    }
-                    DetailBlock(title: "学習メモ", text: word.learning?.studySummary ?? "まだ学習していないカードです。")
-                    DetailBlock(title: "覚え方 · サンプル", text: "絵の場面を思い浮かべながら、単語を声に出してみましょう。")
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(24)
+            WordDetailPager(
+                words: selection.words,
+                selectedID: word.id,
+                direction: pagingDirection,
+                reduceMotion: reduceMotion
+            ) { id in
+                selection.select(id: id)
             }
+            .accessibilityAction(named: "次の単語") { moveWord(by: 1) }
+            .accessibilityAction(named: "前の単語") { moveWord(by: -1) }
+
         }
         .frame(height: height)
         .frame(maxWidth: .infinity)
@@ -151,8 +159,162 @@ struct WordDetailSheet: View {
         .shadow(color: .black.opacity(0.12), radius: 20, y: -5)
     }
 
+    private func moveWord(by step: Int) {
+        guard selection.words.count > 1 else { return }
+        pagingDirection = step > 0 ? .forward : .reverse
+        selection.move(by: step)
+    }
+
     private func animate(_ changes: () -> Void) {
         withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.84), changes)
+    }
+}
+
+// Keep the list's order stable for the lifetime of this presentation, including
+// when an edit changes a search match or sort key in the underlying list.
+struct WordDetailSelection {
+    private(set) var words: [WordCard]
+    private(set) var index: Int
+    var current: WordCard { words[index] }
+
+    init(word: WordCard, words: [WordCard]) {
+        if let index = words.firstIndex(where: { $0.id == word.id }) {
+            self.words = words
+            self.words[index] = word
+            self.index = index
+        } else {
+            self.words = [word]
+            self.index = 0
+        }
+    }
+
+    mutating func move(by step: Int) {
+        index = Self.wrappedIndex(index + step % words.count, count: words.count)
+    }
+
+    mutating func select(id: WordCard.ID) {
+        guard let index = words.firstIndex(where: { $0.id == id }) else { return }
+        self.index = index
+    }
+
+    mutating func replace(_ savedWord: WordCard) {
+        guard let index = words.firstIndex(where: { $0.id == savedWord.id }) else { return }
+        words[index] = savedWord
+    }
+
+    static func wrappedIndex(_ index: Int, count: Int) -> Int {
+        guard count > 0 else { return 0 }
+        return (index % count + count) % count
+    }
+}
+
+/// Native horizontal paging arbitrates with each page's vertical ScrollView.
+/// Only this region receives the paging gesture; the 3D card is a sibling.
+private struct WordDetailPager: UIViewControllerRepresentable {
+    let words: [WordCard]
+    let selectedID: WordCard.ID
+    let direction: UIPageViewController.NavigationDirection
+    let reduceMotion: Bool
+    let onSelected: (WordCard.ID) -> Void
+
+    func makeCoordinator() -> Coordinator { Coordinator(self) }
+
+    func makeUIViewController(context: Context) -> UIPageViewController {
+        let controller = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
+        controller.view.backgroundColor = .clear
+        controller.delegate = context.coordinator
+        controller.dataSource = words.count > 1 ? context.coordinator : nil
+        controller.setViewControllers([context.coordinator.page(id: selectedID)], direction: .forward, animated: false)
+        return controller
+    }
+
+    func updateUIViewController(_ controller: UIPageViewController, context: Context) {
+        context.coordinator.parent = self
+        guard !context.coordinator.isTransitioning else { return }
+        guard let current = controller.viewControllers?.first as? Page else { return }
+        if current.wordID == selectedID {
+            // Saving an edit refreshes the page without resetting the presenter.
+            if let updated = words.first(where: { $0.id == selectedID }), current.word != updated {
+                current.word = updated
+                current.rootView = WordDetailPage(word: updated)
+            }
+        } else {
+            controller.setViewControllers([context.coordinator.page(id: selectedID)], direction: direction, animated: !reduceMotion)
+        }
+    }
+
+    final class Page: UIHostingController<WordDetailPage> {
+        var word: WordCard
+        var wordID: WordCard.ID { word.id }
+
+        init(word: WordCard) {
+            self.word = word
+            super.init(rootView: WordDetailPage(word: word))
+            view.backgroundColor = .clear
+        }
+
+        @available(*, unavailable)
+        required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+    }
+
+    final class Coordinator: NSObject, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
+        var parent: WordDetailPager
+        var isTransitioning = false
+        init(_ parent: WordDetailPager) { self.parent = parent }
+
+        func page(id: WordCard.ID) -> Page {
+            Page(word: parent.words.first(where: { $0.id == id }) ?? parent.words[0])
+        }
+
+        private func neighbor(of controller: UIViewController, step: Int) -> UIViewController? {
+            guard parent.words.count > 1, let current = controller as? Page,
+                  let index = parent.words.firstIndex(where: { $0.id == current.wordID }) else { return nil }
+            let next = WordDetailSelection.wrappedIndex(index + step, count: parent.words.count)
+            return Page(word: parent.words[next])
+        }
+
+        func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+            neighbor(of: viewController, step: -1)
+        }
+
+        func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+            neighbor(of: viewController, step: 1)
+        }
+
+        func pageViewController(_ pageViewController: UIPageViewController, willTransitionTo pendingViewControllers: [UIViewController]) {
+            isTransitioning = true
+        }
+
+        func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool,
+                                previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
+            isTransitioning = false
+            guard completed, let page = pageViewController.viewControllers?.first as? Page else { return }
+            parent.onSelected(page.wordID)
+        }
+    }
+}
+
+private struct WordDetailPage: View {
+    let word: WordCard
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Text(word.text).font(.largeTitle.bold())
+                Text(word.meaning).font(.title3)
+                WordMetaRow(word: word)
+                if !word.tags.isEmpty { TagChipRow(tags: word.tags) }
+                DetailBlock(title: "例文", text: word.sentenceEnglish ?? "例文は準備中です。")
+                if let japanese = word.sentenceJapanese {
+                    DetailBlock(title: "日本語", text: japanese)
+                }
+                DetailBlock(title: "学習メモ", text: word.learning?.studySummary ?? "まだ学習していないカードです。")
+                DetailBlock(title: "覚え方 · サンプル", text: "絵の場面を思い浮かべながら、単語を声に出してみましょう。")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(24)
+        }
+        .foregroundStyle(Color(red: 0.19, green: 0.25, blue: 0.32))
     }
 }
 
