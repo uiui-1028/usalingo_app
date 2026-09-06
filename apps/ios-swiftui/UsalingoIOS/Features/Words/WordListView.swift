@@ -88,8 +88,8 @@ struct WordListView: View {
         }
         .searchable(text: $viewModel.searchText, prompt: "英単語・意味・例文を検索")
         .fullScreenCover(item: $selectedWord) { word in
-            WordDetailSheet(word: word) { savedWord in
-                selectedWord = viewModel.replaceWord(savedWord)
+            WordDetailSheet(word: word, words: viewModel.filteredWords) { savedWord in
+                _ = viewModel.replaceWord(savedWord)
             }
         }
         .task(id: appState.session?.user.id ?? "guest") { await viewModel.load(dataSource: appState.studyDataSource) }
