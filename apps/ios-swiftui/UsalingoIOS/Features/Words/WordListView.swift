@@ -2,6 +2,7 @@ import SwiftUI
 
 struct WordListView: View {
     @EnvironmentObject private var appState: AppState
+    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: WordListViewModel
     @State private var selectedWord: WordCard?
 
@@ -33,11 +34,6 @@ struct WordListView: View {
                 }
                 .wireListRow(vertical: WireMetrics.spacingXL)
             } else {
-                Section {
-                    WordListDisplayModePicker(selectedMode: $viewModel.selectedDisplayMode)
-                        .wireListRow(vertical: WireMetrics.spacingXS)
-                }
-
                 if viewModel.filteredWords.isEmpty {
                     ContentUnavailableView("単語がありません", systemImage: "magnifyingglass", description: Text("検索条件またはタグを変更してください"))
                         .wireListRow()
@@ -69,24 +65,23 @@ struct WordListView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(WireColor.background)
-        .navigationTitle(viewModel.deck?.deckName ?? "単語リスト")
-        .toolbarBackground(WireColor.background, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                WordListFilterMenu(
-                    tags: viewModel.availableTags,
-                    selectedTag: $viewModel.selectedTagFilter,
-                    selectedStatusFilter: $viewModel.selectedStatusFilter,
-                    selectedDueFilter: $viewModel.selectedDueFilter
-                )
-            }
-
-            ToolbarItem(placement: .primaryAction) {
-                WordListSortMenu(selectedSort: $viewModel.selectedSort)
-            }
+        // 操作はすべて下の浮動バーに集めたので、上のヘッダーごと消す。
+        // ヘッダーを消すと端からのスワイプでも戻れなくなるため、
+        // 戻る導線は下のバーの左端に置く。
+        .toolbar(.hidden, for: .navigationBar)
+        // 左のバーに絞り込み・並べ替え・検索、右のバーに表示切り替えを収める。
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            WordListBottomBars(
+                tags: viewModel.availableTags,
+                selectedTag: $viewModel.selectedTagFilter,
+                selectedStatusFilter: $viewModel.selectedStatusFilter,
+                selectedDueFilter: $viewModel.selectedDueFilter,
+                selectedSort: $viewModel.selectedSort,
+                searchText: $viewModel.searchText,
+                selectedDisplayMode: $viewModel.selectedDisplayMode,
+                onBack: { dismiss() }
+            )
         }
-        .searchable(text: $viewModel.searchText, prompt: "英単語・意味・例文を検索")
         .fullScreenCover(item: $selectedWord) { word in
             WordDetailSheet(word: word, words: viewModel.filteredWords) { savedWord in
                 _ = viewModel.replaceWord(savedWord)
