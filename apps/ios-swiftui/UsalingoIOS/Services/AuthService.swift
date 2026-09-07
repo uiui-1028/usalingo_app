@@ -23,7 +23,30 @@ struct AuthSession: Codable {
 struct AuthUser: Codable {
     let id: String
     let email: String?
+    /// 匿名アカウント（メールもパスワードも持たない）かどうか。
+    /// Supabase が返さない古いセッションでは nil になるので、`isAnonymousAccount` で読む。
+    let isAnonymous: Bool?
+
+    /// 匿名かどうか。判断できないときは「メールが無ければ匿名」で補う。
+    var isAnonymousAccount: Bool {
+        isAnonymous ?? (email?.isEmpty ?? true)
+    }
+
+    init(id: String, email: String?, isAnonymous: Bool? = nil) {
+        self.id = id
+        self.email = email
+        self.isAnonymous = isAnonymous
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case email
+        case isAnonymous = "is_anonymous"
+    }
 }
+
+/// 匿名サインインは本文を持たない。`{}` を送る。
+private struct EmptyAuthBody: Encodable {}
 
 private struct AuthResponse: Decodable {
     let accessToken: String?
@@ -87,6 +110,17 @@ final class AuthService {
 
     func signIn(email: String, password: String) async throws -> AuthSession {
         let session = try await authRequest(path: "token", query: [URLQueryItem(name: "grant_type", value: "password")], email: email, password: password)
+        try await ensureCurrentUserRow(session: session)
+        try sessionStore.save(session)
+        return session
+    }
+
+    /// 匿名アカウントでサインインする。登録していない利用者も、会員と同じ
+    /// デッキと同じ学習記録の置き場所を使えるようにするための入口。
+    func signInAnonymously() async throws -> AuthSession {
+        guard let session = try await authRequest(path: "signup", query: [], body: EmptyAuthBody()) else {
+            throw AuthError.anonymousSignInUnavailable
+        }
         try await ensureCurrentUserRow(session: session)
         try sessionStore.save(session)
         return session
@@ -221,7 +255,7 @@ final class AuthService {
         return session
     }
 
-    private func authRequest(path: String, query: [URLQueryItem], body: AuthRequestBody) async throws -> AuthSession? {
+    private func authRequest(path: String, query: [URLQueryItem], body: any Encodable) async throws -> AuthSession? {
         var components = URLComponents(url: SupabaseConfig.authURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!
         components.queryItems = query.isEmpty ? nil : query
 
@@ -325,6 +359,7 @@ enum AuthError: LocalizedError {
     case weakPassword
     case currentPasswordRequired
     case passwordsDoNotMatch
+    case anonymousSignInUnavailable
 
     var errorDescription: String? {
         switch self {
@@ -342,6 +377,8 @@ enum AuthError: LocalizedError {
             return "現在のパスワードを入力してください。"
         case .passwordsDoNotMatch:
             return "新しいパスワードが一致しません。"
+        case .anonymousSignInUnavailable:
+            return "いまは学習を始められません。通信を確かめて、もう一度お試しください。"
         }
     }
 }

@@ -333,7 +333,7 @@ final class LocalStudyDataSource: StudyDataSource {
 
     var supportsDeckReordering: Bool { true }
 
-    var supportsDeckExport: Bool { true }
+    var supportsDeckFileTransfer: Bool { true }
 
     func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome {
         let deck = try installBundledDeck(key: file.deckId)

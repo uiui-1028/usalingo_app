@@ -174,7 +174,7 @@ private final class FakeStudyDataSource: StudyDataSource {
     func saveWordOverride(_ payload: WordOverridePayload) async throws -> WordCard { throw LocalStudyError.deckNotFound }
     func canManage(_ deck: Deck) -> Bool { false }
     var supportsDeckReordering: Bool { false }
-    var supportsDeckExport: Bool { false }
+    var supportsDeckFileTransfer: Bool { false }
     func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome { throw LocalStudyError.deckNotFound }
     func deleteDeck(id: Int) async throws { throw LocalStudyError.deckNotFound }
 }

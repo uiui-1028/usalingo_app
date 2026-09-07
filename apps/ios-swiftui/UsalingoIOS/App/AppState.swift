@@ -26,7 +26,9 @@ final class AppState: ObservableObject {
     /// ローカル同梱データ層（D-1）。デッキ一覧・入出力はこの実体を直接使う。
     let localStudy: LocalStudyDataSource
 
-    /// 学習画面が使うデータ層。ゲストは端末、認証済み利用者はSupabaseへ接続する。
+    /// 学習画面が使うデータ層。匿名アカウントも会員も、同じSupabaseへ接続する。
+    /// セッションが無いのは匿名サインインに失敗したときだけで、そのときは
+    /// 学習画面そのものを出さない（`StartupFailureView`）。
     var studyDataSource: any StudyDataSource {
         guard let session else { return localStudy }
         return makeRemoteStudy(session)
@@ -41,8 +43,10 @@ final class AppState: ObservableObject {
     private let makeRemoteStudy: (AuthSession) -> any StudyDataSource
     private let makeBackupSyncer: @MainActor (LocalStudyDataSource) -> StudyBackupSyncer
 
+    /// 「まだ登録していない人」。未ログインではなく、匿名アカウントを指す。
+    /// 匿名でも会員と同じデッキを読み、同じ場所へ学習記録を書く。
     var isGuest: Bool {
-        session == nil
+        session?.user.isAnonymousAccount ?? true
     }
 
     init(
@@ -172,7 +176,10 @@ final class AppState: ObservableObject {
 
     /// ログイン・セッション復元で利用者が変わったときだけ、バックアップの同期をやり直す。
     private func handleSessionChange() {
-        guard let session else {
+        // 端末の学習記録を預かる仕組みは、匿名アカウントには要らない。
+        // 記録は最初からサーバーにあり、会員登録しても user_id は変わらない。
+        // 匿名の分まで預かると、中身の無い控えが利用者数ぶん増えるだけになる。
+        guard let session, !session.user.isAnonymousAccount else {
             backupSyncer.stop()
             return
         }
@@ -199,10 +206,34 @@ final class AppState: ObservableObject {
     private func restoreSession() async {
         defer { isRestoringSession = false }
         do {
-            session = try await authService.restoreSession()
+            if let restored = try await authService.restoreSession() {
+                session = restored
+                return
+            }
         } catch {
-            session = nil
+            // 復元に失敗しても、この下の匿名サインインでやり直す。
         }
+
+        // 保存済みのセッションが無ければ、匿名アカウントで始める。
+        // 登録していない利用者にも、会員と同じデッキと同じ記録の置き場所を渡す。
+        do {
+            session = try await authService.signInAnonymously()
+            startupMessage = nil
+        } catch {
+            // 端末側の学習経路へ黙って落とさない。始められない理由を出す。
+            session = nil
+            startupMessage = UserFacingError.message(for: error)
+        }
+    }
+
+    /// 匿名サインインに失敗したときだけ入る。通信できず学習を始められない理由。
+    @Published var startupMessage: String?
+
+    /// 起動時の匿名サインインをやり直す。
+    func retryStartup() async {
+        isRestoringSession = true
+        startupMessage = nil
+        await restoreSession()
     }
 
 }

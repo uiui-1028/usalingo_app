@@ -397,7 +397,7 @@ struct LearningDashboardView: View {
 
     /// 書き出しは端末のデッキファイルが元になる。公式デッキには出さない。
     private func canExport(_ deck: Deck) -> Bool {
-        appState.studyDataSource.supportsDeckExport && appState.studyDataSource.canManage(deck)
+        appState.studyDataSource.supportsDeckFileTransfer && appState.studyDataSource.canManage(deck)
     }
 
     private func prepareExport(_ deck: Deck) {

@@ -54,10 +54,11 @@ struct DeckLibraryView: View {
                 sectionHeader("同梱デッキ")
             }
 
-            // JSONの取り込みは端末のデッキを作る操作なので、ゲストだけに出す。
-            // ログイン中のデッキは配信中の単語だけで作る（公式の単語表は書き換えない）。
+            // JSONの取り込みは端末のデッキファイルを元にする操作。保存先が
+            // リモートのときは扱えないので、ログインの有無ではなく
+            // 「その保存先がファイルを扱えるか」で出し分ける。
             Section {
-                if appState.isGuest {
+                if appState.studyDataSource.supportsDeckFileTransfer {
                     Button {
                         message = nil
                         isMessageError = false
@@ -72,7 +73,7 @@ struct DeckLibraryView: View {
                     .wireListRow()
                 } else {
                     WireframeNotice(
-                        text: "ログイン中は、配信中の単語で作られたデッキだけを追加できます。"
+                        text: "デッキは配信中の単語から作ります。ファイルの読み込みは使えません。"
                     )
                     .wireListRow()
                 }
@@ -148,8 +149,9 @@ struct DeckLibraryView: View {
     }
 
     private func reload() {
-        // 同梱JSONの一覧は端末側の資産。ログイン中でも同じ一覧から選ぶ。
-        bundledDecks = appState.isGuest
+        // 同梱JSONの一覧は端末側の資産。保存先がリモートのときは、端末の
+        // 一覧では「追加済みか」を判断できないので絞らずに出す。
+        bundledDecks = appState.studyDataSource.supportsDeckFileTransfer
             ? appState.localStudy.availableBundledDecks()
             : appState.localStudy.allBundledDecks()
     }

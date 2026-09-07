@@ -36,6 +36,11 @@ struct RootView: View {
                     .background(WireColor.background)
             } else if appState.isResettingPassword {
                 PasswordResetView()
+            } else if appState.session == nil {
+                // 匿名サインインに失敗した状態。端末の同梱デッキへ黙って
+                // 落とすと、あとで記録の引き継ぎ先が分からなくなる。
+                // 始められない理由を出して、やり直してもらう。
+                StartupFailureView(message: appState.startupMessage)
             } else {
                 AppShellView()
             }
@@ -56,6 +61,29 @@ struct RootView: View {
         } message: {
             Text(appState.accountDeletionNotice ?? "")
         }
+    }
+}
+
+/// 学習を始められないときの画面。原因を隠さず、やり直す手だけを出す。
+private struct StartupFailureView: View {
+    @EnvironmentObject private var appState: AppState
+    let message: String?
+
+    var body: some View {
+        VStack(spacing: WireMetrics.spacingL) {
+            Text("いまは学習を始められません")
+                .wireFont(.titleL)
+            Text(message ?? "通信を確かめて、もう一度お試しください。")
+                .wireFont(.caption)
+                .multilineTextAlignment(.center)
+            Button("もう一度試す") {
+                Task { await appState.retryStartup() }
+            }
+            .buttonStyle(.wirePrimary)
+        }
+        .padding(WireMetrics.screenPadding)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(WireColor.background)
     }
 }
 
