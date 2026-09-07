@@ -12,7 +12,12 @@ struct LearningDashboardView: View {
     @State private var decks: [Deck] = []
     @State private var countsByDeckId: [Int: StudyDeckCounts] = [:]
     @State private var studyLaunch: StudyLaunch?
+    @State private var pendingStudyLaunch: StudyLaunch?
     @State private var conceptDeck: Deck?
+    /// 開始ボタンをシートの外へ出したので、選ばれた学習モードはここで持つ。
+    @State private var conceptMode: StudyMode = .all
+    /// シート高を自分で決めるために測る、画面（ウィンドウ）全体の高さ。
+    @State private var windowHeight: CGFloat = 0
     /// 並べ替えモード。`.constant` で渡すと `List` 側から抜けられなくなるので、
     /// 書き戻せる状態として持つ。
     @State private var editMode: EditMode = .inactive
@@ -46,30 +51,53 @@ struct LearningDashboardView: View {
                     WordListView()
                 }
         }
-        // デッキ設定は `.sheet` では出さない。ボタンとシートを同じまとまりで
-        // 動かすため、この画面の上に重ねる（DeckConceptSheet）。
-        .overlay {
-            if let deck = conceptDeck {
-                DeckConceptSheet(
-                    deck: deck,
-                    counts: countsByDeckId[deck.id],
-                    onStart: { mode in
-                        conceptDeck = nil
-                        studyLaunch = StudyLaunch(deck: deck, mode: mode)
-                    },
-                    onClose: { conceptDeck = nil }
-                )
-                .transition(.move(edge: .bottom))
-                .zIndex(1)
+        .background {
+            // シート高を自分で決めるので、画面全体の高さを測っておく。
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { windowHeight = proxy.size.height }
+                    .onChange(of: proxy.size.height) { _, height in windowHeight = height }
             }
+            .ignoresSafeArea()
         }
-        .animation(.spring(response: 0.38, dampingFraction: 0.82), value: conceptDeck?.id)
-        // シートは画面の上に重ねているだけなので、シェルの浮動バーは自分で隠す。
-        // `.sheet` のように勝手に覆ってはくれない。
-        .onChange(of: conceptDeck?.id) { _, id in
-            setActionBarHidden(id != nil)
+        .sheet(item: $conceptDeck, onDismiss: {
+            // Wait until the sheet is gone before pushing the study screen.
+            guard let pendingStudyLaunch else { return }
+            self.pendingStudyLaunch = nil
+            studyLaunch = pendingStudyLaunch
+        }) { deck in
+            DeckConceptSheet(
+                deck: deck,
+                counts: countsByDeckId[deck.id],
+                selectedMode: $conceptMode
+            ) { mode in
+                pendingStudyLaunch = StudyLaunch(deck: deck, mode: mode)
+                conceptDeck = nil
+            }
+            // 高さは1つに固定する。上端に「始める」の帯を持つぶん、面より少し高い。
+            .presentationDetents([.height(conceptSheetHeight)])
+            // 面の上端はシート枠ではなくパネル側にあるので、標準の指示子は使わない。
+            .presentationDragIndicator(.hidden)
+            // 面はシートの中で自分で描く。枠の背景は透かして、上端の帯を地に見せる。
+            .presentationBackground { Color.clear }
+            // 枠の角丸は面（パネル）側で描くので、シート枠側は角を持たせない。
+            .presentationCornerRadius(0)
+            // 背景を暗くしない。透かした帯の向こうにデッキ一覧を見せるため。
+            .presentationBackgroundInteraction(.enabled)
         }
         .task(id: reloadKey) { await reload() }
+    }
+
+    /// シートの高さ。面（画面の約72%）と、その上に載せる「始める」の帯を足した値。
+    /// まだ画面を測れていないときは安全側の固定値を使う。
+    private var conceptSheetHeight: CGFloat {
+        guard windowHeight > 0 else { return 520 + startButtonStripHeight }
+        return windowHeight * 0.72 + startButtonStripHeight
+    }
+
+    /// 「始める」の帯の高さ。ボタンの上下余白（spacingM×2）＋文字の行と、面とのすき間。
+    private var startButtonStripHeight: CGFloat {
+        (WireMetrics.spacingM * 2) + 22 + WireMetrics.spacingM
     }
 
     /// 画面は上から「デッキ一覧」「単語」「操作」「通知」へ分ける。
@@ -122,13 +150,17 @@ struct LearningDashboardView: View {
                             // 並べ替え中は行が動くので、行をまたいで1つの枠を描く
                             // 「はみ出させて切り取る」描き方をやめ、行ごとに閉じた枠にする。
                             // そうしないと切り取られた枠だけが残って見た目が壊れる。
+                            // 1件ずつ枠で囲うので、行と行のあいだは区切り線ではなく
+                            // すき間で離す。線とカード枠が二重にならないようにする。
                             .bentoListRow(
                                 position: isEditing
                                     ? .single
                                     : (isLast ? .bottom : .middle),
                                 tone: deckGroupTone,
-                                showsDivider: !isEditing && !isLast,
-                                vertical: isEditing ? WireMetrics.spacingXS : 0
+                                showsDivider: false,
+                                // 外枠とカードの線が近すぎて窮屈だったので、左右を少し広げる。
+                                horizontal: WireMetrics.spacingS,
+                                vertical: WireMetrics.spacingXS
                             )
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 if canExport(deck) {
@@ -251,6 +283,7 @@ struct LearningDashboardView: View {
     private func deckRow(_ deck: Deck) -> some View {
         Button {
             guard !isEditing else { return }
+            conceptMode = .all
             conceptDeck = deck
         } label: {
             VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
@@ -263,9 +296,6 @@ struct LearningDashboardView: View {
                             .wireFont(.caption)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "chevron.right")
-                        .wireFont(.caption)
-                        .accessibilityHidden(true)
                 }
                 DeckMasteryBar(
                     masteredCount: sample(for: deck).masteredCount,
@@ -277,9 +307,10 @@ struct LearningDashboardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(WireMetrics.spacingL)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.bentoRow(tone: deckGroupTone))
+        // デッキは1件ずつ枠で囲う。どこからどこまでが1つのデッキか、
+        // 区切り線だけだと分かりにくかったため（外枠より細い線と1段濃い面）。
+        .buttonStyle(.bentoCard(tone: deckCardTone))
         .accessibilityHint("学習モード設定を開きます")
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
@@ -301,8 +332,6 @@ struct LearningDashboardView: View {
                 }
             }
             Spacer(minLength: WireMetrics.spacingS)
-            Image(systemName: "chevron.right")
-                .wireFont(.caption)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, WireMetrics.spacingS)
@@ -325,9 +354,6 @@ struct LearningDashboardView: View {
                 Text("デッキを追加")
                     .wireFont(.label)
                 Spacer(minLength: WireMetrics.spacingS)
-                Image(systemName: "chevron.right")
-                    .wireFont(.caption)
-                    .accessibilityHidden(true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(WireMetrics.spacingL)
@@ -352,6 +378,9 @@ struct LearningDashboardView: View {
 
     /// デッキ一覧は画面の一番上のまとまりなので、最も薄い段を使う。
     private var deckGroupTone: BentoTone { .l1 }
+
+    /// グループの中に置くデッキカードは、外枠より1段濃くして囲いを見せる。
+    private var deckCardTone: BentoTone { .l2 }
 
     /// デッキIDから決まる仮の表示値。開き直しても数字が動かないようにしている。
     private func sample(for deck: Deck) -> DeckDisplaySample {
