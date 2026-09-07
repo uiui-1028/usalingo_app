@@ -91,8 +91,6 @@ struct WordRow: View {
             }
 
             Spacer()
-            Image(systemName: "chevron.right")
-                .wireFont(.caption)
         }
         .padding(WireMetrics.spacingL)
         .frame(maxWidth: .infinity, alignment: .leading)

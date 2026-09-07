@@ -115,13 +115,17 @@ struct LearningDashboardView: View {
                             // 並べ替え中は行が動くので、行をまたいで1つの枠を描く
                             // 「はみ出させて切り取る」描き方をやめ、行ごとに閉じた枠にする。
                             // そうしないと切り取られた枠だけが残って見た目が壊れる。
+                            // 1件ずつ枠で囲うので、行と行のあいだは区切り線ではなく
+                            // すき間で離す。線とカード枠が二重にならないようにする。
                             .bentoListRow(
                                 position: isEditing
                                     ? .single
                                     : (isLast ? .bottom : .middle),
                                 tone: deckGroupTone,
-                                showsDivider: !isEditing && !isLast,
-                                vertical: isEditing ? WireMetrics.spacingXS : 0
+                                showsDivider: false,
+                                // 外枠とカードの線が近すぎて窮屈だったので、左右を少し広げる。
+                                horizontal: WireMetrics.spacingS,
+                                vertical: WireMetrics.spacingXS
                             )
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 if appState.isGuest {
@@ -256,9 +260,6 @@ struct LearningDashboardView: View {
                             .wireFont(.caption)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    Image(systemName: "chevron.right")
-                        .wireFont(.caption)
-                        .accessibilityHidden(true)
                 }
                 DeckMasteryBar(
                     masteredCount: sample(for: deck).masteredCount,
@@ -270,9 +271,10 @@ struct LearningDashboardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(WireMetrics.spacingL)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.bentoRow(tone: deckGroupTone))
+        // デッキは1件ずつ枠で囲う。どこからどこまでが1つのデッキか、
+        // 区切り線だけだと分かりにくかったため（外枠より細い線と1段濃い面）。
+        .buttonStyle(.bentoCard(tone: deckCardTone))
         .accessibilityHint("学習モード設定を開きます")
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
@@ -294,8 +296,6 @@ struct LearningDashboardView: View {
                 }
             }
             Spacer(minLength: WireMetrics.spacingS)
-            Image(systemName: "chevron.right")
-                .wireFont(.caption)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.vertical, WireMetrics.spacingS)
@@ -317,9 +317,6 @@ struct LearningDashboardView: View {
                 Text("デッキを追加")
                     .wireFont(.label)
                 Spacer(minLength: WireMetrics.spacingS)
-                Image(systemName: "chevron.right")
-                    .wireFont(.caption)
-                    .accessibilityHidden(true)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(WireMetrics.spacingL)
@@ -344,6 +341,9 @@ struct LearningDashboardView: View {
 
     /// デッキ一覧は画面の一番上のまとまりなので、最も薄い段を使う。
     private var deckGroupTone: BentoTone { .l1 }
+
+    /// グループの中に置くデッキカードは、外枠より1段濃くして囲いを見せる。
+    private var deckCardTone: BentoTone { .l2 }
 
     /// デッキIDから決まる仮の表示値。開き直しても数字が動かないようにしている。
     private func sample(for deck: Deck) -> DeckDisplaySample {
