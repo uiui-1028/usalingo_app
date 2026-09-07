@@ -21,7 +21,7 @@ struct DeckDocument: FileDocument {
     }
 }
 
-/// 「＋ デッキを追加」から開くデッキライブラリ。同梱サンプルデッキの追加と、
+/// 「デッキを追加」から開くデッキライブラリ。同梱サンプルデッキの追加と、
 /// JSONファイルの読み込みができる（D-7）。
 struct DeckLibraryView: View {
     @EnvironmentObject private var appState: AppState
