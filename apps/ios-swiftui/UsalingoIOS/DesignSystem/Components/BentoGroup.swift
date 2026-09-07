@@ -217,3 +217,45 @@ extension View {
         )
     }
 }
+
+/// グループの中の1件を囲うカード（デッキ一覧の各デッキなど）。
+///
+/// 原則としてグループの中に枠は重ねないが、同じ形の項目が並んでいて
+/// 「どこからどこまでが1件か」を線で示したい一覧に限って使う。
+/// 外側のグループより1段濃い面と細い枠で、外枠と競わせない。
+struct BentoCardButtonStyle: ButtonStyle {
+    var tone: BentoTone = .l2
+    var radius: CGFloat = WireMetrics.radiusCard
+
+    func makeBody(configuration: Configuration) -> some View {
+        StyleBody(tone: tone, radius: radius, configuration: configuration)
+    }
+
+    private struct StyleBody: View {
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+        let tone: BentoTone
+        let radius: CGFloat
+        let configuration: Configuration
+
+        var body: some View {
+            configuration.label
+                .outlineSurface(
+                    radius: radius,
+                    stroke: WireMetrics.strokeHair,
+                    shadow: nil,
+                    fill: configuration.isPressed ? tone.pressed.fill : tone.fill
+                )
+                .contentShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+                .wirePressEffect(configuration.isPressed, reduceMotion: reduceMotion)
+        }
+    }
+}
+
+extension ButtonStyle where Self == BentoCardButtonStyle {
+    static var bentoCard: BentoCardButtonStyle { BentoCardButtonStyle() }
+
+    static func bentoCard(tone: BentoTone) -> BentoCardButtonStyle {
+        BentoCardButtonStyle(tone: tone)
+    }
+}
