@@ -28,7 +28,7 @@ struct WordListDeckBanner: View {
         GeometryReader { proxy in
             let cardHeight = max(
                 48,
-                proxy.size.height - indicatorRowHeight - WireMetrics.spacingS * 2 - noticeHeight
+                proxy.size.height - indicatorRowHeight - WireMetrics.spacingS
             )
             let cardWidth = cardHeight * cardAspectRatio
             let step = cardWidth + WireMetrics.spacingL
@@ -39,9 +39,6 @@ struct WordListDeckBanner: View {
 
                 WordListDeckPageDots(count: decks.count, currentIndex: currentDeckIndex)
                     .frame(height: indicatorRowHeight)
-
-                // 見た目だけの段階であることを、この画面の中で断っておく。
-                WireframeNotice(text: "デッキの切り替えはまだ仮です。単語の中身は変わりません。")
             }
         }
         .onChange(of: index) { _, _ in
@@ -122,9 +119,6 @@ struct WordListDeckBanner: View {
         guard !decks.isEmpty else { return nil }
         return decks[currentDeckIndex]
     }
-
-    /// 注記1行ぶんの見込み高さ。札の高さを決めるときだけに使う。
-    private var noticeHeight: CGFloat { 16 }
 }
 
 /// いま何枚目かを示す点の行。塗りつぶしが今いる場所。

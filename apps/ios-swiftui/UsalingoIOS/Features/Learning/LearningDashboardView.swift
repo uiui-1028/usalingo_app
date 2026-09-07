@@ -113,9 +113,6 @@ struct LearningDashboardView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    // 習得率と習得・苦手の数はまだデータ層から出せないので、
-                    // 仮の数字であることをここで断る（デザインタブと同じ扱い）。
-                    WireframeNotice(text: "習得率と、習得・苦手の数はまだ仮の数字です。")
                 }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(WireMetrics.spacingL)
@@ -281,8 +278,6 @@ struct LearningDashboardView: View {
                     VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
                         Text(deck.deckName)
                             .wireFont(.titleS)
-                        Text(deck.description ?? "説明はまだありません")
-                            .wireFont(.caption)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

@@ -51,10 +51,6 @@ struct DeckConceptView: View {
                 DeckCoverMark(symbol: sample.coverSymbol)
 
                 VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-                    Text(deck.description ?? "説明はまだありません")
-                        .wireFont(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
                     DeckMasteryBar(
                         masteredCount: sample.masteredCount,
                         totalCount: sample.totalCount,

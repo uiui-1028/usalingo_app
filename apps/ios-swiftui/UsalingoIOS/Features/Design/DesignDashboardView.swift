@@ -307,12 +307,8 @@ private struct DesignModuleSheet: View {
                         .frame(width: 44, height: 44)
                         .outlineCircleSurface()
 
-                    VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                        Text(module.name)
-                            .wireFont(.titleS)
-                        Text(module.description)
-                            .wireFont(.caption)
-                    }
+                    Text(module.name)
+                        .wireFont(.titleS)
                 }
 
                 ForEach(module.settings) { setting in

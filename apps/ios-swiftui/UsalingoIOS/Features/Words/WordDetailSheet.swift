@@ -33,39 +33,32 @@ struct WordDetailSheet: View {
             let stageHeight = max(100, isFocused ? height - 110 : height - panelHeight - 64)
             let cardHeight = max(80, min(stageHeight - 24, (geometry.size.width - 56) / 0.64))
             ZStack(alignment: .bottom) {
+                // カードとボトムシートを除いた背景。カードだけの状態は、
+                // ここを押すと詳細ありへ戻る。
                 LinearGradient(colors: [Color(red: 0.87, green: 0.86, blue: 0.94),
                                         Color(red: 0.72, green: 0.81, blue: 0.91)],
                                startPoint: .topLeading, endPoint: .bottomTrailing)
                     .ignoresSafeArea()
-                VStack(spacing: 0) {
-                    HStack {
-                        Text("WORD COLLECTION")
-                            .font(.caption.weight(.semibold))
-                            .tracking(2)
-                        Spacer()
-                        if !isFocused {
-                            Button { isTagging = true } label: { Image(systemName: "tag") }
-                                .accessibilityLabel("タグを編集")
-                            Button { isEditing = true } label: { Image(systemName: "square.and.pencil") }
-                                .accessibilityLabel("単語を編集")
-                        }
-                        Button { dismiss() } label: { Image(systemName: "xmark") }
-                            .accessibilityLabel("単語リストに戻る")
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        guard isFocused else { return }
+                        animate { isFocused = false }
                     }
-                    .font(.title3)
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, 24)
-                    .frame(height: 56)
+                    .accessibilityHidden(!isFocused)
+                    .accessibilityLabel("詳細を表示")
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction { animate { isFocused = false } }
+
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
+                        .frame(height: 56)
 
                     cardCarousel(cardHeight: cardHeight, width: geometry.size.width)
                         .frame(maxWidth: .infinity)
                         .frame(height: stageHeight)
-                        .onTapGesture { animate { isFocused.toggle() } }
-                        .accessibilityAction(named: isFocused ? "詳細を表示" : "カードを拡大") {
-                            animate { isFocused.toggle() }
-                        }
                     Spacer(minLength: 0)
                 }
+
                 if !isFocused {
                     detailPanel(height: panelHeight, width: geometry.size.width)
                         .background(alignment: .bottom) {
@@ -75,15 +68,6 @@ struct WordDetailSheet: View {
                                 .ignoresSafeArea(edges: .bottom)
                         }
                         .transition(.move(edge: .bottom).combined(with: .opacity))
-                } else {
-                    Button("詳細を表示", systemImage: "chevron.up") {
-                        animate { isFocused = false }
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 14)
-                    .background(.regularMaterial, in: Capsule())
-                    .padding(.bottom, 12)
                 }
             }
             .foregroundStyle(Color(red: 0.19, green: 0.25, blue: 0.32))
@@ -104,6 +88,31 @@ struct WordDetailSheet: View {
         }
     }
 
+    /// 単語リストと同じ丸ピルのバー。ボトムシートの上端に置き、シートと同じ面で
+    /// 一緒に上下する（中身のスクロールでは動かない）。
+    private var actionBar: some View {
+        HStack(spacing: WireMetrics.spacingS) {
+            Button { isTagging = true } label: {
+                WordListActionBarIcon(symbol: "tag", isActive: !word.tags.isEmpty)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("タグを編集")
+
+            Button { isEditing = true } label: {
+                WordListActionBarIcon(symbol: "square.and.pencil", isActive: false)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("単語を編集")
+
+            Button { dismiss() } label: {
+                WordListActionBarIcon(symbol: "xmark", isActive: false)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("単語リストに戻る")
+        }
+        .wordListBarChrome()
+    }
+
     private func cardCarousel(cardHeight: CGFloat, width: CGFloat) -> some View {
         let baseIndex = selection.words.firstIndex(where: { $0.id == cardID }) ?? selection.index
         let offsets = selection.words.count > 1 && !reduceMotion ? [-1, 0, 1] : [0]
@@ -114,6 +123,14 @@ struct WordDetailSheet: View {
                 InteractiveWordCard(word: selection.words[index], reduceMotion: reduceMotion)
                     .id(selection.words[index].id)
                     .frame(width: cardHeight * 0.64, height: cardHeight)
+                    // 触れる範囲を札の形へ切り直す。中の傾き（3D 回転）で判定が
+                    // 札の外まで広がると、背景のタップを奪ってしまうため。
+                    .contentShape(RoundedRectangle(cornerRadius: 22))
+                    // 拡大の切り替えはカードの上だけで受ける。カードの外は背景に残す。
+                    .onTapGesture { animate { isFocused.toggle() } }
+                    .accessibilityAction(named: isFocused ? "詳細を表示" : "カードを拡大") {
+                        animate { isFocused.toggle() }
+                    }
                     .modifier(WordCardArc(position: position, travel: width))
                     .allowsHitTesting(offset == 0 && pagingProgress == 0)
                     .accessibilityHidden(offset != 0)
@@ -128,17 +145,11 @@ struct WordDetailSheet: View {
             } label: {
                 VStack(spacing: 12) {
                     Capsule().fill(.secondary.opacity(0.3)).frame(width: 44, height: 5)
-                    HStack {
-                        Label("カード詳細", systemImage: "rectangle.on.rectangle")
-                        Spacer()
-                        Text(isExpanded ? "小さくする" : "もっと見る")
-                        Image(systemName: isExpanded ? "chevron.down" : "chevron.up")
-                    }
-                    .font(.subheadline.weight(.semibold))
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, 24)
                 .padding(.top, 10)
-                .padding(.bottom, 18)
+                .padding(.bottom, WireMetrics.spacingM)
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -171,6 +182,9 @@ struct WordDetailSheet: View {
                         if value.predictedEndTranslation.height > 35 { isExpanded = false }
                     }
                 })
+            actionBar
+                .padding(.bottom, WireMetrics.spacingM)
+
             Divider().opacity(0.3)
             WordDetailPager(
                 words: selection.words,
