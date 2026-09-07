@@ -233,15 +233,46 @@ final class AuthService {
     /// 匿名アカウントにメールとパスワードを足して、会員登録にする。
     /// 新しいアカウントを作らないので `user_id` が変わらず、それまでの
     /// 学習記録がそのまま残る。パスワードは即時、メールは確認後に有効になる。
+    ///
+    /// そのメールで別のアカウントがすでにある場合だけは、育てることができない。
+    /// サーバーの理由（`email_exists`）をそのまま握りつぶすと画面に
+    /// 「サーバーとやり取りできませんでした」としか出ないので、ここで
+    /// 専用のエラーへ翻訳して、次にどうすればよいかを伝えられるようにする。
     func linkEmailAndPassword(email: String, password: String, accessToken: String) async throws {
         try validatePassword(password)
-        try await executeAuthRequest(
-            path: "user",
-            method: "PUT",
-            queryItems: [URLQueryItem(name: "redirect_to", value: SupabaseConfig.authCallbackURL.absoluteString)],
-            accessToken: accessToken,
-            body: ["email": email, "password": password]
+
+        var components = URLComponents(
+            url: SupabaseConfig.authURL.appendingPathComponent("user"),
+            resolvingAgainstBaseURL: false
         )
+        components?.queryItems = [
+            URLQueryItem(name: "redirect_to", value: SupabaseConfig.authCallbackURL.absoluteString)
+        ]
+        guard let url = components?.url else {
+            throw SupabaseError.badResponse("Invalid Auth URL")
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PUT"
+        request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization")
+        request.httpBody = try JSONEncoder().encode(["email": email, "password": password])
+
+        let (data, response) = try await session.data(for: request)
+        guard let http = response as? HTTPURLResponse else {
+            throw SupabaseError.badResponse("Auth failed")
+        }
+        guard (200..<300).contains(http.statusCode) else {
+            let body = String(data: data, encoding: .utf8) ?? ""
+            if body.contains("email_exists") || body.contains("already been registered") {
+                throw AuthError.emailAlreadyRegistered
+            }
+            if body.contains("over_email_send_rate_limit") || http.statusCode == 429 {
+                throw AuthError.emailSendRateLimited
+            }
+            throw SupabaseError.badResponse(body)
+        }
     }
 
     func reauthenticate(accessToken: String) async throws {
@@ -375,6 +406,8 @@ enum AuthError: LocalizedError {
     case passwordsDoNotMatch
     case anonymousSignInUnavailable
     case alreadyRegistered
+    case emailAlreadyRegistered
+    case emailSendRateLimited
 
     var errorDescription: String? {
         switch self {
@@ -396,6 +429,13 @@ enum AuthError: LocalizedError {
             return "いまは学習を始められません。通信を確かめて、もう一度お試しください。"
         case .alreadyRegistered:
             return "このアカウントはすでに登録済みです。"
+        case .emailAlreadyRegistered:
+            return "このメールアドレスは、すでに別のアカウントで使われています。"
+                + "そのアカウントで Sign In してください。"
+                + "ただし、いまの学習記録はそのアカウントへは引き継がれません。"
+        case .emailSendRateLimited:
+            return "確認メールの送信が続いたため、しばらく送れません。"
+                + "少し時間をおいて、もう一度お試しください。"
         }
     }
 }
