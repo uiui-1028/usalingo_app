@@ -103,10 +103,14 @@ struct LearningDashboardView: View {
 
                 if decks.isEmpty {
                     emptyState
-                        .bentoListRow(position: .bottom, tone: deckGroupTone)
+                        .bentoListRow(
+                            position: showsAddDeckRow ? .middle : .bottom,
+                            tone: deckGroupTone,
+                            showsDivider: showsAddDeckRow
+                        )
                 } else {
                     ForEach(decks) { deck in
-                        let isLast = deck.id == decks.last?.id
+                        let isLast = deck.id == decks.last?.id && !showsAddDeckRow
                         deckRow(deck)
                             // 並べ替え中は行が動くので、行をまたいで1つの枠を描く
                             // 「はみ出させて切り取る」描き方をやめ、行ごとに閉じた枠にする。
@@ -127,6 +131,13 @@ struct LearningDashboardView: View {
                     }
                     .onMove(perform: moveHandler)
                     .onDelete(perform: deleteHandler)
+                }
+
+                // デッキ追加はデッキ一覧の最後の行に置く。画面下の操作グループだけだと
+                // 下のまとまりに押し出されて見つからなくなる。
+                if showsAddDeckRow {
+                    addDeckRow
+                        .bentoListRow(position: .bottom, tone: deckGroupTone)
                 }
             }
 
@@ -181,24 +192,14 @@ struct LearningDashboardView: View {
                 .wireListRow()
             }
 
-            // まとまり4: 操作。
-            if appState.isGuest {
+            // まとまり4: 操作。並べ替え中の出口だけを置く（追加はデッキ一覧の中）。
+            if appState.isGuest && isEditing {
                 Section {
                     BentoGroup(tone: .l3) {
-                        VStack(spacing: WireMetrics.spacingM) {
-                            if isEditing {
-                                Button("編集を終える") {
-                                    endEditing()
-                                }
-                                .buttonStyle(.wireSecondary)
-                            }
-
-                            Button("＋ デッキを追加") {
-                                endEditing()
-                                isShowingLibrary = true
-                            }
-                            .buttonStyle(.wirePrimary)
+                        Button("編集を終える") {
+                            endEditing()
                         }
+                        .buttonStyle(.wireSecondary)
                     }
                     .endsDeckEditingOnTap(isEditing) { endEditing() }
                     .wireListRow()
@@ -333,12 +334,41 @@ struct LearningDashboardView: View {
         .padding(.vertical, WireMetrics.spacingS)
     }
 
+    /// 並べ替え中は行が動くので、追加行は出さない。
+    private var showsAddDeckRow: Bool { appState.isGuest && !isEditing }
+
+    /// デッキ一覧グループの最後に置く「デッキを追加」の行。
+    private var addDeckRow: some View {
+        Button {
+            endEditing()
+            isShowingLibrary = true
+        } label: {
+            HStack(spacing: WireMetrics.spacingM) {
+                Image(systemName: "plus")
+                    .wireFont(.label)
+                    .accessibilityHidden(true)
+                Text("デッキを追加")
+                    .wireFont(.label)
+                Spacer(minLength: WireMetrics.spacingS)
+                Image(systemName: "chevron.right")
+                    .wireFont(.caption)
+                    .accessibilityHidden(true)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(WireMetrics.spacingL)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.bentoRow(tone: deckGroupTone))
+        .accessibilityLabel("デッキを追加")
+        .accessibilityHint("デッキライブラリを開きます")
+    }
+
     /// デッキ一覧グループの中に収める空状態。枠は外側のグループが持つので重ねない。
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
             Text("デッキがありません")
                 .wireFont(.body)
-            Text(appState.isGuest ? "「＋ デッキを追加」から追加してください。" : "利用できるデッキがまだありません。")
+            Text(appState.isGuest ? "下の「デッキを追加」から追加してください。" : "利用できるデッキがまだありません。")
                 .wireFont(.caption)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
