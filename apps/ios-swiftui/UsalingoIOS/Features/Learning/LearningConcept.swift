@@ -113,19 +113,6 @@ enum ConceptIllustrationStyle: String, CaseIterable, Identifiable {
     }
 }
 
-/// 保存したコンセプト（A-5）。保存先はまだ無いので、並びを見るためのサンプル。
-struct SavedConcept: Identifiable, Hashable {
-    let id: String
-    let title: String
-    let summary: String
-
-    static let samples: [SavedConcept] = [
-        SavedConcept(id: "night", title: "寝る前10枚", summary: "TOEIC基礎 / 復習 / 日→英"),
-        SavedConcept(id: "weak", title: "苦手つぶし5分", summary: "全デッキ / 苦手 / 英→日"),
-        SavedConcept(id: "listen", title: "音だけ通し", summary: "日常英会話 / 全単語 / 音だけ")
-    ]
-}
-
 /// デッキの周辺情報（B-2 / B-3 / B-4 / B-8 / B-12）のうち、
 /// いまのデータ層からは出せない値。デッキIDから決まるので、開くたびに数字が動くことはない。
 ///
@@ -159,9 +146,6 @@ struct DeckDisplaySample {
         ["reserve", "receipt", "boarding", "aisle", "refund"],
         ["agenda", "postpone", "attendee", "briefly", "handout"]
     ]
-
-    /// 「最近学習した単語」（D-3）に出すサンプル。
-    static let recentWordsSample = ["invoice", "deadline", "negotiate", "revenue"]
 
     private static let profiles: [(total: Int, mastered: Int, learning: Int, weak: Int)] = [
         (55, 20, 18, 5),

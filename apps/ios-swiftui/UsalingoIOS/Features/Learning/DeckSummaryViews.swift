@@ -81,21 +81,3 @@ struct WireframeNotice: View {
             .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
-
-/// 保存したコンセプト1件のカード（A-5）。横スクロールのレールに並べる。
-struct SavedConceptCard: View {
-    let concept: SavedConcept
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-            Text(concept.title)
-                .wireFont(.label)
-            Text(concept.summary)
-                .wireFont(.caption)
-                .lineLimit(2)
-        }
-        .frame(width: 168, alignment: .leading)
-        .padding(WireMetrics.spacingM)
-        .outlineSurface(radius: WireMetrics.radiusControl, shadow: nil)
-    }
-}

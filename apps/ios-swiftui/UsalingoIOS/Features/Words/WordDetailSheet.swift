@@ -6,6 +6,10 @@ struct WordDetailSheet: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selection: WordDetailSelection
     @State private var pagingDirection: UIPageViewController.NavigationDirection = .forward
+    @State private var cardID: WordCard.ID
+    @State private var pagingProgress: CGFloat = 0
+    @State private var headerPaging = false
+    @State private var headerSettling = false
     @State private var isEditing = false
     @State private var isTagging = false
     @State private var isExpanded = false
@@ -17,6 +21,7 @@ struct WordDetailSheet: View {
 
     init(word: WordCard, words: [WordCard] = [], onSaved: @escaping (WordCard) -> Void) {
         _selection = State(initialValue: WordDetailSelection(word: word, words: words))
+        _cardID = State(initialValue: word.id)
         self.onSaved = onSaved
     }
 
@@ -52,8 +57,7 @@ struct WordDetailSheet: View {
                     .padding(.horizontal, 24)
                     .frame(height: 56)
 
-                    InteractiveWordCard(word: word, reduceMotion: reduceMotion)
-                        .frame(width: cardHeight * 0.64, height: cardHeight)
+                    cardCarousel(cardHeight: cardHeight, width: geometry.size.width)
                         .frame(maxWidth: .infinity)
                         .frame(height: stageHeight)
                         .onTapGesture { animate { isFocused.toggle() } }
@@ -63,7 +67,7 @@ struct WordDetailSheet: View {
                     Spacer(minLength: 0)
                 }
                 if !isFocused {
-                    detailPanel(height: panelHeight)
+                    detailPanel(height: panelHeight, width: geometry.size.width)
                         .background(alignment: .bottom) {
                             Color(red: 0.94, green: 0.98, blue: 1)
                                 .frame(height: geometry.safeAreaInsets.bottom + 1)
@@ -100,7 +104,24 @@ struct WordDetailSheet: View {
         }
     }
 
-    private func detailPanel(height: CGFloat) -> some View {
+    private func cardCarousel(cardHeight: CGFloat, width: CGFloat) -> some View {
+        let baseIndex = selection.words.firstIndex(where: { $0.id == cardID }) ?? selection.index
+        let offsets = selection.words.count > 1 && !reduceMotion ? [-1, 0, 1] : [0]
+        return ZStack {
+            ForEach(offsets, id: \.self) { offset in
+                let index = WordDetailSelection.wrappedIndex(baseIndex + offset, count: selection.words.count)
+                let position = CGFloat(offset) - (reduceMotion ? 0 : pagingProgress)
+                InteractiveWordCard(word: selection.words[index], reduceMotion: reduceMotion)
+                    .id(selection.words[index].id)
+                    .frame(width: cardHeight * 0.64, height: cardHeight)
+                    .modifier(WordCardArc(position: position, travel: width))
+                    .allowsHitTesting(offset == 0 && pagingProgress == 0)
+                    .accessibilityHidden(offset != 0)
+            }
+        }
+    }
+
+    private func detailPanel(height: CGFloat, width: CGFloat) -> some View {
         VStack(spacing: 0) {
             Button {
                 animate { isExpanded.toggle() }
@@ -127,7 +148,18 @@ struct WordDetailSheet: View {
                     guard abs(value.translation.height) > abs(value.translation.width) else { return }
                     state = value.translation.height
                 }
+                .onChanged { value in
+                    guard !headerSettling, selection.words.count > 1,
+                          abs(value.translation.width) > abs(value.translation.height),
+                          cardID == word.id else { return }
+                    headerPaging = true
+                    pagingProgress = min(1, max(-1, -value.translation.width / max(1, width)))
+                }
                 .onEnded { value in
+                    if headerPaging {
+                        settleHeader(translation: value.translation.width)
+                        return
+                    }
                     guard abs(value.translation.height) > abs(value.translation.width) else {
                         if abs(value.translation.width) > 45 {
                             moveWord(by: value.translation.width < 0 ? 1 : -1)
@@ -144,9 +176,18 @@ struct WordDetailSheet: View {
                 words: selection.words,
                 selectedID: word.id,
                 direction: pagingDirection,
-                reduceMotion: reduceMotion
+                reduceMotion: reduceMotion || headerPaging,
+                onProgress: { if !headerPaging { pagingProgress = $0 } }
             ) { id in
-                selection.select(id: id)
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) {
+                    selection.select(id: id)
+                    cardID = id
+                    pagingProgress = 0
+                    headerPaging = false
+                    headerSettling = false
+                }
             }
             .accessibilityAction(named: "次の単語") { moveWord(by: 1) }
             .accessibilityAction(named: "前の単語") { moveWord(by: -1) }
@@ -159,14 +200,52 @@ struct WordDetailSheet: View {
         .shadow(color: .black.opacity(0.12), radius: 20, y: -5)
     }
 
+    private func settleHeader(translation: CGFloat) {
+        guard !headerSettling else { return }
+        headerSettling = true
+        let step = abs(translation) > 45 ? (translation < 0 ? 1 : -1) : 0
+        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.24)) {
+            pagingProgress = CGFloat(step)
+        } completion: {
+            if step == 0 {
+                headerPaging = false
+                headerSettling = false
+            } else {
+                moveWord(by: step)
+            }
+        }
+    }
+
     private func moveWord(by step: Int) {
-        guard selection.words.count > 1 else { return }
+        guard selection.words.count > 1, cardID == word.id else { return }
         pagingDirection = step > 0 ? .forward : .reverse
         selection.move(by: step)
     }
 
     private func animate(_ changes: () -> Void) {
         withAnimation(reduceMotion ? nil : .spring(response: 0.42, dampingFraction: 0.84), changes)
+    }
+}
+
+/// A shallow arc toward the viewer: the inner edge comes forward as a card
+/// leaves the center. The background and the sheet keep their own geometry.
+private struct WordCardArc: AnimatableModifier {
+    var position: CGFloat
+    let travel: CGFloat
+    var animatableData: CGFloat {
+        get { position }
+        set { position = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let distance = min(1, abs(position))
+        let arc = sin(distance * .pi)
+        content
+            .scaleEffect(1 + 0.045 * arc)
+            .rotation3DEffect(.degrees(Double(position) * 18),
+                              axis: (x: 0, y: 1, z: 0), perspective: 0.45)
+            .offset(x: position * travel, y: 8 * arc)
+            .zIndex(Double(1 - distance))
     }
 }
 
@@ -215,6 +294,7 @@ private struct WordDetailPager: UIViewControllerRepresentable {
     let selectedID: WordCard.ID
     let direction: UIPageViewController.NavigationDirection
     let reduceMotion: Bool
+    let onProgress: (CGFloat) -> Void
     let onSelected: (WordCard.ID) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(self) }
@@ -225,6 +305,9 @@ private struct WordDetailPager: UIViewControllerRepresentable {
         controller.delegate = context.coordinator
         controller.dataSource = words.count > 1 ? context.coordinator : nil
         controller.setViewControllers([context.coordinator.page(id: selectedID)], direction: .forward, animated: false)
+        if let scrollView = controller.view.subviews.compactMap({ $0 as? UIScrollView }).first {
+            context.coordinator.observe(scrollView)
+        }
         return controller
     }
 
@@ -239,7 +322,15 @@ private struct WordDetailPager: UIViewControllerRepresentable {
                 current.rootView = WordDetailPage(word: updated)
             }
         } else {
-            controller.setViewControllers([context.coordinator.page(id: selectedID)], direction: direction, animated: !reduceMotion)
+            let coordinator = context.coordinator
+            coordinator.isTransitioning = true
+            controller.setViewControllers([coordinator.page(id: selectedID)], direction: direction, animated: !reduceMotion) { _ in
+                // Defer SwiftUI state changes until the representable update finishes.
+                DispatchQueue.main.async {
+                    coordinator.isTransitioning = false
+                    coordinator.parent.onSelected(selectedID)
+                }
+            }
         }
     }
 
@@ -260,7 +351,21 @@ private struct WordDetailPager: UIViewControllerRepresentable {
     final class Coordinator: NSObject, UIPageViewControllerDataSource, UIPageViewControllerDelegate {
         var parent: WordDetailPager
         var isTransitioning = false
+        private var offsetObservation: NSKeyValueObservation?
         init(_ parent: WordDetailPager) { self.parent = parent }
+
+        func observe(_ scrollView: UIScrollView) {
+            // Observe without replacing UIPageViewController's private scroll delegate.
+            offsetObservation = scrollView.observe(\.contentOffset, options: [.new]) { [weak self] scrollView, _ in
+                let width = scrollView.bounds.width
+                guard width > 0 else { return }
+                let progress = min(1, max(-1, (scrollView.contentOffset.x - width) / width))
+                DispatchQueue.main.async { [weak self] in
+                    guard let self, self.isTransitioning else { return }
+                    self.parent.onProgress(progress)
+                }
+            }
+        }
 
         func page(id: WordCard.ID) -> Page {
             Page(word: parent.words.first(where: { $0.id == id }) ?? parent.words[0])
@@ -288,7 +393,7 @@ private struct WordDetailPager: UIViewControllerRepresentable {
         func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool,
                                 previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
             isTransitioning = false
-            guard completed, let page = pageViewController.viewControllers?.first as? Page else { return }
+            guard let page = pageViewController.viewControllers?.first as? Page else { return }
             parent.onSelected(page.wordID)
         }
     }

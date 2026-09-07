@@ -65,7 +65,7 @@ struct LearningDashboardView: View {
         .task(id: reloadKey) { await reload() }
     }
 
-    /// 画面は上から「デッキ一覧」「保存したコンセプト」「単語」「操作」「通知」へ分ける。
+    /// 画面は上から「デッキ一覧」「単語」「操作」「通知」へ分ける。
     /// 下へ行くほど面を1段濃くする（計画書 6）。
     private var list: some View {
         List {
@@ -141,50 +141,17 @@ struct LearningDashboardView: View {
                 }
             }
 
-            // まとまり2: 保存したコンセプト（A-5）。デッキより先に「遊び方」から入る導線。
+            // まとまり2: 単語リスト（D-1 / D-2）。作ってあった単語画面への入口。
+            // 見出しと行で同じことを言わないよう、グループ見出しは置かず1行にまとめる。
             Section {
-                BentoGroup(title: "保存したコンセプト", tone: .l2) {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: WireMetrics.spacingS) {
-                            ForEach(SavedConcept.samples) { concept in
-                                SavedConceptCard(concept: concept)
-                            }
-                        }
-                        .padding(.vertical, WireMetrics.strokeHeavy)
-                    }
-                    WireframeNotice(text: "保存先はまだありません。並びを見るためのサンプルです。")
-                }
-                .endsDeckEditingOnTap(isEditing) { endEditing() }
-                .wireListRow()
-            }
-
-            // まとまり3: 単語（D-1 / D-2 / D-3）。作ってあった単語画面への入口。
-            Section {
-                BentoGroup(title: "単語", tone: .l2) {
+                BentoGroup(tone: .l2) {
                     Button {
                         isShowingWordList = true
                     } label: {
                         wordEntryRow(
-                            title: "単語をさがす",
+                            title: "単語リスト",
                             detail: "タグ・品詞・状態でしぼれます"
                         )
-                    }
-                    .buttonStyle(.bentoRow(tone: .l2))
-
-                    Button {
-                        isShowingWordList = true
-                    } label: {
-                        VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-                            wordEntryRow(title: "最近学習した単語", detail: nil)
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(spacing: WireMetrics.spacingS) {
-                                    ForEach(DeckDisplaySample.recentWordsSample, id: \.self) { word in
-                                        WirePill(title: word, font: .caption)
-                                    }
-                                }
-                                .padding(.vertical, WireMetrics.strokeHeavy)
-                            }
-                        }
                     }
                     .buttonStyle(.bentoRow(tone: .l2))
                 }
@@ -192,7 +159,7 @@ struct LearningDashboardView: View {
                 .wireListRow()
             }
 
-            // まとまり4: 操作。並べ替え中の出口だけを置く（追加はデッキ一覧の中）。
+            // まとまり3: 操作。並べ替え中の出口だけを置く（追加はデッキ一覧の中）。
             if appState.isGuest && isEditing {
                 Section {
                     BentoGroup(tone: .l3) {
@@ -206,7 +173,7 @@ struct LearningDashboardView: View {
                 }
             }
 
-            // まとまり5: 通知。エラーがなければグループごと出さない。
+            // まとまり4: 通知。エラーがなければグループごと出さない。
             if let errorMessage {
                 Section {
                     BentoGroup(title: "通知", tone: .l3) {
