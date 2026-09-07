@@ -54,19 +54,29 @@ struct DeckLibraryView: View {
                 sectionHeader("同梱デッキ")
             }
 
+            // JSONの取り込みは端末のデッキファイルを元にする操作。保存先が
+            // リモートのときは扱えないので、ログインの有無ではなく
+            // 「その保存先がファイルを扱えるか」で出し分ける。
             Section {
-                Button {
-                    message = nil
-                    isMessageError = false
-                    isImporting = true
-                } label: {
-                    card(
-                        title: "JSONを読み込む",
-                        detail: "書き出したデッキJSONを選ぶと、デッキとして追加します。"
+                if appState.studyDataSource.supportsDeckFileTransfer {
+                    Button {
+                        message = nil
+                        isMessageError = false
+                        isImporting = true
+                    } label: {
+                        card(
+                            title: "JSONを読み込む",
+                            detail: "書き出したデッキJSONを選ぶと、デッキとして追加します。"
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .wireListRow()
+                } else {
+                    WireframeNotice(
+                        text: "デッキは配信中の単語から作ります。ファイルの読み込みは使えません。"
                     )
+                    .wireListRow()
                 }
-                .buttonStyle(.plain)
-                .wireListRow()
             } header: {
                 sectionHeader("ファイルから追加")
             }
@@ -139,20 +149,34 @@ struct DeckLibraryView: View {
     }
 
     private func reload() {
-        bundledDecks = appState.localStudy.availableBundledDecks()
+        // 同梱JSONの一覧は端末側の資産。保存先がリモートのときは、端末の
+        // 一覧では「追加済みか」を判断できないので絞らずに出す。
+        bundledDecks = appState.studyDataSource.supportsDeckFileTransfer
+            ? appState.localStudy.availableBundledDecks()
+            : appState.localStudy.allBundledDecks()
     }
 
     private func add(_ file: DeckFile) {
-        do {
-            let deck = try appState.localStudy.installBundledDeck(key: file.deckId)
-            message = "「\(deck.name)」を追加しました。"
-            isMessageError = false
-            reload()
-            onChanged()
-        } catch {
-            message = UserFacingError.message(for: error)
-            isMessageError = true
+        Task {
+            do {
+                let outcome = try await appState.studyDataSource.installBundledDeck(file)
+                message = Self.installMessage(for: outcome)
+                isMessageError = false
+                reload()
+                onChanged()
+            } catch {
+                message = UserFacingError.message(for: error)
+                isMessageError = true
+            }
         }
+    }
+
+    /// 落とした単語を黙って捨てない。何枚入って何枚入らなかったかを必ず出す。
+    private static func installMessage(for outcome: DeckInstallOutcome) -> String {
+        let base = "「\(outcome.deck.deckName)」を追加しました。"
+        guard outcome.skippedCardCount > 0 else { return base }
+        return base + "\(outcome.addedCardCount)語を入れ、"
+            + "\(outcome.skippedCardCount)語は配信中の単語に無いため入れていません。"
     }
 
     /// 読み込み失敗は黙って捨てず、理由をそのまま画面へ出す。

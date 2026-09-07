@@ -163,7 +163,7 @@ struct LearningDashboardView: View {
                                 vertical: WireMetrics.spacingXS
                             )
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                if appState.isGuest {
+                                if canExport(deck) {
                                     Button("書き出す") { prepareExport(deck) }
                                 }
                             }
@@ -199,7 +199,7 @@ struct LearningDashboardView: View {
             }
 
             // まとまり3: 操作。並べ替え中の出口だけを置く（追加はデッキ一覧の中）。
-            if appState.isGuest && isEditing {
+            if isEditing {
                 Section {
                     BentoGroup(tone: .l3) {
                         Button("編集を終える") {
@@ -314,7 +314,7 @@ struct LearningDashboardView: View {
         .accessibilityHint("学習モード設定を開きます")
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                guard appState.isGuest, !isEditing else { return }
+                guard appState.studyDataSource.supportsDeckReordering, !isEditing else { return }
                 withAnimation(.easeInOut(duration: 0.2)) { editMode = .active }
             }
         )
@@ -338,7 +338,8 @@ struct LearningDashboardView: View {
     }
 
     /// 並べ替え中は行が動くので、追加行は出さない。
-    private var showsAddDeckRow: Bool { appState.isGuest && !isEditing }
+    /// ログインの有無では出し分けない。デッキを増やせることは、どちらでも同じにする。
+    private var showsAddDeckRow: Bool { !isEditing }
 
     /// デッキ一覧グループの最後に置く「デッキを追加」の行。
     private var addDeckRow: some View {
@@ -368,7 +369,7 @@ struct LearningDashboardView: View {
         VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
             Text("デッキがありません")
                 .wireFont(.body)
-            Text(appState.isGuest ? "下の「デッキを追加」から追加してください。" : "利用できるデッキがまだありません。")
+            Text("下の「デッキを追加」から追加してください。")
                 .wireFont(.caption)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -423,11 +424,16 @@ struct LearningDashboardView: View {
     }
 
     private var moveHandler: ((IndexSet, Int) -> Void)? {
-        isEditing ? move : nil
+        isEditing && appState.studyDataSource.supportsDeckReordering ? move : nil
     }
 
     private var deleteHandler: ((IndexSet) -> Void)? {
         isEditing ? delete : nil
+    }
+
+    /// 書き出しは端末のデッキファイルが元になる。公式デッキには出さない。
+    private func canExport(_ deck: Deck) -> Bool {
+        appState.studyDataSource.supportsDeckFileTransfer && appState.studyDataSource.canManage(deck)
     }
 
     private func prepareExport(_ deck: Deck) {
@@ -453,11 +459,27 @@ struct LearningDashboardView: View {
     }
 
     private func delete(atOffsets offsets: IndexSet) {
-        do {
-            try appState.localStudy.removeDecks(atOffsets: offsets)
-            Task { await reload() }
-        } catch {
-            errorMessage = "デッキを削除できませんでした。"
+        let targets = offsets.compactMap { decks.indices.contains($0) ? decks[$0] : nil }
+        let dataSource = appState.studyDataSource
+        let managed = targets.filter { dataSource.canManage($0) }
+
+        guard !managed.isEmpty else {
+            errorMessage = "配信中のデッキは削除できません。"
+            return
+        }
+
+        Task {
+            do {
+                for deck in managed {
+                    try await dataSource.deleteDeck(id: deck.id)
+                }
+                errorMessage = managed.count == targets.count
+                    ? nil
+                    : "配信中のデッキは削除していません。"
+                await reload()
+            } catch {
+                errorMessage = "デッキを削除できませんでした。\(UserFacingError.advice(for: error))"
+            }
         }
     }
 }

@@ -44,6 +44,57 @@ struct UserProfile: Codable {
     }
 }
 
+/// 個人デッキを作った結果。落とした単語の件数を黙って捨てないために持つ。
+struct DeckInstallOutcome {
+    let deck: Deck
+    let addedCardCount: Int
+    let skippedCardCount: Int
+}
+
+private struct NewDeckPayload: Encodable {
+    let deckName: String
+    let description: String?
+    let ownerId: String
+
+    enum CodingKeys: String, CodingKey {
+        case deckName = "deck_name"
+        case description
+        case ownerId = "owner_id"
+    }
+}
+
+private struct NewCardPayload: Encodable {
+    let wordId: Int
+    let cardTemplateId: Int
+    let deckId: Int
+    let sortOrder: Int
+
+    enum CodingKeys: String, CodingKey {
+        case wordId = "word_id"
+        case cardTemplateId = "card_template_id"
+        case deckId = "deck_id"
+        case sortOrder = "sort_order"
+    }
+}
+
+private struct CardIdRecord: Decodable {
+    let id: Int
+}
+
+private struct CardTemplateIdRecord: Decodable {
+    let id: Int
+}
+
+private struct WordIdRecord: Decodable {
+    let id: Int
+    let wordText: String
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case wordText = "word_text"
+    }
+}
+
 struct SavedAnswer {
     let progress: LearningProgress
     let previousProgress: LearningProgress?
@@ -139,14 +190,155 @@ final class StudyService {
     }
 
     func fetchDecks(session: AuthSession) async throws -> [Deck] {
+        // owner_id を必ず取る。公式デッキ（NULL）と個人デッキの区別は、
+        // 画面が「編集できるか」を決めるための唯一の手がかりになる。
         try await fetchAllPages(
             path: "decks",
             queryItems: [
-                URLQueryItem(name: "select", value: "id,deck_name,description"),
+                URLQueryItem(name: "select", value: "id,deck_name,description,owner_id"),
                 URLQueryItem(name: "order", value: "id.asc")
             ],
             accessToken: session.accessToken
         )
+    }
+
+    // MARK: - 個人デッキ
+
+    /// 同梱デッキJSONを、公式の単語と突き合わせて個人デッキとして作る。
+    /// `words` に無い単語は作らない（単語は公式のまま）。落とした件数を返す。
+    func installPersonalDeck(from file: DeckFile, session: AuthSession) async throws -> DeckInstallOutcome {
+        let matchedWordIds = try await fetchWordIds(matching: file.cards.map(\.text), session: session)
+        let templateId = try await fetchDefaultCardTemplateId(session: session)
+
+        let created: [Deck] = try await request(
+            path: "decks",
+            method: .post,
+            queryItems: [URLQueryItem(name: "select", value: "id,deck_name,description,owner_id")],
+            accessToken: session.accessToken,
+            body: [NewDeckPayload(
+                deckName: file.deckName,
+                description: file.description,
+                ownerId: session.user.id
+            )],
+            prefer: "return=representation"
+        )
+        guard let deck = created.first else {
+            throw SupabaseError.badResponse("Creating a personal deck returned no row")
+        }
+
+        if !matchedWordIds.isEmpty {
+            let cards = matchedWordIds.enumerated().map { index, wordId in
+                NewCardPayload(
+                    wordId: wordId,
+                    cardTemplateId: templateId,
+                    deckId: deck.id,
+                    sortOrder: index
+                )
+            }
+            for batch in cards.chunked(into: FetchLimit.identifierBatchSize) {
+                try await execute(
+                    path: "cards",
+                    method: .post,
+                    accessToken: session.accessToken,
+                    body: batch,
+                    prefer: "return=minimal"
+                )
+            }
+        }
+
+        return DeckInstallOutcome(
+            deck: deck,
+            addedCardCount: matchedWordIds.count,
+            skippedCardCount: file.cards.count - matchedWordIds.count
+        )
+    }
+
+    /// 個人デッキを消す。外部キーが restrict なので、進捗 → カード → デッキの順に消す。
+    func deletePersonalDeck(id: Int, session: AuthSession) async throws {
+        let cardIds: [CardIdRecord] = try await fetchAllPages(
+            path: "cards",
+            queryItems: [
+                URLQueryItem(name: "select", value: "id"),
+                URLQueryItem(name: "deck_id", value: "eq.\(id)")
+            ],
+            accessToken: session.accessToken
+        )
+
+        for batch in cardIds.map(\.id).chunked(into: FetchLimit.identifierBatchSize) {
+            let list = batch.map(String.init).joined(separator: ",")
+            try await execute(
+                path: "user_card_progress",
+                method: .delete,
+                queryItems: [
+                    URLQueryItem(name: "user_id", value: "eq.\(session.user.id)"),
+                    URLQueryItem(name: "card_id", value: "in.(\(list))")
+                ],
+                accessToken: session.accessToken
+            )
+        }
+
+        try await execute(
+            path: "cards",
+            method: .delete,
+            queryItems: [URLQueryItem(name: "deck_id", value: "eq.\(id)")],
+            accessToken: session.accessToken
+        )
+
+        try await execute(
+            path: "decks",
+            method: .delete,
+            queryItems: [URLQueryItem(name: "id", value: "eq.\(id)")],
+            accessToken: session.accessToken
+        )
+    }
+
+    /// 単語文字列から公式の `words.id` を引く。重複と大文字小文字の揺れは
+    /// 最初の1件へ寄せ、渡された順番を保つ。
+    private func fetchWordIds(matching texts: [String], session: AuthSession) async throws -> [Int] {
+        let wanted = texts
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        guard !wanted.isEmpty else { return [] }
+
+        var idByLoweredText: [String: Int] = [:]
+        for batch in wanted.chunked(into: FetchLimit.identifierBatchSize) {
+            let list = batch
+                .map { "\"\($0.replacingOccurrences(of: "\"", with: ""))\"" }
+                .joined(separator: ",")
+            let rows: [WordIdRecord] = try await fetchAllPages(
+                path: "words",
+                queryItems: [
+                    URLQueryItem(name: "select", value: "id,word_text"),
+                    URLQueryItem(name: "word_text", value: "in.(\(list))")
+                ],
+                accessToken: session.accessToken
+            )
+            for row in rows where idByLoweredText[row.wordText.lowercased()] == nil {
+                idByLoweredText[row.wordText.lowercased()] = row.id
+            }
+        }
+
+        var seen = Set<Int>()
+        return wanted.compactMap { text in
+            guard let id = idByLoweredText[text.lowercased()], seen.insert(id).inserted else { return nil }
+            return id
+        }
+    }
+
+    private func fetchDefaultCardTemplateId(session: AuthSession) async throws -> Int {
+        let rows: [CardTemplateIdRecord] = try await request(
+            path: "card_templates",
+            queryItems: [
+                URLQueryItem(name: "select", value: "id"),
+                URLQueryItem(name: "order", value: "id.asc"),
+                URLQueryItem(name: "limit", value: "1")
+            ],
+            accessToken: session.accessToken
+        )
+        guard let id = rows.first?.id else {
+            throw SupabaseError.badResponse("No card template is available")
+        }
+        return id
     }
 
     func fetchStudyQueue(deckId: Int, mode: StudyMode = .all, session: AuthSession) async throws -> [WordCard] {
@@ -680,6 +872,16 @@ final class StudyService {
         }
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter.date(from: value)
+    }
+}
+
+private extension Array {
+    /// URLとリクエスト本文が長くなりすぎないよう、一定数ずつに割る。
+    func chunked(into size: Int) -> [[Element]] {
+        guard size > 0 else { return isEmpty ? [] : [self] }
+        return stride(from: 0, to: count, by: size).map {
+            Array(self[$0..<Swift.min($0 + size, count)])
+        }
     }
 }
 
