@@ -96,6 +96,8 @@ struct WordRow: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
         .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityHint("単語の詳細を開きます")
     }
 }
 
@@ -129,5 +131,21 @@ struct TagChipRow: View {
                 }
             }
         }
+    }
+}
+
+extension View {
+    /// 囲いの形の中だけをタップ領域にする。
+    ///
+    /// `List` の行に `Button` を置くと、行の余白や左右の背景まで反応してしまう。
+    /// 背景は戻るスワイプが使う場所なので、そこと取り合いにならないよう
+    /// カードの角丸の内側でだけタップを受ける。
+    func cardTapTarget(
+        radius: CGFloat = WireMetrics.radiusCard,
+        action: @escaping () -> Void
+    ) -> some View {
+        contentShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
+            .onTapGesture(perform: action)
+            .accessibilityAddTraits(.isButton)
     }
 }
