@@ -344,25 +344,35 @@ struct DeckConceptSheet: View {
         .padding(.horizontal, WireMetrics.screenPadding)
     }
 
+    /// 面の形。上の両角だけ丸める、`.sheet` と同じ形。
+    private var panelShape: UnevenRoundedRectangle {
+        UnevenRoundedRectangle(
+            topLeadingRadius: WireMetrics.radiusLarge,
+            topTrailingRadius: WireMetrics.radiusLarge,
+            style: .continuous
+        )
+    }
+
     /// シートに見せる面。背景はシート側ではなくここで描く。
     private var panel: some View {
         DeckConceptView(deck: deck, counts: counts, selectedMode: $selectedMode)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            // 中身（DeckConceptView）が自分で四角い背景を敷くので、背景を丸く
+            // 塗るだけでは上の角がその四角に隠れてしまう。形で切り抜いて、
+            // 上の両角を必ず丸くする。
+            .clipShape(panelShape)
             .background(
-                UnevenRoundedRectangle(
-                    topLeadingRadius: WireMetrics.radiusLarge,
-                    topTrailingRadius: WireMetrics.radiusLarge,
-                    style: .continuous
-                )
-                .fill(WireColor.background)
-                // ホームインジケータの帯まで面を伸ばし、下に地が見えないようにする。
-                .ignoresSafeArea(edges: .bottom)
+                panelShape
+                    .fill(WireColor.background)
+                    // ホームインジケータの帯まで面を伸ばし、下に地が見えないようにする。
+                    .ignoresSafeArea(edges: .bottom)
             )
             .overlay(alignment: .top) { grabber }
     }
 
     /// 面の上端のつまみ。ここを持って上下に動かし、下へ振り切ると閉じる。
-    /// 指の当たる範囲を帯として確保し、閉じる操作も並べる。
+    /// 指の当たる範囲は帯として確保する。閉じる操作は下へのスワイプと、
+    /// 後ろの暗い幕のタップで足りるので、×ボタンは置かない。
     private var grabber: some View {
         HStack {
             Spacer(minLength: 0)
@@ -370,19 +380,6 @@ struct DeckConceptSheet: View {
                 .fill(WireColor.ink.opacity(0.25))
                 .frame(width: 36, height: 5)
             Spacer(minLength: 0)
-        }
-        .overlay(alignment: .trailing) {
-            Button {
-                onClose()
-            } label: {
-                Image(systemName: "xmark")
-                    .wireFont(.caption)
-                    .padding(WireMetrics.spacingS)
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel("閉じる")
-            .padding(.trailing, WireMetrics.spacingS)
         }
         .padding(.top, WireMetrics.spacingS)
         // 指が当たる帯を確保する。細いつまみだけだと、下の縦スクロールが
