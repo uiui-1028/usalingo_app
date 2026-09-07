@@ -111,6 +111,18 @@ final class AppState: ObservableObject {
         try await authService.updatePassword(password, currentPassword: currentPassword, nonce: nonce, accessToken: session.accessToken)
     }
 
+    /// いまの匿名アカウントを会員登録へ育てる。新しいアカウントを作らないので、
+    /// それまでの学習記録は移送せずにそのまま残る。
+    func linkAnonymousAccount(email: String, password: String) async throws {
+        guard let session else { throw AuthError.sessionRestoreFailed }
+        guard session.user.isAnonymousAccount else { throw AuthError.alreadyRegistered }
+        try await authService.linkEmailAndPassword(
+            email: email,
+            password: password,
+            accessToken: session.accessToken
+        )
+    }
+
     func updateEmail(_ email: String, currentPassword: String) async throws {
         guard let session else { throw AuthError.sessionRestoreFailed }
         try await authService.updateEmail(email, currentEmail: session.user.email ?? "", currentPassword: currentPassword, accessToken: session.accessToken)

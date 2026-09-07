@@ -70,18 +70,29 @@ struct AuthView: View {
 
     private var primaryActions: some View {
         VStack(spacing: WireMetrics.spacingM) {
-            Button("Sign In") {
-                Task { await submit(signUp: false) }
+            Button("Create Account") {
+                Task { await submit(signUp: true) }
             }
             .buttonStyle(.wirePrimary)
             .disabled(isLoading)
 
-            Button("Create Account") {
-                Task { await submit(signUp: true) }
+            Button("Sign In") {
+                Task { await submit(signUp: false) }
             }
             .buttonStyle(.wireSecondary)
             .disabled(isLoading)
+
+            // 記録がどうなるかを、押す前に書く。あとから知らせても遅い。
+            WireframeNotice(text: handoffNotice)
         }
+    }
+
+    /// いまの学習記録がどう扱われるかの説明。匿名アカウントかどうかで変わる。
+    private var handoffNotice: String {
+        appState.isGuest
+            ? "Create Account では、いまの学習記録がそのまま引き継がれます。"
+                + "別のアカウントで Sign In すると、いまの記録はこの端末から見えなくなります。"
+            : "すでに登録済みのアカウントです。"
     }
 
     private var tertiaryActions: some View {
@@ -161,13 +172,23 @@ struct AuthView: View {
         isLocalMessageError = false
         do {
             if signUp {
-                switch try await authService.signUp(email: email, password: password) {
-                case .authenticated(let session):
-                    appState.setSession(session)
-                case .confirmationRequired:
+                if appState.isGuest {
+                    // いまの匿名アカウントを育てる。新しいアカウントを作らないので、
+                    // user_id が変わらず、学習記録は移送せずに残る。
+                    try await appState.linkAnonymousAccount(email: email, password: password)
                     pendingConfirmationEmail = email
                     resendAvailableAt = Date().addingTimeInterval(60)
                     message = "確認メールを送りました。メールを開いて、このアプリへ戻ってください。"
+                        + "確認が済むまでも、いまのまま学習を続けられます。"
+                } else {
+                    switch try await authService.signUp(email: email, password: password) {
+                    case .authenticated(let session):
+                        appState.setSession(session)
+                    case .confirmationRequired:
+                        pendingConfirmationEmail = email
+                        resendAvailableAt = Date().addingTimeInterval(60)
+                        message = "確認メールを送りました。メールを開いて、このアプリへ戻ってください。"
+                    }
                 }
             } else {
                 appState.setSession(try await authService.signIn(email: email, password: password))

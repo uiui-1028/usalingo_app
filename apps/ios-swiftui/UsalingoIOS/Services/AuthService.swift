@@ -230,6 +230,20 @@ final class AuthService {
         return recovered
     }
 
+    /// 匿名アカウントにメールとパスワードを足して、会員登録にする。
+    /// 新しいアカウントを作らないので `user_id` が変わらず、それまでの
+    /// 学習記録がそのまま残る。パスワードは即時、メールは確認後に有効になる。
+    func linkEmailAndPassword(email: String, password: String, accessToken: String) async throws {
+        try validatePassword(password)
+        try await executeAuthRequest(
+            path: "user",
+            method: "PUT",
+            queryItems: [URLQueryItem(name: "redirect_to", value: SupabaseConfig.authCallbackURL.absoluteString)],
+            accessToken: accessToken,
+            body: ["email": email, "password": password]
+        )
+    }
+
     func reauthenticate(accessToken: String) async throws {
         try await executeAuthRequest(path: "reauthenticate", method: "GET", accessToken: accessToken, body: EmptyPayload())
     }
@@ -360,6 +374,7 @@ enum AuthError: LocalizedError {
     case currentPasswordRequired
     case passwordsDoNotMatch
     case anonymousSignInUnavailable
+    case alreadyRegistered
 
     var errorDescription: String? {
         switch self {
@@ -379,6 +394,8 @@ enum AuthError: LocalizedError {
             return "新しいパスワードが一致しません。"
         case .anonymousSignInUnavailable:
             return "いまは学習を始められません。通信を確かめて、もう一度お試しください。"
+        case .alreadyRegistered:
+            return "このアカウントはすでに登録済みです。"
         }
     }
 }
