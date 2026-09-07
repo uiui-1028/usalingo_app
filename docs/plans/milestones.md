@@ -74,6 +74,7 @@ M1は既存の未完了にも依存する。
 | | 領域3 学習記録（ヒートマップ） | **要らない（延期）**。ただし今の表示は事実と違う値を出す。下の注意を見る |
 | | 領域4 オフライン | **要らない（延期）**。M1・M2のどちらにも要らない |
 | [bento-grouping-ui-plan.md](bento-grouping-ui-plan.md) | B-6 階調ルールの設計メモ（任意） | **要らない（中止）**。計画書自体が記録として足りている |
+| [word-list-deck-banner-plan.md](word-list-deck-banner-plan.md) | 単語リストのデッキ切り替え（見た目は実装済み、機能が未着手） | 未判定。着手前に人がM1/M2を決める |
 
 > [!IMPORTANT]
 > 領域3を延期しても、いまのヒートマップが正しくなるわけではない。`user_card_progress.last_reviewed_at`
