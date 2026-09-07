@@ -39,10 +39,7 @@ struct WordListView: View {
                 WireColor.scrim
                     .ignoresSafeArea()
 
-                WordListDeckBanner(
-                    decks: bannerDecks,
-                    selectedDeckID: selectedDeckID ?? bannerDecks.first?.id
-                ) { deck in
+                WordListDeckBanner(decks: bannerDecks) { deck in
                     selectedDeckID = deck.id
                 }
                 .padding(.horizontal, WireMetrics.screenPadding)
@@ -173,7 +170,9 @@ struct WordListView: View {
         [
             Deck(id: 1, deckName: "TOEIC 頻出単語", description: nil),
             Deck(id: 2, deckName: "旅行の英語", description: nil),
-            Deck(id: 3, deckName: "会議の英語", description: nil)
+            Deck(id: 3, deckName: "会議の英語", description: nil),
+            Deck(id: 4, deckName: "接客の英語", description: nil),
+            Deck(id: 5, deckName: "ニュースの英語", description: nil)
         ]
     }
 }
