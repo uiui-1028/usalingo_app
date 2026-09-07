@@ -81,6 +81,11 @@ final class AppState: ObservableObject {
         try? authService.signOut()
         session = nil
         isResettingPassword = false
+        // サインアウトしたら、そのまま**新しい**匿名アカウントで続ける。
+        // セッションが無いまま放置すると学習画面ごと出せなくなり、デッキが
+        // 消えたように見える。またここで作り直さないと、前のゲストが
+        // そのまま残っているようにも見えてしまう。
+        Task { await startAnonymousSession() }
     }
 
     func handleIncomingURL(_ url: URL) {
@@ -216,21 +221,29 @@ final class AppState: ObservableObject {
     }
 
     private func restoreSession() async {
-        defer { isRestoringSession = false }
         do {
             if let restored = try await authService.restoreSession() {
                 session = restored
+                isRestoringSession = false
                 return
             }
         } catch {
-            // 復元に失敗しても、この下の匿名サインインでやり直す。
+            // 復元に失敗しても、下の匿名サインインでやり直す。
         }
 
         // 保存済みのセッションが無ければ、匿名アカウントで始める。
         // 登録していない利用者にも、会員と同じデッキと同じ記録の置き場所を渡す。
+        await startAnonymousSession()
+    }
+
+    /// 新しい匿名アカウントを作って、そこから始める。
+    /// 起動時と、サインアウトの直後に通る。
+    private func startAnonymousSession() async {
+        isRestoringSession = true
+        startupMessage = nil
+        defer { isRestoringSession = false }
         do {
             session = try await authService.signInAnonymously()
-            startupMessage = nil
         } catch {
             // 端末側の学習経路へ黙って落とさない。始められない理由を出す。
             session = nil
@@ -241,11 +254,9 @@ final class AppState: ObservableObject {
     /// 匿名サインインに失敗したときだけ入る。通信できず学習を始められない理由。
     @Published var startupMessage: String?
 
-    /// 起動時の匿名サインインをやり直す。
+    /// 匿名サインインをやり直す。
     func retryStartup() async {
-        isRestoringSession = true
-        startupMessage = nil
-        await restoreSession()
+        await startAnonymousSession()
     }
 
 }
