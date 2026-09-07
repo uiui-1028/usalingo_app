@@ -52,17 +52,31 @@ struct LearningDashboardView: View {
         // この画面へ重ねる。位置と高さは DeckConceptSheet が自分で持つ。
         .overlay {
             if let deck = conceptDeck {
-                DeckConceptSheet(
-                    deck: deck,
-                    counts: countsByDeckId[deck.id],
-                    selectedMode: $conceptMode,
-                    onStart: { mode in
-                        conceptDeck = nil
-                        studyLaunch = StudyLaunch(deck: deck, mode: mode)
-                    },
-                    onClose: { conceptDeck = nil }
-                )
-                .transition(.move(edge: .bottom))
+                ZStack(alignment: .bottom) {
+                    // `.sheet` なら勝手に付く「後ろを暗くする幕」も自前で置く。
+                    // これがないと、シートと学習タブの境目が読み取れない。
+                    // 幕をタップしたら閉じる（`.sheet` の外側タップと同じ）。
+                    WireColor.ink
+                        .opacity(0.32)
+                        .ignoresSafeArea()
+                        .contentShape(Rectangle())
+                        .onTapGesture { conceptDeck = nil }
+                        .accessibilityLabel("デッキ設定を閉じる")
+                        .accessibilityAddTraits(.isButton)
+                        .transition(.opacity)
+
+                    DeckConceptSheet(
+                        deck: deck,
+                        counts: countsByDeckId[deck.id],
+                        selectedMode: $conceptMode,
+                        onStart: { mode in
+                            conceptDeck = nil
+                            studyLaunch = StudyLaunch(deck: deck, mode: mode)
+                        },
+                        onClose: { conceptDeck = nil }
+                    )
+                    .transition(.move(edge: .bottom))
+                }
                 .zIndex(1)
             }
         }

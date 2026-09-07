@@ -33,8 +33,12 @@ struct DeckConceptView: View {
                 dataConceptGroup
             }
             .padding(WireMetrics.screenPadding)
-            // 面の上端にあるつまみと最初の枠がぶつからないよう、少しだけ空ける。
-            .padding(.top, WireMetrics.spacingS)
+            // 面の上端のつまみの帯（高さ 32）は中身の上に重なるので、その分を空ける。
+            // 空けないと、スクロールを上まで戻したとき最初の枠がつまみに隠れる。
+            .padding(.top, WireMetrics.spacingXL + WireMetrics.spacingS)
+            // 面はホームインジケータの帯まで伸ばしてあるので、最後の枠がその帯に
+            // かからないよう、スクロールの終わりに余白を足す。
+            .padding(.bottom, WireMetrics.spacingXL)
         }
         .background(WireColor.background)
     }
@@ -299,7 +303,10 @@ struct DeckConceptSheet: View {
                 startButton
                 panel
             }
-            .frame(height: screenHeight, alignment: .top)
+            // 高さは「画面に残っている分」にする。画面いっぱいのまま offset で
+            // 下げると、下げた分がそのまま画面の外に残り、中の ScrollView は
+            // いちばん下までスクロールしても見えないままになる。
+            .frame(height: max(0, screenHeight - currentY), alignment: .top)
             .offset(y: currentY)
             .animation(.spring(response: 0.38, dampingFraction: 0.82), value: detent)
         }
