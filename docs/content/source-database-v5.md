@@ -1,23 +1,31 @@
 # 英単語原本データベース V5
 
-最終更新日: 2026-08-31
+最終更新日: 2026-09-07
 対象: 教材原本、Supabase公式コンテンツ、SwiftUIアプリ
 
 ## 1. 正本と役割
 
-教材の内容はV5原本を正本とし、Supabaseはアプリへ配るDBとします。
+教材の内容は**Google SpreadsheetのV5原本**を正本とし、Supabaseはアプリへ配るDBとします。
+Supabaseは配信用の写しであり、人が直接編集しません。
 
 ```text
-Anki・Spreadsheetなどの原本
-  → 検査済みの中間JSON
+Google Spreadsheet（V5の8シート）
   → Supabase公式コンテンツ
   → SwiftUIアプリ
 ```
 
+同期は片方向です。行を消しても同期先からは消さず、`is_active` で隠します。
+正本をSpreadsheetに定めた経緯は
+[教材の正本と単語リスト](../decisions/content-source-and-word-list-20260907.md) にあります。
+
+Ankiは退役しました。1000語ぶんの取り出しは人が手で1回だけ行い、以後は使いません。
+[`anki-data-model.md`](../architecture/anki-data-model.md) は残りますが、あれはNote・Card・Deckと
+いう設計の考え方であり、Ankiのファイル形式とは関係がありません。
+
 - この文書: 原本と配信用DBの論理契約
 - [`supabase/migrations/`](../../supabase/migrations/): 実行可能なDB構造の正本
 - [`official-content-contract.md`](../architecture/official-content-contract.md): Storage、欠損時動作、アクセス権
-- [`anki-50-extraction.md`](anki-50-extraction.md): 最初の50語を取り出す手順と実測結果
+- [`anki-50-extraction.md`](anki-50-extraction.md): 最初の50語をAnkiから取り出したときの記録。履歴であり、いまの手順ではない
 
 学習履歴、利用者設定、デッキ内のCard順などの運用データはSupabaseだけで管理します。
 
@@ -68,12 +76,12 @@ word
 |---|---:|---|
 | `word_id` | 必須 | 固定ID |
 | `word_text` | 必須 | 見出し語 |
-| `source_note_guid` | 任意 | Ankiなど原本側の安定ID |
+| `source_note_guid` | 任意 | 原本側の安定ID。Ankiの退役により、いまは使いません |
 | `source_deck_code` | 任意 | 原本デッキの固定コード |
 | `source_position` | 任意 | 原本内の1始まりの順番 |
 | `created_at`, `updated_at` | 必須 | 管理時刻 |
 
-`source_deck_code + source_position` と `source_note_guid` は、それぞれ重複させません。Ankiの復習予定順 `due` は原本順として使いません。
+`source_deck_code + source_position` と `source_note_guid` は、それぞれ重複させません。
 
 ### `01_core_senses`
 
