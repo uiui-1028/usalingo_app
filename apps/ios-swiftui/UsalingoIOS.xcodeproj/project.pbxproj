@@ -45,6 +45,7 @@
 		A100000000000000000070 /* WordListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000070 /* WordListViewModel.swift */; };
 		A100000000000000000071 /* WordListFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000071 /* WordListFilters.swift */; };
 		A100000000000000000072 /* WordListFilterBars.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000072 /* WordListFilterBars.swift */; };
+		A1000000000000000000F1 /* InteractiveSwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000F1 /* InteractiveSwipeBack.swift */; };
 		A100000000000000000073 /* WordListRowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000073 /* WordListRowViews.swift */; };
 		A100000000000000000074 /* WordListErrorBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000074 /* WordListErrorBox.swift */; };
 		A100000000000000000075 /* WordDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000075 /* WordDetailSheet.swift */; };
@@ -140,6 +141,7 @@
 		A200000000000000000070 /* WordListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListViewModel.swift; sourceTree = "<group>"; };
 		A200000000000000000071 /* WordListFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilters.swift; sourceTree = "<group>"; };
 		A200000000000000000072 /* WordListFilterBars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilterBars.swift; sourceTree = "<group>"; };
+		A2000000000000000000F1 /* InteractiveSwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/InteractiveSwipeBack.swift; sourceTree = "<group>"; };
 		A200000000000000000073 /* WordListRowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListRowViews.swift; sourceTree = "<group>"; };
 		A200000000000000000074 /* WordListErrorBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListErrorBox.swift; sourceTree = "<group>"; };
 		A200000000000000000075 /* WordDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordDetailSheet.swift; sourceTree = "<group>"; };
@@ -268,6 +270,7 @@
 				A200000000000000000070 /* WordListViewModel.swift */,
 				A200000000000000000071 /* WordListFilters.swift */,
 				A200000000000000000072 /* WordListFilterBars.swift */,
+				A2000000000000000000F1 /* InteractiveSwipeBack.swift */,
 				A200000000000000000073 /* WordListRowViews.swift */,
 				A200000000000000000074 /* WordListErrorBox.swift */,
 				A200000000000000000075 /* WordDetailSheet.swift */,
@@ -461,6 +464,7 @@
 				A100000000000000000070 /* WordListViewModel.swift in Sources */,
 				A100000000000000000071 /* WordListFilters.swift in Sources */,
 				A100000000000000000072 /* WordListFilterBars.swift in Sources */,
+				A1000000000000000000F1 /* InteractiveSwipeBack.swift in Sources */,
 				A100000000000000000073 /* WordListRowViews.swift in Sources */,
 				A100000000000000000074 /* WordListErrorBox.swift in Sources */,
 				A100000000000000000075 /* WordDetailSheet.swift in Sources */,

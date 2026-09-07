@@ -2,7 +2,6 @@ import SwiftUI
 
 struct WordListView: View {
     @EnvironmentObject private var appState: AppState
-    @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel: WordListViewModel
     @State private var selectedWord: WordCard?
 
@@ -66,9 +65,9 @@ struct WordListView: View {
         .scrollContentBackground(.hidden)
         .background(WireColor.background)
         // 操作はすべて下の浮動バーに集めたので、上のヘッダーごと消す。
-        // ヘッダーを消すと端からのスワイプでも戻れなくなるため、
-        // 戻る導線は下のバーの左端に置く。
+        // ヘッダーを消すと端からのスワイプで戻る動きも止まるため、それだけ戻す。
         .toolbar(.hidden, for: .navigationBar)
+        .background(InteractiveSwipeBackEnabler().frame(width: 0, height: 0))
         // 左のバーに絞り込み・並べ替え・検索、右のバーに表示切り替えを収める。
         .safeAreaInset(edge: .bottom, spacing: 0) {
             WordListBottomBars(
@@ -78,8 +77,7 @@ struct WordListView: View {
                 selectedDueFilter: $viewModel.selectedDueFilter,
                 selectedSort: $viewModel.selectedSort,
                 searchText: $viewModel.searchText,
-                selectedDisplayMode: $viewModel.selectedDisplayMode,
-                onBack: { dismiss() }
+                selectedDisplayMode: $viewModel.selectedDisplayMode
             )
         }
         .fullScreenCover(item: $selectedWord) { word in

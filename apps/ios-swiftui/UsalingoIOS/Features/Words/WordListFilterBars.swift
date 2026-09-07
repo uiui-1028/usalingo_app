@@ -33,7 +33,6 @@ struct WordListBottomBars: View {
     @Binding var selectedSort: WordSortOption
     @Binding var searchText: String
     @Binding var selectedDisplayMode: WordListDisplayMode
-    let onBack: () -> Void
 
     @State private var isSearchExpanded = false
 
@@ -46,8 +45,7 @@ struct WordListBottomBars: View {
                 selectedDueFilter: $selectedDueFilter,
                 selectedSort: $selectedSort,
                 searchText: $searchText,
-                isSearchExpanded: $isSearchExpanded,
-                onBack: onBack
+                isSearchExpanded: $isSearchExpanded
             )
 
             if !isSearchExpanded {
@@ -71,20 +69,12 @@ struct WordListActionBar: View {
     @Binding var selectedSort: WordSortOption
     @Binding var searchText: String
     @Binding var isSearchExpanded: Bool
-    let onBack: () -> Void
 
     @FocusState private var isSearchFocused: Bool
 
     var body: some View {
         HStack(spacing: WireMetrics.spacingS) {
             if !isSearchExpanded {
-                // ヘッダーを消したので、前の画面へ戻る導線もこのバーが持つ。
-                Button(action: onBack) {
-                    WordListActionBarIcon(symbol: "chevron.left", isActive: false)
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("戻る")
-
                 WordListFilterMenu(
                     tags: tags,
                     selectedTag: $selectedTag,
