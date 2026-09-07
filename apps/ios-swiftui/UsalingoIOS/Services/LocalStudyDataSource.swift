@@ -163,6 +163,12 @@ final class LocalStudyDataSource: StudyDataSource {
         return bundledDeckFiles().filter { !installedKeys.contains($0.deckId) }
     }
 
+    /// 同梱デッキの全件。取り込み先が端末以外のときは、端末の一覧で
+    /// 済みかどうかを判断できないため、絞らずにそのまま出す。
+    func allBundledDecks() -> [DeckFile] {
+        bundledDeckFiles()
+    }
+
     @discardableResult
     func installBundledDeck(key: String) throws -> LocalDeck {
         guard let file = bundledDeckFiles().first(where: { $0.deckId == key }) else {
@@ -318,6 +324,31 @@ final class LocalStudyDataSource: StudyDataSource {
             throw LocalStudyError.deckNotFound
         }
         return card
+    }
+
+    // MARK: - デッキの管理
+
+    /// 端末のデッキはすべて本人のものなので、常に編集できる。
+    func canManage(_ deck: Deck) -> Bool { true }
+
+    var supportsDeckReordering: Bool { true }
+
+    var supportsDeckExport: Bool { true }
+
+    func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome {
+        let deck = try installBundledDeck(key: file.deckId)
+        return DeckInstallOutcome(
+            deck: deck.deck,
+            addedCardCount: file.cards.count,
+            skippedCardCount: 0
+        )
+    }
+
+    func deleteDeck(id: Int) async throws {
+        guard let index = library.decks.firstIndex(where: { $0.id == id }) else {
+            throw LocalStudyError.deckNotFound
+        }
+        try removeDecks(atOffsets: IndexSet(integer: index))
     }
 
     // MARK: - バックアップ（G-1）

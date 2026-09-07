@@ -27,6 +27,19 @@ protocol StudyDataSource {
     func fetchTags(wordId: Int) async throws -> [String]?
     func saveTags(_ tags: Set<String>, wordId: Int) async throws
     func saveWordOverride(_ payload: WordOverridePayload) async throws -> WordCard
+
+    // MARK: - デッキの管理
+
+    /// そのデッキを利用者が編集・削除できるか。公式デッキは false。
+    func canManage(_ deck: Deck) -> Bool
+    /// 並べ替えを扱えるか。並び順を持たない保存先では false。
+    var supportsDeckReordering: Bool { get }
+    /// デッキJSONの書き出しを扱えるか。
+    var supportsDeckExport: Bool { get }
+    /// 同梱デッキを自分のデッキとして取り込む。
+    func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome
+    /// 自分のデッキを削除する。公式デッキへは使わない。
+    func deleteDeck(id: Int) async throws
 }
 
 struct StudyDeckCounts: Equatable {
@@ -108,6 +121,26 @@ final class RemoteStudyDataSource: StudyDataSource {
             imageAssetPath: payload.imageAssetPath
         )
         return try await service.saveWordOverride(override, session: session)
+    }
+
+    // MARK: - デッキの管理
+
+    func canManage(_ deck: Deck) -> Bool {
+        deck.ownerId == session.user.id
+    }
+
+    /// リモートのデッキは並び順の列を持たないので、並べ替えは扱わない。
+    var supportsDeckReordering: Bool { false }
+
+    /// 書き出しは端末のデッキファイルが元になるため、リモートでは扱わない。
+    var supportsDeckExport: Bool { false }
+
+    func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome {
+        try await service.installPersonalDeck(from: file, session: session)
+    }
+
+    func deleteDeck(id: Int) async throws {
+        try await service.deletePersonalDeck(id: id, session: session)
     }
 
     private static func parseDate(_ value: String) -> Date? {
