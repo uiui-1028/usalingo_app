@@ -51,6 +51,7 @@
 		A100000000000000000075 /* WordDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000075 /* WordDetailSheet.swift */; };
 		A1000000000000000000076 /* LearningConcept.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000076 /* LearningConcept.swift */; };
 		A1000000000000000000077 /* DeckSummaryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000077 /* DeckSummaryViews.swift */; };
+		A1000000000000000000601 /* DeckConceptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000601 /* DeckConceptSheet.swift */; };
 		A1000000000000000000078 /* DeckConceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000078 /* DeckConceptView.swift */; };
 		A10000000000000000000019 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AudioPlaybackService.swift */; };
 		A1000000000000000000003E /* HapticFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003E /* HapticFeedbackService.swift */; };
@@ -147,6 +148,7 @@
 		A200000000000000000075 /* WordDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordDetailSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000076 /* LearningConcept.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningConcept.swift; sourceTree = "<group>"; };
 		A2000000000000000000077 /* DeckSummaryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckSummaryViews.swift; sourceTree = "<group>"; };
+		A2000000000000000000601 /* DeckConceptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckConceptSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000078 /* DeckConceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckConceptView.swift; sourceTree = "<group>"; };
 		A20000000000000000000019 /* AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AudioPlaybackService.swift; sourceTree = "<group>"; };
 		A2000000000000000000003E /* HapticFeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HapticFeedbackService.swift; sourceTree = "<group>"; };
@@ -260,6 +262,7 @@
 				A20000000000000000000026 /* DeckLibraryView.swift */,
 				A2000000000000000000076 /* LearningConcept.swift */,
 				A2000000000000000000077 /* DeckSummaryViews.swift */,
+				A2000000000000000000601 /* DeckConceptSheet.swift */,
 				A2000000000000000000078 /* DeckConceptView.swift */,
 				A20000000000000000000029 /* StudyBackupSyncer.swift */,
 				A20000000000000000000028 /* GuestStudyBackupService.swift */,
@@ -453,6 +456,7 @@
 				A10000000000000000000026 /* DeckLibraryView.swift in Sources */,
 				A1000000000000000000076 /* LearningConcept.swift in Sources */,
 				A1000000000000000000077 /* DeckSummaryViews.swift in Sources */,
+				A1000000000000000000601 /* DeckConceptSheet.swift in Sources */,
 				A1000000000000000000078 /* DeckConceptView.swift in Sources */,
 				A10000000000000000000029 /* StudyBackupSyncer.swift in Sources */,
 				A10000000000000000000028 /* GuestStudyBackupService.swift in Sources */,

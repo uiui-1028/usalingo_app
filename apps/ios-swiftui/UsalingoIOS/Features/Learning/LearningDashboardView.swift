@@ -12,7 +12,6 @@ struct LearningDashboardView: View {
     @State private var decks: [Deck] = []
     @State private var countsByDeckId: [Int: StudyDeckCounts] = [:]
     @State private var studyLaunch: StudyLaunch?
-    @State private var pendingStudyLaunch: StudyLaunch?
     @State private var conceptDeck: Deck?
     /// 並べ替えモード。`.constant` で渡すと `List` 側から抜けられなくなるので、
     /// 書き戻せる状態として持つ。
@@ -47,20 +46,28 @@ struct LearningDashboardView: View {
                     WordListView()
                 }
         }
-        .sheet(item: $conceptDeck, onDismiss: {
-            // Wait until the sheet is gone before pushing the study screen.
-            guard let pendingStudyLaunch else { return }
-            self.pendingStudyLaunch = nil
-            studyLaunch = pendingStudyLaunch
-        }) { deck in
-            NavigationStack {
-                DeckConceptView(deck: deck, counts: countsByDeckId[deck.id]) { mode in
-                    pendingStudyLaunch = StudyLaunch(deck: deck, mode: mode)
-                    conceptDeck = nil
-                }
+        // デッキ設定は `.sheet` では出さない。ボタンとシートを同じまとまりで
+        // 動かすため、この画面の上に重ねる（DeckConceptSheet）。
+        .overlay {
+            if let deck = conceptDeck {
+                DeckConceptSheet(
+                    deck: deck,
+                    counts: countsByDeckId[deck.id],
+                    onStart: { mode in
+                        conceptDeck = nil
+                        studyLaunch = StudyLaunch(deck: deck, mode: mode)
+                    },
+                    onClose: { conceptDeck = nil }
+                )
+                .transition(.move(edge: .bottom))
+                .zIndex(1)
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+        }
+        .animation(.spring(response: 0.38, dampingFraction: 0.82), value: conceptDeck?.id)
+        // シートは画面の上に重ねているだけなので、シェルの浮動バーは自分で隠す。
+        // `.sheet` のように勝手に覆ってはくれない。
+        .onChange(of: conceptDeck?.id) { _, id in
+            setActionBarHidden(id != nil)
         }
         .task(id: reloadKey) { await reload() }
     }

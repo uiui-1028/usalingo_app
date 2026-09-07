@@ -7,16 +7,21 @@ import SwiftUI
 struct DeckConceptView: View {
     let deck: Deck
     let counts: StudyDeckCounts?
-    var onStart: ((StudyMode) -> Void)? = nil
+    /// 「始める」はシートの外側に付くボタンが押す。選んだモードは外へ出す。
+    @Binding var selectedMode: StudyMode
 
-    @State private var selectedMode: StudyMode = .all
+    init(deck: Deck, counts: StudyDeckCounts?, selectedMode: Binding<StudyMode>) {
+        self.deck = deck
+        self.counts = counts
+        _selectedMode = selectedMode
+    }
+
     @State private var selectedFormat: ConceptAnswerFormat = .englishToJapanese
     @State private var selectedVolume: ConceptVolume = .tenCards
     @State private var selectedNarrowings: Set<ConceptNarrowing> = []
     @State private var selectedTone: ConceptSentenceTone = .simple
     @State private var selectedStyle: ConceptIllustrationStyle = .realistic
     @State private var saveMessage: String?
-    @State private var launch: StudyLaunch?
 
     private var sample: DeckDisplaySample { DeckDisplaySample.forDeck(id: deck.id) }
 
@@ -34,27 +39,6 @@ struct DeckConceptView: View {
                 actionGroup
             }
             .padding(WireMetrics.screenPadding)
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            Button("始める", systemImage: "play.fill") {
-                if let onStart {
-                    onStart(selectedMode)
-                } else {
-                    launch = StudyLaunch(deck: deck, mode: selectedMode)
-                }
-            }
-            .buttonStyle(.wirePrimary)
-            .accessibilityHint("選択した学習モードで学習を始めます")
-            .padding(.horizontal, WireMetrics.screenPadding)
-            .padding(.vertical, WireMetrics.spacingS)
-            .background(WireColor.background)
-        }
-        .background(WireColor.background)
-        .navigationTitle(deck.deckName)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(WireColor.background, for: .navigationBar)
-        .navigationDestination(item: $launch) { launch in
-            StudySessionView(deck: launch.deck, studyMode: launch.mode)
         }
     }
 
@@ -351,12 +335,12 @@ private struct ConceptOptionRow: View {
 
 #if DEBUG
 #Preview("Deck Concept") {
-    NavigationStack {
-        DeckConceptView(
-            deck: Deck(id: 1, deckName: "TOEIC 基礎 600", description: "頻出600語。Part5 の土台をつくる。"),
-            counts: StudyDeckCounts(newCount: 12, dueCount: 8)
-        )
-    }
+    @Previewable @State var mode: StudyMode = .all
+    return DeckConceptView(
+        deck: Deck(id: 1, deckName: "TOEIC 基礎 600", description: "頻出600語。Part5 の土台をつくる。"),
+        counts: StudyDeckCounts(newCount: 12, dueCount: 8),
+        selectedMode: $mode
+    )
     .environmentObject(AppState.preview)
     .environmentObject(DesignSettings())
 }
