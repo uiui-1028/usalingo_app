@@ -255,24 +255,73 @@ struct DeckConceptView: View {
     }
 }
 
-/// デッキ設定シートの中身。「始める」をシートの面の外（上）へ出すための入れ物。
+/// デッキ設定シート。`.sheet` は使わず、呼び出し元の画面へ重ねて使う。
 ///
-/// 標準の `.sheet` は、指でつかんで動かしている途中の位置を外から読めない。
-/// そこで「シートの外に置いたボタン」を別の View として重ねるのではなく、
-/// シートの背景を透明にして、この1つの中身の中で
-/// 「ボタンの帯」＋「面（パネル）」を縦に並べる。こうするとシートを上下に動かしても
-/// ボタンと面はいつもくっついたまま動く。
+/// 「始める」ボタンと面（パネル）を**同じ親コンテナ**へ入れて、1つの `offset` で
+/// 一緒に動かす（`BottomSheetAttachedButtonDemo` のやり方）。
+/// `.sheet` に載せると、指でつかんで動かしている途中の位置を外から読めないため、
+/// 背景を透かしたり枠の角丸を消したりと、打ち消しの指定が積み上がっていく。
+/// 位置を自分で持てば、面もボタンも素直に一緒に動く。
 struct DeckConceptSheet: View {
     let deck: Deck
     let counts: StudyDeckCounts?
     @Binding var selectedMode: StudyMode
     let onStart: (StudyMode) -> Void
+    let onClose: () -> Void
+
+    @State private var detent: Detent = .medium
+    @GestureState private var dragTranslation: CGFloat = 0
+
+    private enum Detent {
+        case large
+        case medium
+    }
+
+    private enum Metrics {
+        /// いちばん上まで上げたときの、画面上端からの空き。
+        static let largeTopInset: CGFloat = 96
+        /// ふだんの位置。画面の高さに対する割合。
+        static let mediumHeightRatio: CGFloat = 0.42
+        /// 下へ引ける余白。ここを越えて振り切ると閉じる。
+        static let overshoot: CGFloat = 140
+        static let dismissDistance: CGFloat = 96
+    }
 
     var body: some View {
-        VStack(spacing: WireMetrics.spacingM) {
-            startButton
-            panel
+        GeometryReader { geometry in
+            let screenHeight = geometry.size.height
+            let largeY = Metrics.largeTopInset
+            let mediumY = screenHeight * Metrics.mediumHeightRatio
+            let baseY = detent == .large ? largeY : mediumY
+            let currentY = max(largeY, min(mediumY + Metrics.overshoot, baseY + dragTranslation))
+
+            VStack(spacing: WireMetrics.spacingM) {
+                startButton
+                panel
+            }
+            .frame(height: screenHeight, alignment: .top)
+            .offset(y: currentY)
+            .animation(.spring(response: 0.38, dampingFraction: 0.82), value: detent)
         }
+        .ignoresSafeArea(edges: .bottom)
+    }
+
+    /// つまみを上下に動かす操作。面の中身は縦スクロールするので、
+    /// ドラッグを受けるのはつまみの帯だけにして、取り合いを避ける。
+    private var dragGesture: some Gesture {
+        DragGesture(minimumDistance: 4)
+            .updating($dragTranslation) { value, state, _ in
+                state = value.translation.height
+            }
+            .onEnded { value in
+                if detent == .medium, value.predictedEndTranslation.height > Metrics.dismissDistance {
+                    onClose()
+                    return
+                }
+                withAnimation(.spring(response: 0.38, dampingFraction: 0.82)) {
+                    detent = value.predictedEndTranslation.height < 0 ? .large : .medium
+                }
+            }
     }
 
     /// 面の外に浮かせる主行動。右寄せにして、面の上のすき間に置く。
@@ -305,14 +354,37 @@ struct DeckConceptSheet: View {
             .overlay(alignment: .top) { grabber }
     }
 
-    /// 標準のドラッグインジケータはシート枠の上端（＝ボタンの帯）に出てしまうので、
-    /// 隠したうえで面の上端に自前で描く。
+    /// 面の上端のつまみ。ここを持って上下に動かし、下へ振り切ると閉じる。
+    /// 指の当たる範囲を帯として確保し、閉じる操作も並べる。
     private var grabber: some View {
-        Capsule()
-            .fill(WireColor.ink.opacity(0.25))
-            .frame(width: 36, height: 5)
-            .padding(.top, WireMetrics.spacingS)
-            .accessibilityHidden(true)
+        HStack {
+            Spacer(minLength: 0)
+            Capsule()
+                .fill(WireColor.ink.opacity(0.25))
+                .frame(width: 36, height: 5)
+            Spacer(minLength: 0)
+        }
+        .overlay(alignment: .trailing) {
+            Button {
+                onClose()
+            } label: {
+                Image(systemName: "xmark")
+                    .wireFont(.caption)
+                    .padding(WireMetrics.spacingS)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("閉じる")
+            .padding(.trailing, WireMetrics.spacingS)
+        }
+        .padding(.top, WireMetrics.spacingS)
+        // 指が当たる帯を確保する。細いつまみだけだと、下の縦スクロールが
+        // ドラッグを先に取ってしまい、シートが動かない。
+        .frame(maxWidth: .infinity, minHeight: 32, alignment: .top)
+        .background(WireColor.background.opacity(0.01))
+        .contentShape(Rectangle())
+        // 下のスクロールより先に受け取る。
+        .highPriorityGesture(dragGesture)
     }
 }
 
