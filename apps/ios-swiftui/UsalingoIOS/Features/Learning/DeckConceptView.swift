@@ -4,26 +4,26 @@ import SwiftUI
 ///
 /// デザインタブと同じく、いまは表示だけの仮組み。選んだ内容のうち実際に効くのは
 /// `StudyMode` だけで、残りは学習画面へ渡していない。
+///
+/// 「始める」ボタンはこの画面には置かない。面の外（`DeckConceptSheet` の上端）に
+/// 出すため、選んだ学習モードだけを `Binding` で外へ渡す。
 struct DeckConceptView: View {
     let deck: Deck
     let counts: StudyDeckCounts?
-    var onStart: ((StudyMode) -> Void)? = nil
+    /// 開始ボタンが面の外にあるので、選択結果は呼び出し側が持つ。
+    @Binding var selectedMode: StudyMode
 
-    @State private var selectedMode: StudyMode = .all
     @State private var selectedFormat: ConceptAnswerFormat = .englishToJapanese
     @State private var selectedVolume: ConceptVolume = .tenCards
     @State private var selectedNarrowings: Set<ConceptNarrowing> = []
     @State private var selectedTone: ConceptSentenceTone = .simple
     @State private var selectedStyle: ConceptIllustrationStyle = .realistic
-    @State private var saveMessage: String?
-    @State private var launch: StudyLaunch?
 
     private var sample: DeckDisplaySample { DeckDisplaySample.forDeck(id: deck.id) }
 
     var body: some View {
         ScrollView {
             VStack(spacing: WireMetrics.spacingL) {
-                notice
                 summaryGroup
                 previewGroup
                 modeGroup
@@ -31,45 +31,12 @@ struct DeckConceptView: View {
                 volumeGroup
                 narrowingGroup
                 dataConceptGroup
-                actionGroup
             }
             .padding(WireMetrics.screenPadding)
-        }
-        .safeAreaInset(edge: .top, spacing: 0) {
-            Button("始める", systemImage: "play.fill") {
-                if let onStart {
-                    onStart(selectedMode)
-                } else {
-                    launch = StudyLaunch(deck: deck, mode: selectedMode)
-                }
-            }
-            .buttonStyle(.wirePrimary)
-            .accessibilityHint("選択した学習モードで学習を始めます")
-            .padding(.horizontal, WireMetrics.screenPadding)
-            .padding(.vertical, WireMetrics.spacingS)
-            .background(WireColor.background)
+            // 面の上端にあるつまみと最初の枠がぶつからないよう、少しだけ空ける。
+            .padding(.top, WireMetrics.spacingS)
         }
         .background(WireColor.background)
-        .navigationTitle(deck.deckName)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(WireColor.background, for: .navigationBar)
-        .navigationDestination(item: $launch) { launch in
-            StudySessionView(deck: launch.deck, studyMode: launch.mode)
-        }
-    }
-
-    // MARK: - 断り書き
-
-    private var notice: some View {
-        BentoGroup(tone: .l1) {
-            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                Label("コンセプトは表示だけの仮組み", systemImage: "square.dashed")
-                    .wireFont(.titleS)
-                WireframeNotice(
-                    text: "並びと言葉づかいを決めるための画面です。選んだ内容は保存されず、実際の出題に効くのは「どれを出すか」だけです。"
-                )
-            }
-        }
     }
 
     // MARK: - デッキの周辺情報（B-1 / B-2 / B-3 / B-4）
@@ -231,33 +198,6 @@ struct DeckConceptView: View {
         }
     }
 
-    // MARK: - 保存 / 開始（A-5）
-
-    private var actionGroup: some View {
-        BentoGroup(tone: .l3) {
-            VStack(spacing: WireMetrics.spacingM) {
-                Button("このくみあわせを保存する") {
-                    saveMessage = "保存先はまだありません。並びを見るための画面です。"
-                }
-                .buttonStyle(.wireSecondary)
-
-                if let saveMessage {
-                    Text(saveMessage)
-                        .wireFont(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(WireMetrics.spacingM)
-                        .outlineSurface(
-                            radius: WireMetrics.radiusControl,
-                            shadow: nil,
-                            dashed: true,
-                            fill: BentoTone.l3.fill
-                        )
-                }
-
-            }
-        }
-    }
-
     // MARK: - 部品
 
     /// 横に並べて、はみ出したらスクロールさせる。折り返しは扱わない。
@@ -315,6 +255,67 @@ struct DeckConceptView: View {
     }
 }
 
+/// デッキ設定シートの中身。「始める」をシートの面の外（上）へ出すための入れ物。
+///
+/// 標準の `.sheet` は、指でつかんで動かしている途中の位置を外から読めない。
+/// そこで「シートの外に置いたボタン」を別の View として重ねるのではなく、
+/// シートの背景を透明にして、この1つの中身の中で
+/// 「ボタンの帯」＋「面（パネル）」を縦に並べる。こうするとシートを上下に動かしても
+/// ボタンと面はいつもくっついたまま動く。
+struct DeckConceptSheet: View {
+    let deck: Deck
+    let counts: StudyDeckCounts?
+    @Binding var selectedMode: StudyMode
+    let onStart: (StudyMode) -> Void
+
+    var body: some View {
+        VStack(spacing: WireMetrics.spacingM) {
+            startButton
+            panel
+        }
+    }
+
+    /// 面の外に浮かせる主行動。右寄せにして、面の上のすき間に置く。
+    private var startButton: some View {
+        Button("始める", systemImage: "play.fill") {
+            onStart(selectedMode)
+        }
+        .buttonStyle(.wirePrimary)
+        // wirePrimary は横いっぱいに広がるので、中身の幅で止める。
+        .fixedSize(horizontal: true, vertical: false)
+        .accessibilityHint("選択した学習モードで学習を始めます")
+        .frame(maxWidth: .infinity, alignment: .trailing)
+        .padding(.horizontal, WireMetrics.screenPadding)
+    }
+
+    /// シートに見せる面。背景はシート側ではなくここで描く。
+    private var panel: some View {
+        DeckConceptView(deck: deck, counts: counts, selectedMode: $selectedMode)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: WireMetrics.radiusLarge,
+                    topTrailingRadius: WireMetrics.radiusLarge,
+                    style: .continuous
+                )
+                .fill(WireColor.background)
+                // ホームインジケータの帯まで面を伸ばし、下に地が見えないようにする。
+                .ignoresSafeArea(edges: .bottom)
+            )
+            .overlay(alignment: .top) { grabber }
+    }
+
+    /// 標準のドラッグインジケータはシート枠の上端（＝ボタンの帯）に出てしまうので、
+    /// 隠したうえで面の上端に自前で描く。
+    private var grabber: some View {
+        Capsule()
+            .fill(WireColor.ink.opacity(0.25))
+            .frame(width: 36, height: 5)
+            .padding(.top, WireMetrics.spacingS)
+            .accessibilityHidden(true)
+    }
+}
+
 /// 学習画面へ渡す組み合わせ。`navigationDestination(item:)` に載せるためだけの入れ物。
 struct StudyLaunch: Identifiable, Hashable {
     let deck: Deck
@@ -351,10 +352,11 @@ private struct ConceptOptionRow: View {
 
 #if DEBUG
 #Preview("Deck Concept") {
-    NavigationStack {
+    Group {
         DeckConceptView(
             deck: Deck(id: 1, deckName: "TOEIC 基礎 600", description: "頻出600語。Part5 の土台をつくる。"),
-            counts: StudyDeckCounts(newCount: 12, dueCount: 8)
+            counts: StudyDeckCounts(newCount: 12, dueCount: 8),
+            selectedMode: .constant(.all)
         )
     }
     .environmentObject(AppState.preview)

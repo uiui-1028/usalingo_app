@@ -14,6 +14,10 @@ struct LearningDashboardView: View {
     @State private var studyLaunch: StudyLaunch?
     @State private var pendingStudyLaunch: StudyLaunch?
     @State private var conceptDeck: Deck?
+    /// 開始ボタンをシートの外へ出したので、選ばれた学習モードはここで持つ。
+    @State private var conceptMode: StudyMode = .all
+    /// シート高を自分で決めるために測る、画面（ウィンドウ）全体の高さ。
+    @State private var windowHeight: CGFloat = 0
     /// 並べ替えモード。`.constant` で渡すと `List` 側から抜けられなくなるので、
     /// 書き戻せる状態として持つ。
     @State private var editMode: EditMode = .inactive
@@ -47,22 +51,53 @@ struct LearningDashboardView: View {
                     WordListView()
                 }
         }
+        .background {
+            // シート高を自分で決めるので、画面全体の高さを測っておく。
+            GeometryReader { proxy in
+                Color.clear
+                    .onAppear { windowHeight = proxy.size.height }
+                    .onChange(of: proxy.size.height) { _, height in windowHeight = height }
+            }
+            .ignoresSafeArea()
+        }
         .sheet(item: $conceptDeck, onDismiss: {
             // Wait until the sheet is gone before pushing the study screen.
             guard let pendingStudyLaunch else { return }
             self.pendingStudyLaunch = nil
             studyLaunch = pendingStudyLaunch
         }) { deck in
-            NavigationStack {
-                DeckConceptView(deck: deck, counts: countsByDeckId[deck.id]) { mode in
-                    pendingStudyLaunch = StudyLaunch(deck: deck, mode: mode)
-                    conceptDeck = nil
-                }
+            DeckConceptSheet(
+                deck: deck,
+                counts: countsByDeckId[deck.id],
+                selectedMode: $conceptMode
+            ) { mode in
+                pendingStudyLaunch = StudyLaunch(deck: deck, mode: mode)
+                conceptDeck = nil
             }
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
+            // 高さは1つに固定する。上端に「始める」の帯を持つぶん、面より少し高い。
+            .presentationDetents([.height(conceptSheetHeight)])
+            // 面の上端はシート枠ではなくパネル側にあるので、標準の指示子は使わない。
+            .presentationDragIndicator(.hidden)
+            // 面はシートの中で自分で描く。枠の背景は透かして、上端の帯を地に見せる。
+            .presentationBackground { Color.clear }
+            // 枠の角丸は面（パネル）側で描くので、シート枠側は角を持たせない。
+            .presentationCornerRadius(0)
+            // 背景を暗くしない。透かした帯の向こうにデッキ一覧を見せるため。
+            .presentationBackgroundInteraction(.enabled)
         }
         .task(id: reloadKey) { await reload() }
+    }
+
+    /// シートの高さ。面（画面の約72%）と、その上に載せる「始める」の帯を足した値。
+    /// まだ画面を測れていないときは安全側の固定値を使う。
+    private var conceptSheetHeight: CGFloat {
+        guard windowHeight > 0 else { return 520 + startButtonStripHeight }
+        return windowHeight * 0.72 + startButtonStripHeight
+    }
+
+    /// 「始める」の帯の高さ。ボタンの上下余白（spacingM×2）＋文字の行と、面とのすき間。
+    private var startButtonStripHeight: CGFloat {
+        (WireMetrics.spacingM * 2) + 22 + WireMetrics.spacingM
     }
 
     /// 画面は上から「デッキ一覧」「単語」「操作」「通知」へ分ける。
@@ -248,6 +283,7 @@ struct LearningDashboardView: View {
     private func deckRow(_ deck: Deck) -> some View {
         Button {
             guard !isEditing else { return }
+            conceptMode = .all
             conceptDeck = deck
         } label: {
             VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
