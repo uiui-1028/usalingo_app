@@ -343,9 +343,7 @@ final class WordCardTests: XCTestCase {
                 XCTAssertEqual(scroll.contentSize.height - scroll.bounds.height, 29 * 80, accuracy: 1)
                 for offset: CGFloat in [320, 29 * 80] {
                     scroll.setContentOffset(CGPoint(x: 0, y: offset), animated: false)
-                    RunLoop.main.run(until: Date().addingTimeInterval(0.5))
-                    root.layoutIfNeeded()
-                    let snapshot = self.renderedImage(of: root)
+                    let snapshot = try self.settledRedSheetImage(in: root)
                     let sheetTop = try self.firstRedY(in: snapshot)
                     let viewportTop = scroll.convert(scroll.bounds.origin, to: root).y
                     let relativeTop = sheetTop - viewportTop
@@ -364,6 +362,27 @@ final class WordCardTests: XCTestCase {
     @MainActor
     private func descendants(of view: UIView) -> [UIView] {
         [view] + view.subviews.flatMap { descendants(of: $0) }
+    }
+
+    /// CIでは0.5秒後でも整列アニメーションの途中になることがある。
+    /// 正解座標を待つのではなく、描画位置が安定してから従来の1pt精度で検査する。
+    @MainActor
+    private func settledRedSheetImage(in root: UIView) throws -> UIImage {
+        let started = Date()
+        var previousY: CGFloat?
+        var stableSamples = 0
+        var image = renderedImage(of: root)
+        while Date().timeIntervalSince(started) < 4 {
+            RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+            root.layoutIfNeeded()
+            image = renderedImage(of: root)
+            let y = try firstRedY(in: image)
+            stableSamples = previousY.map { abs($0 - y) < 0.25 } == true ? stableSamples + 1 : 0
+            previousY = y
+            if Date().timeIntervalSince(started) >= 0.6 && stableSamples >= 3 { return image }
+        }
+        XCTFail("Red sheet did not settle within 4 seconds")
+        return image
     }
 
     private func firstRedY(in image: UIImage) throws -> CGFloat {
