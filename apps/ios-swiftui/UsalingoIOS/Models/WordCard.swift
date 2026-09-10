@@ -1,11 +1,28 @@
 import Foundation
 
+/// 1つの意味と、その意味に付く品詞。
+///
+/// 品詞は意味ごとに変わる（`light` ＝ 明かり／名詞、軽い／形容詞）ため、
+/// 意味と品詞は必ず組にして持つ。
+struct WordSense: Hashable {
+    let meaning: String
+    let partOfSpeech: String?
+
+    init(meaning: String, partOfSpeech: String? = nil) {
+        self.meaning = meaning
+        self.partOfSpeech = partOfSpeech
+    }
+}
+
 struct WordCard: Identifiable, Hashable {
+    /// 意味を横に並べるときの区切り。
+    static let meaningSeparator = "／"
+
     let wordId: Int
     let cardId: Int?
     let text: String
-    let meaning: String
-    let partOfSpeech: String?
+    /// その単語の意味。`priority` の昇順で並んでいる。
+    let senses: [WordSense]
     let sentenceEnglish: String?
     let sentenceJapanese: String?
     let imageAssetPath: String?
@@ -22,6 +39,53 @@ struct WordCard: Identifiable, Hashable {
         cardId ?? wordId
     }
 
+    /// 並んだ意味を1本の文字列にしたもの。表示と検索はこれを使う。
+    var meaning: String {
+        senses.map(\.meaning).joined(separator: Self.meaningSeparator)
+    }
+
+    /// 代表の品詞。1つしか置けない場所（詳細画面の見出しなど）で使う。
+    var partOfSpeech: String? {
+        senses.compactMap(\.partOfSpeech).first
+    }
+
+    /// 意味ごとの品詞。重複は取り除き、出てきた順を保つ。
+    var partsOfSpeech: [String] {
+        var seen: Set<String> = []
+        return senses.compactMap(\.partOfSpeech).filter { seen.insert($0).inserted }
+    }
+
+    init(
+        id wordId: Int,
+        cardId: Int? = nil,
+        text: String,
+        senses: [WordSense],
+        sentenceEnglish: String?,
+        sentenceJapanese: String?,
+        imageAssetPath: String?,
+        audioAssetPath: String?,
+        tags: [String],
+        learningStatus: String?,
+        learning: WordLearningSnapshot?,
+        synonyms: [WordSynonym] = [],
+        etymology: String? = nil
+    ) {
+        self.wordId = wordId
+        self.cardId = cardId
+        self.text = text
+        self.senses = senses
+        self.sentenceEnglish = sentenceEnglish
+        self.sentenceJapanese = sentenceJapanese
+        self.imageAssetPath = imageAssetPath
+        self.audioAssetPath = audioAssetPath
+        self.tags = tags
+        self.learningStatus = learningStatus
+        self.learning = learning
+        self.synonyms = synonyms
+        self.etymology = etymology
+    }
+
+    /// 意味が1つだけのカードを作る。同梱デッキや利用者の上書きはこちらを使う。
     init(
         id wordId: Int,
         cardId: Int? = nil,
@@ -38,20 +102,21 @@ struct WordCard: Identifiable, Hashable {
         synonyms: [WordSynonym] = [],
         etymology: String? = nil
     ) {
-        self.wordId = wordId
-        self.cardId = cardId
-        self.text = text
-        self.meaning = meaning
-        self.partOfSpeech = partOfSpeech
-        self.sentenceEnglish = sentenceEnglish
-        self.sentenceJapanese = sentenceJapanese
-        self.imageAssetPath = imageAssetPath
-        self.audioAssetPath = audioAssetPath
-        self.tags = tags
-        self.learningStatus = learningStatus
-        self.learning = learning
-        self.synonyms = synonyms
-        self.etymology = etymology
+        self.init(
+            id: wordId,
+            cardId: cardId,
+            text: text,
+            senses: [WordSense(meaning: meaning, partOfSpeech: partOfSpeech)],
+            sentenceEnglish: sentenceEnglish,
+            sentenceJapanese: sentenceJapanese,
+            imageAssetPath: imageAssetPath,
+            audioAssetPath: audioAssetPath,
+            tags: tags,
+            learningStatus: learningStatus,
+            learning: learning,
+            synonyms: synonyms,
+            etymology: etymology
+        )
     }
 
     var illustrationURL: URL? {
@@ -71,8 +136,7 @@ struct WordCard: Identifiable, Hashable {
             id: wordId,
             cardId: cardId,
             text: override.wordText.requiredOverride(fallback: text),
-            meaning: override.definitionJapanese.requiredOverride(fallback: meaning),
-            partOfSpeech: partOfSpeech,
+            senses: overriddenSenses(with: override.definitionJapanese),
             sentenceEnglish: override.sentenceEnglish.optionalOverride(fallback: sentenceEnglish),
             sentenceJapanese: override.sentenceJapanese.optionalOverride(fallback: sentenceJapanese),
             imageAssetPath: override.imageAssetPath.optionalOverride(fallback: imageAssetPath),
@@ -85,13 +149,24 @@ struct WordCard: Identifiable, Hashable {
         )
     }
 
+    /// 利用者の上書きは `user_word_overrides.definition_jp` の1本の文字列なので、
+    /// 並んだ意味の全体を置き換える1つの意味として扱う。意味ごとの上書きは持たない。
+    private func overriddenSenses(with definitionJapanese: String?) -> [WordSense] {
+        guard
+            let value = definitionJapanese?.trimmingCharacters(in: .whitespacesAndNewlines),
+            !value.isEmpty
+        else {
+            return senses
+        }
+        return [WordSense(meaning: value, partOfSpeech: partOfSpeech)]
+    }
+
     func withTags(_ tags: [String]) -> WordCard {
         WordCard(
             id: wordId,
             cardId: cardId,
             text: text,
-            meaning: meaning,
-            partOfSpeech: partOfSpeech,
+            senses: senses,
             sentenceEnglish: sentenceEnglish,
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
@@ -109,8 +184,7 @@ struct WordCard: Identifiable, Hashable {
             id: wordId,
             cardId: cardId,
             text: text,
-            meaning: meaning,
-            partOfSpeech: partOfSpeech,
+            senses: senses,
             sentenceEnglish: sentenceEnglish,
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
@@ -128,8 +202,7 @@ struct WordCard: Identifiable, Hashable {
             id: wordId,
             cardId: cardId,
             text: text,
-            meaning: meaning,
-            partOfSpeech: partOfSpeech,
+            senses: senses,
             sentenceEnglish: sentenceEnglish,
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
@@ -147,8 +220,7 @@ struct WordCard: Identifiable, Hashable {
             id: wordId,
             cardId: cardId,
             text: text,
-            meaning: meaning,
-            partOfSpeech: partOfSpeech,
+            senses: senses,
             sentenceEnglish: sentenceEnglish,
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
@@ -211,17 +283,19 @@ struct WordRecord: Decodable {
     }
 
     func toCard(cardId: Int? = nil) -> WordCard? {
-        let meaning = wordMeanings?
+        let meanings = (wordMeanings ?? [])
             .sorted { ($0.priority ?? 9999) < ($1.priority ?? 9999) }
-            .first
-        guard let meaning else { return nil }
-        let example = meaning.exampleContents?.first
+        guard !meanings.isEmpty else { return nil }
+        // 例文は優先度順にすべての意味から探す。優先度1の意味に例文が無いだけで
+        // 例文・訳・イラスト・音声が4つとも消えることを防ぐ。
+        let example = meanings.lazy.compactMap { $0.exampleContents?.first }.first
         return WordCard(
             id: id,
             cardId: cardId,
             text: wordText,
-            meaning: meaning.definitionJapanese,
-            partOfSpeech: meaning.partOfSpeechEnglish,
+            senses: meanings.map {
+                WordSense(meaning: $0.definitionJapanese, partOfSpeech: $0.partOfSpeechEnglish)
+            },
             sentenceEnglish: example?.sentenceEnglish,
             sentenceJapanese: example?.sentenceJapanese,
             imageAssetPath: example?.imageAssetPath,

@@ -403,6 +403,52 @@ final class WordCardTests: XCTestCase {
         return Int(CGFloat(count) / (image.scale * image.scale))
     }
 
+    /// 意味が2つある単語のカードを描き、両方の意味と両方の品詞が出ることを確かめる。
+    @MainActor
+    func testStudyCardShowsEveryMeaningAndEveryPartOfSpeech() throws {
+        let card = WordCard(
+            id: 8,
+            text: "light",
+            senses: [
+                WordSense(meaning: "明かり", partOfSpeech: "noun"),
+                WordSense(meaning: "軽い", partOfSpeech: "adjective")
+            ],
+            sentenceEnglish: "This bag is light.",
+            sentenceJapanese: "このかばんは軽い。",
+            imageAssetPath: nil,
+            audioAssetPath: nil,
+            tags: [],
+            learningStatus: nil,
+            learning: nil
+        )
+        let content = WordCardContent(card: card)
+        XCTAssertEqual(content.partsOfSpeech, [.noun, .adjective])
+        XCTAssertEqual(card.meaning, "明かり／軽い")
+
+        let appState = AppState(restoresSession: false)
+        let rootView = StudyCardView(card: card, showAnswer: true)
+            .padding()
+            .environmentObject(appState)
+            .environmentObject(appState.designSettings)
+        let controller = UIHostingController(rootView: rootView)
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 620))
+        window.rootViewController = controller
+        window.makeKeyAndVisible()
+        controller.view.frame = window.bounds
+        controller.view.layoutIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+        controller.view.layoutIfNeeded()
+        defer { window.isHidden = true }
+
+        let image = renderedImage(of: controller.view)
+        XCTAssertGreaterThan(image.size.width, 0)
+
+        let attachment = XCTAttachment(image: image)
+        attachment.name = "USL-297 multiple meanings on one card"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
     @MainActor
     private func renderedImage(of view: UIView) -> UIImage {
         UIGraphicsImageRenderer(bounds: view.bounds).image { _ in
@@ -438,6 +484,148 @@ final class WordCardTests: XCTestCase {
         let image = renderedImage(of: controller.view)
         return image
     }
+
+    func testWordRecordUsesExampleFromLowerPriorityMeaning() throws {
+        let json = """
+        {
+          "id": 7,
+          "word_text": "run",
+          "word_meanings": [
+            {
+              "id": 1,
+              "priority": 1,
+              "part_of_speech_en": "verb",
+              "definition_jp": "経営する",
+              "example_contents": []
+            },
+            {
+              "id": 2,
+              "priority": 2,
+              "part_of_speech_en": "verb",
+              "definition_jp": "走る",
+              "example_contents": [
+                {
+                  "id": 200,
+                  "sentence_en": "I run every morning.",
+                  "sentence_jp": "私は毎朝走ります。",
+                  "image_asset_path": "content-images/simple/0000-0499/200.webp",
+                  "audio_asset_path": "content-audio/example/simple/0000-0499/200.mp3"
+                }
+              ]
+            }
+          ]
+        }
+        """
+
+        let record = try JSONDecoder().decode(WordRecord.self, from: Data(json.utf8))
+        let card = try XCTUnwrap(record.toCard())
+
+        XCTAssertEqual(card.sentenceEnglish, "I run every morning.")
+        XCTAssertEqual(card.sentenceJapanese, "私は毎朝走ります。")
+        XCTAssertEqual(card.imageAssetPath, "content-images/simple/0000-0499/200.webp")
+        XCTAssertEqual(card.audioAssetPath, "content-audio/example/simple/0000-0499/200.mp3")
+    }
+
+    func testWordRecordListsEveryMeaningInPriorityOrder() throws {
+        let json = """
+        {
+          "id": 8,
+          "word_text": "light",
+          "word_meanings": [
+            {
+              "id": 2,
+              "priority": 2,
+              "part_of_speech_en": "adjective",
+              "definition_jp": "軽い",
+              "example_contents": []
+            },
+            {
+              "id": 1,
+              "priority": 1,
+              "part_of_speech_en": "noun",
+              "definition_jp": "明かり",
+              "example_contents": []
+            }
+          ]
+        }
+        """
+
+        let record = try JSONDecoder().decode(WordRecord.self, from: Data(json.utf8))
+        let card = try XCTUnwrap(record.toCard())
+
+        XCTAssertEqual(card.senses.map(\.meaning), ["明かり", "軽い"])
+        XCTAssertEqual(card.meaning, "明かり／軽い")
+        XCTAssertEqual(card.partsOfSpeech, ["noun", "adjective"])
+        XCTAssertEqual(card.partOfSpeech, "noun")
+    }
+
+    func testSingleMeaningCardKeepsItsMeaningUnchanged() throws {
+        let json = """
+        {
+          "id": 9,
+          "word_text": "apple",
+          "word_meanings": [
+            {
+              "id": 1,
+              "priority": 1,
+              "part_of_speech_en": "noun",
+              "definition_jp": "りんご",
+              "example_contents": []
+            }
+          ]
+        }
+        """
+
+        let record = try JSONDecoder().decode(WordRecord.self, from: Data(json.utf8))
+        let card = try XCTUnwrap(record.toCard())
+
+        XCTAssertEqual(card.meaning, "りんご")
+        XCTAssertEqual(card.senses.count, 1)
+    }
+
+    func testOverrideReplacesEveryMeaningWithOneString() {
+        let card = WordCard(
+            id: 8,
+            text: "light",
+            senses: [
+                WordSense(meaning: "明かり", partOfSpeech: "noun"),
+                WordSense(meaning: "軽い", partOfSpeech: "adjective")
+            ],
+            sentenceEnglish: nil,
+            sentenceJapanese: nil,
+            imageAssetPath: nil,
+            audioAssetPath: nil,
+            tags: [],
+            learningStatus: nil,
+            learning: nil
+        )
+
+        let override = UserWordOverride(
+            userId: "user-8",
+            wordId: 8,
+            wordText: nil,
+            definitionJapanese: "明かり・軽い",
+            sentenceEnglish: nil,
+            sentenceJapanese: nil,
+            imageAssetPath: nil
+        )
+
+        let overridden = card.applying(override)
+        XCTAssertEqual(overridden.senses.map(\.meaning), ["明かり・軽い"])
+        XCTAssertEqual(overridden.meaning, "明かり・軽い")
+
+        let empty = UserWordOverride(
+            userId: "user-8",
+            wordId: 8,
+            wordText: nil,
+            definitionJapanese: nil,
+            sentenceEnglish: nil,
+            sentenceJapanese: nil,
+            imageAssetPath: nil
+        )
+        XCTAssertEqual(card.applying(empty).meaning, "明かり／軽い")
+    }
+
 }
 
 private final class SelectionStudyDataSource: StudyDataSource {

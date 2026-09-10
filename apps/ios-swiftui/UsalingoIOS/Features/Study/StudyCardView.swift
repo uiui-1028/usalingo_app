@@ -87,7 +87,7 @@ private struct StudyCardFront: View {
     private var partOfSpeechRow: some View {
         HStack(spacing: 0) {
             ForEach(displayedPartsOfSpeech) { part in
-                let isActive = part == content.partOfSpeech
+                let isActive = content.partsOfSpeech.contains(part)
                 Text(part.rawValue)
                     .wireFont(.caption, color: isActive ? WireColor.ink : WireColor.subText)
                     .fontWeight(isActive ? .bold : .regular)
@@ -109,7 +109,7 @@ private struct StudyCardFront: View {
     /// 接続詞のカードでは、前置詞の枠を接続詞に置き換える（Anki テンプレートと同じ扱い）。
     private var displayedPartsOfSpeech: [WordPartOfSpeech] {
         var parts = WordPartOfSpeech.displayOrder
-        if content.partOfSpeech == .conjunction,
+        if content.partsOfSpeech.contains(.conjunction),
            let index = parts.firstIndex(of: .preposition) {
             parts[index] = .conjunction
         }
