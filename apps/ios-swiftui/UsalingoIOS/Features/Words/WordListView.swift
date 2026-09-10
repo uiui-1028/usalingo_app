@@ -4,7 +4,9 @@ struct WordListView: View {
     /// シートが画面の高さに占める割合。7.5割で固定し、引っ張っても変えない。
     private static let sheetHeightRatio: CGFloat = 0.75
     /// 浮動バーの高さと下余白のぶん、最後の行が隠れないように空ける量。
-    private static let bottomBarClearance: CGFloat = 96
+    @State private var bottomBarClearance: CGFloat = 96
+    @State private var isRedSheetEnabled = false
+    @State private var redSheetTopRatio: CGFloat = 0.4
 
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel: WordListViewModel
@@ -15,8 +17,10 @@ struct WordListView: View {
     init(
         deck: Deck? = nil,
         previewWords: [WordCard]? = nil,
-        displayMode: WordListDisplayMode = .list
+        displayMode: WordListDisplayMode = .list,
+        previewRedSheetEnabled: Bool = false
     ) {
+        _isRedSheetEnabled = State(initialValue: previewWords != nil && previewRedSheetEnabled && displayMode == .list)
         _viewModel = StateObject(wrappedValue: WordListViewModel(
             deck: deck,
             previewWords: previewWords,
@@ -80,7 +84,17 @@ struct WordListView: View {
     /// 前面のシート。高さは固定で、中身だけが縦に流れる。
     /// スクロールした中身はシートの上端まで届き、そこで切り取られる。
     private func sheet(bottomInset: CGFloat) -> some View {
-        wordScroll(bottomInset: bottomInset)
+        GeometryReader { proxy in
+            let contentHeight = max(0, proxy.size.height - bottomBarClearance - bottomInset)
+            wordScroll(bottomInset: bottomInset)
+                .overlay(alignment: .topTrailing) {
+                    if isRedSheetEnabled && viewModel.selectedDisplayMode == .list
+                        && !viewModel.filteredWords.isEmpty && !viewModel.isLoading {
+                        WordRedSheet(topRatio: $redSheetTopRatio, availableHeight: contentHeight)
+                            .frame(width: proxy.size.width / 2, height: proxy.size.height)
+                    }
+                }
+        }
             .background(WireColor.surface)
             .clipShape(sheetShape)
             .overlay(
@@ -97,10 +111,20 @@ struct WordListView: View {
                     selectedDueFilter: $viewModel.selectedDueFilter,
                     selectedSort: $viewModel.selectedSort,
                     searchText: $viewModel.searchText,
-                    selectedDisplayMode: $viewModel.selectedDisplayMode
+                    selectedDisplayMode: $viewModel.selectedDisplayMode,
+                    isRedSheetEnabled: $isRedSheetEnabled
                 )
+                .background {
+                    GeometryReader { bar in
+                        Color.clear.preference(key: WordListBarHeightKey.self, value: bar.size.height)
+                    }
+                }
                 .padding(.bottom, bottomInset)
                 .backSwipeProtectedRegion()
+            }
+            .onPreferenceChange(WordListBarHeightKey.self) { bottomBarClearance = $0 }
+            .onChange(of: viewModel.selectedDisplayMode) { _, mode in
+                if mode == .cards { isRedSheetEnabled = false }
             }
     }
 
@@ -120,7 +144,7 @@ struct WordListView: View {
     /// 自前の縦並びにする（この画面はスワイプ削除も並べ替えも使わない）。
     private func wordScroll(bottomInset: CGFloat) -> some View {
         ScrollView {
-            LazyVStack(spacing: WireMetrics.spacingM) {
+            LazyVStack(spacing: 0) {
                 if viewModel.isLoading {
                     ProgressView()
                         .tint(WireColor.ink)
@@ -141,17 +165,16 @@ struct WordListView: View {
                                 .cardTapTarget { selectedWord = word }
                         }
                     }
+                    .padding(WireMetrics.screenPadding)
                 } else {
-                    ForEach(viewModel.filteredWords) { word in
-                        WordRow(word: word)
-                            .cardTapTarget { selectedWord = word }
+                    ForEach(Array(viewModel.filteredWords.enumerated()), id: \.element.id) { index, word in
+                        WordRow(word: word, number: index + 1, hidesMeaningFromAccessibility: isRedSheetEnabled)
+                            .cardTapTarget(radius: 0) { selectedWord = word }
                     }
                 }
             }
-            .padding(.horizontal, WireMetrics.screenPadding)
-            .padding(.top, WireMetrics.spacingL)
             // 最後の行が浮動バーの下に隠れないだけの余白を、中身の側で持つ。
-            .padding(.bottom, Self.bottomBarClearance + bottomInset)
+            .padding(.bottom, bottomBarClearance + bottomInset)
         }
         .scrollIndicators(.hidden)
     }
@@ -174,5 +197,63 @@ struct WordListView: View {
             Deck(id: 4, deckName: "接客の英語", description: nil),
             Deck(id: 5, deckName: "ニュースの英語", description: nil)
         ]
+    }
+}
+
+private struct WordListBarHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 96
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+/// 右半分を覆う不透明なシート。つまみ以外は一覧のスクロールを通す。
+private struct WordRedSheet: View {
+    @Binding var topRatio: CGFloat
+    let availableHeight: CGFloat
+    @GestureState private var dragTranslation: CGFloat = 0
+
+    private var displayedRatio: CGFloat {
+        min(0.8, max(0.2, topRatio + dragTranslation / max(1, availableHeight)))
+    }
+
+    var body: some View {
+        let top = availableHeight * displayedRatio
+        ZStack(alignment: .top) {
+            UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20)
+                .fill(Color(red: 1, green: 0.18, blue: 0.23))
+                .padding(.top, top)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+
+            Capsule()
+                .fill(.white)
+                .frame(width: 40, height: 5)
+                .frame(maxWidth: .infinity)
+                .frame(height: 44)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .updating($dragTranslation) { value, state, _ in
+                            state = value.translation.height
+                        }
+                        .onEnded { value in
+                            topRatio = min(0.8, max(0.2, topRatio + value.translation.height / max(1, availableHeight)))
+                        }
+                )
+                .accessibilityLabel("赤シートの高さ")
+                .accessibilityValue("\(Int((1 - displayedRatio) * 100))パーセント")
+                .accessibilityHint("上下にドラッグして調整。意味の読み上げは赤シートをオフにすると戻ります")
+                .accessibilityAdjustableAction { direction in
+                    switch direction {
+                    case .increment: topRatio = max(0.2, topRatio - 0.1)
+                    case .decrement: topRatio = min(0.8, topRatio + 0.1)
+                    @unknown default: break
+                    }
+                }
+                .offset(y: top)
+                .backSwipeProtectedRegion()
+        }
+        .clipped()
     }
 }

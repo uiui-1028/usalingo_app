@@ -58,44 +58,45 @@ struct WordLibraryCard: View {
 
 struct WordRow: View {
     let word: WordCard
+    let number: Int
+    var hidesMeaningFromAccessibility = false
 
     var body: some View {
-        HStack(spacing: WireMetrics.spacingM) {
-            WireAvatar(initials: String(word.text.prefix(1)).uppercased(), diameter: 42)
-
-            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                HStack(spacing: WireMetrics.spacingS) {
-                    Text(word.text)
-                        .wireFont(.titleS)
-                    if let part = word.partOfSpeech {
-                        WirePill(title: part.uppercased(), font: .caption)
-                    }
-                    StatusBadge(status: word.learningStatus)
-                }
-                Text(word.meaning)
-                    .wireFont(.body)
-                    .lineLimit(1)
-                if let sentence = word.sentenceEnglish, !sentence.isEmpty {
-                    Text(sentence)
-                        .wireFont(.caption)
-                        .lineLimit(1)
-                }
-                if !word.tags.isEmpty {
-                    TagChipRow(tags: Array(word.tags.prefix(3)))
-                }
-                if let learning = word.learning {
-                    Text("次回: \(learning.formattedNextReviewDate)")
-                        .wireFont(.caption)
-                        .lineLimit(1)
-                }
+        HStack(spacing: 0) {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("\(number)")
+                    .font(.caption.monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .frame(minWidth: 22, alignment: .trailing)
+                Text(word.text)
+                    .wireFont(.titleS)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 20)
+            .frame(maxHeight: .infinity, alignment: .leading)
+            .containerRelativeFrame(.horizontal, count: 2, spacing: 0)
 
-            Spacer()
+            Text(word.meaning)
+                .wireFont(.body, color: Color(red: 0.65, green: 0.09, blue: 0.1))
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 20)
+                .frame(maxHeight: .infinity, alignment: .leading)
+            .containerRelativeFrame(.horizontal, count: 2, spacing: 0)
+                .overlay(alignment: .leading) {
+                    Rectangle().fill(WireColor.ink.opacity(0.12)).frame(width: 1)
+                }
+                .accessibilityHidden(hidesMeaningFromAccessibility)
         }
-        .padding(WireMetrics.spacingL)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
-        .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
+        .frame(minHeight: 80)
+        .fixedSize(horizontal: false, vertical: true)
+        .background(number.isMultiple(of: 2) ? WireColor.surface : WireColor.ink.opacity(0.04))
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(WireColor.ink.opacity(0.12)).frame(height: 1)
+        }
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityHint("単語の詳細を開きます")
     }
