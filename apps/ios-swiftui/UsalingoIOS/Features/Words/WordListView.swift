@@ -7,6 +7,8 @@ struct WordListView: View {
     @State private var bottomBarClearance: CGFloat = 96
     @State private var isRedSheetEnabled = false
     @State private var redSheetTopRatio: CGFloat = 0.4
+    @State private var rowFrames: [Int: CGRect] = [:]
+    @State private var lastRowHeight: CGFloat = 80
 
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel: WordListViewModel
@@ -86,14 +88,26 @@ struct WordListView: View {
     private func sheet(bottomInset: CGFloat) -> some View {
         GeometryReader { proxy in
             let contentHeight = max(0, proxy.size.height - bottomBarClearance - bottomInset)
-            wordScroll(bottomInset: bottomInset)
+            wordScroll(bottomInset: bottomInset, viewportHeight: proxy.size.height)
                 .overlay(alignment: .topTrailing) {
                     if isRedSheetEnabled && viewModel.selectedDisplayMode == .list
                         && !viewModel.filteredWords.isEmpty && !viewModel.isLoading {
-                        WordRedSheet(topRatio: $redSheetTopRatio, availableHeight: contentHeight)
+                        WordRedSheet(
+                            topRatio: $redSheetTopRatio,
+                            availableHeight: contentHeight,
+                            stops: WordListRowSnapping.sheetStops(frames: Array(rowFrames.values), availableHeight: contentHeight)
+                        )
                             .frame(width: proxy.size.width / 2, height: proxy.size.height)
                     }
                 }
+                .coordinateSpace(name: "wordListViewport")
+                .onPreferenceChange(WordListRowFramesKey.self) { frames in
+                    rowFrames = frames
+                    if let id = viewModel.filteredWords.last?.id, let height = frames[id]?.height {
+                        lastRowHeight = height
+                    }
+                }
+                .onChange(of: viewModel.filteredWords.last?.id) { _, _ in lastRowHeight = 80 }
         }
             .background(WireColor.surface)
             .clipShape(sheetShape)
@@ -142,7 +156,7 @@ struct WordListView: View {
     /// `List` の行に置いたタップは、行の余白や左右の背景まで一緒に反応してしまう。
     /// 背景は戻るスワイプが使う場所なので、行の枠だけがタップに応えるよう
     /// 自前の縦並びにする（この画面はスワイプ削除も並べ替えも使わない）。
-    private func wordScroll(bottomInset: CGFloat) -> some View {
+    private func wordScroll(bottomInset: CGFloat, viewportHeight: CGFloat) -> some View {
         ScrollView {
             LazyVStack(spacing: 0) {
                 if viewModel.isLoading {
@@ -170,13 +184,28 @@ struct WordListView: View {
                     ForEach(Array(viewModel.filteredWords.enumerated()), id: \.element.id) { index, word in
                         WordRow(word: word, number: index + 1, hidesMeaningFromAccessibility: isRedSheetEnabled)
                             .cardTapTarget(radius: 0) { selectedWord = word }
+                            .background {
+                                GeometryReader { row in
+                                    Color.clear.preference(
+                                        key: WordListRowFramesKey.self,
+                                        value: [word.id: row.frame(in: .named("wordListViewport"))]
+                                    )
+                                }
+                            }
                     }
                 }
             }
-            // 最後の行が浮動バーの下に隠れないだけの余白を、中身の側で持つ。
-            .padding(.bottom, bottomBarClearance + bottomInset)
+            .scrollTargetLayout(isEnabled: viewModel.selectedDisplayMode == .list)
+            // 最終行も上端へ揃えられる余白。カード表示は従来どおりの余白。
+            .padding(.bottom, viewModel.selectedDisplayMode == .list
+                ? WordListRowSnapping.bottomPadding(
+                    viewportHeight: viewportHeight,
+                    lastRowHeight: lastRowHeight
+                )
+                : bottomBarClearance + bottomInset)
         }
         .scrollIndicators(.hidden)
+        .scrollTargetBehavior(WordListRowScrollBehavior(isEnabled: viewModel.selectedDisplayMode == .list))
     }
 
     private var cardColumns: [GridItem] {
@@ -207,22 +236,73 @@ private struct WordListBarHeightKey: PreferenceKey {
     }
 }
 
+private struct WordListRowFramesKey: PreferenceKey {
+    static var defaultValue: [Int: CGRect] = [:]
+    static func reduce(value: inout [Int: CGRect], nextValue: () -> [Int: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, new in new })
+    }
+}
+
+private struct WordListRowScrollBehavior: ScrollTargetBehavior {
+    let isEnabled: Bool
+
+    func updateTarget(_ target: inout ScrollTarget, context: TargetContext) {
+        guard isEnabled else { return }
+        // 指追従と減速は標準のまま、停止位置だけ各行の先頭に合わせる。
+        ViewAlignedScrollTargetBehavior(limitBehavior: .never).updateTarget(&target, context: context)
+    }
+}
+
+/// 行高は折り返し・文字サイズで変わるため、実測した境界だけを停止候補にする。
+enum WordListRowSnapping {
+    static func sheetStops(frames: [CGRect], availableHeight: CGFloat) -> [CGFloat] {
+        let boundaries = Array(Set(frames.flatMap { [$0.minY, $0.maxY] }))
+            .filter { $0.isFinite && $0 >= 0 && $0 <= max(0, availableHeight - 44) }
+            .sorted()
+        let preferred = boundaries.filter { $0 >= availableHeight * 0.2 && $0 <= availableHeight * 0.8 }
+        // 少数の単語や大きな文字で通常範囲に境界がない場合も、行途中には置かない。
+        return preferred.isEmpty ? (boundaries.isEmpty ? [0] : boundaries) : preferred
+    }
+
+    static func nearestStop(to position: CGFloat, stops: [CGFloat]) -> CGFloat {
+        stops.min { abs($0 - position) < abs($1 - position) } ?? 0
+    }
+
+    static func adjacentStop(to position: CGFloat, stops: [CGFloat], movingDown: Bool) -> CGFloat {
+        let sorted = stops.sorted()
+        if movingDown { return sorted.first { $0 > position + 0.5 } ?? sorted.last ?? 0 }
+        return sorted.last { $0 < position - 0.5 } ?? sorted.first ?? 0
+    }
+
+    static func bottomPadding(viewportHeight: CGFloat, lastRowHeight: CGFloat) -> CGFloat {
+        max(0, viewportHeight - lastRowHeight)
+    }
+}
+
 /// 右半分を覆う不透明なシート。つまみ以外は一覧のスクロールを通す。
 private struct WordRedSheet: View {
     @Binding var topRatio: CGFloat
     let availableHeight: CGFloat
-    @GestureState private var dragTranslation: CGFloat = 0
+    let stops: [CGFloat]
+    @State private var settledTop: CGFloat?
+    @GestureState(resetTransaction: Transaction(animation: .easeOut(duration: 0.18)))
+    private var dragTranslation: CGFloat?
 
-    private var displayedRatio: CGFloat {
-        min(0.8, max(0.2, topRatio + dragTranslation / max(1, availableHeight)))
+    private var restingTop: CGFloat {
+        settledTop ?? WordListRowSnapping.nearestStop(to: availableHeight * topRatio, stops: stops)
+    }
+
+    private var displayedTop: CGFloat {
+        guard let dragTranslation else { return restingTop }
+        return min(stops.last ?? 0, max(stops.first ?? 0, restingTop + dragTranslation))
     }
 
     var body: some View {
-        let top = availableHeight * displayedRatio
         ZStack(alignment: .top) {
-            UnevenRoundedRectangle(topLeadingRadius: 20, topTrailingRadius: 20)
+            // 上端は直線にして、角丸部分から隠した行の文字が見えないようにする。
+            Rectangle()
                 .fill(Color(red: 1, green: 0.18, blue: 0.23))
-                .padding(.top, top)
+                .padding(.top, displayedTop)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
 
@@ -233,27 +313,44 @@ private struct WordRedSheet: View {
                 .frame(height: 44)
                 .contentShape(Rectangle())
                 .gesture(
-                    DragGesture(minimumDistance: 0)
+                    DragGesture(minimumDistance: 0, coordinateSpace: .named("wordListViewport"))
                         .updating($dragTranslation) { value, state, _ in
                             state = value.translation.height
                         }
                         .onEnded { value in
-                            topRatio = min(0.8, max(0.2, topRatio + value.translation.height / max(1, availableHeight)))
+                            settle(at: restingTop + value.translation.height)
                         }
                 )
                 .accessibilityLabel("赤シートの高さ")
-                .accessibilityValue("\(Int((1 - displayedRatio) * 100))パーセント")
-                .accessibilityHint("上下にドラッグして調整。意味の読み上げは赤シートをオフにすると戻ります")
+                .accessibilityValue("行の境界に合わせて移動")
+                .accessibilityHint("上下にドラッグして調整。指を離すと行の境界で止まります")
                 .accessibilityAdjustableAction { direction in
                     switch direction {
-                    case .increment: topRatio = max(0.2, topRatio - 0.1)
-                    case .decrement: topRatio = min(0.8, topRatio + 0.1)
+                    case .increment:
+                        settle(at: WordListRowSnapping.adjacentStop(to: restingTop, stops: stops, movingDown: false))
+                    case .decrement:
+                        settle(at: WordListRowSnapping.adjacentStop(to: restingTop, stops: stops, movingDown: true))
                     @unknown default: break
                     }
                 }
-                .offset(y: top)
+                .offset(y: displayedTop)
                 .backSwipeProtectedRegion()
         }
         .clipped()
+        // iOS 17でも減速終了・並べ替え・文字サイズ変更を扱えるよう、実測値の
+        // 更新が落ち着いてから合わせ直す。スクロール中はシートを飛び跳ねさせない。
+        .task(id: stops) {
+            do { try await Task.sleep(for: .milliseconds(160)) } catch { return }
+            guard dragTranslation == nil else { return }
+            settle(at: availableHeight * topRatio)
+        }
+    }
+
+    private func settle(at position: CGFloat) {
+        let top = WordListRowSnapping.nearestStop(to: position, stops: stops)
+        withAnimation(.easeOut(duration: 0.18)) {
+            settledTop = top
+            topRatio = top / max(1, availableHeight)
+        }
     }
 }

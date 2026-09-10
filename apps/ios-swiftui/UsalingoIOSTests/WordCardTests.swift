@@ -278,6 +278,111 @@ final class WordCardTests: XCTestCase {
         }
     }
 
+    func testRedSheetStopsUseActualVariableHeightRowBoundaries() {
+        let frames = [
+            CGRect(x: 0, y: -30, width: 320, height: 80),
+            CGRect(x: 0, y: 50, width: 320, height: 130),
+            CGRect(x: 0, y: 180, width: 320, height: 90),
+            CGRect(x: 0, y: 270, width: 320, height: 160),
+            CGRect(x: 0, y: 430, width: 320, height: 80)
+        ]
+        let stops = WordListRowSnapping.sheetStops(frames: frames, availableHeight: 500)
+        XCTAssertEqual(stops, [180, 270])
+        XCTAssertEqual(WordListRowSnapping.nearestStop(to: 230, stops: stops), 270)
+        XCTAssertEqual(WordListRowSnapping.nearestStop(to: -500, stops: stops), 180)
+        XCTAssertEqual(WordListRowSnapping.nearestStop(to: 900, stops: stops), 270)
+    }
+
+    func testRedSheetShortListsAndLargeTextNeverInventMidRowStops() {
+        let singleRow = [CGRect(x: 0, y: 0, width: 320, height: 80)]
+        XCTAssertEqual(WordListRowSnapping.sheetStops(frames: singleRow, availableHeight: 500), [0, 80])
+        let tallRow = [CGRect(x: 0, y: 0, width: 320, height: 700)]
+        XCTAssertEqual(WordListRowSnapping.sheetStops(frames: tallRow, availableHeight: 500), [0])
+        XCTAssertEqual(WordListRowSnapping.sheetStops(frames: [], availableHeight: 0), [0])
+    }
+
+    func testRedSheetAccessibilityMovesExactlyOneBoundaryAndClampsAtEnds() {
+        let stops: [CGFloat] = [120, 200, 330]
+        XCTAssertEqual(WordListRowSnapping.adjacentStop(to: 120, stops: stops, movingDown: true), 200)
+        XCTAssertEqual(WordListRowSnapping.adjacentStop(to: 330, stops: stops, movingDown: false), 200)
+        XCTAssertEqual(WordListRowSnapping.adjacentStop(to: 120, stops: stops, movingDown: false), 120)
+        XCTAssertEqual(WordListRowSnapping.adjacentStop(to: 330, stops: stops, movingDown: true), 330)
+    }
+
+    func testBottomPaddingLetsLastRowReachViewportTop() {
+        let viewport: CGFloat = 620
+        let lastRow: CGFloat = 130
+        let precedingRows: CGFloat = 800
+        let padding = WordListRowSnapping.bottomPadding(viewportHeight: viewport, lastRowHeight: lastRow)
+        let maximumOffset = precedingRows + lastRow + padding - viewport
+        XCTAssertEqual(maximumOffset, precedingRows)
+        XCTAssertEqual(WordListRowSnapping.bottomPadding(viewportHeight: 100, lastRowHeight: 300), 0)
+    }
+
+    @MainActor
+    func testWordListDragTargetsSnapToRowsAtBothWidths() throws {
+        let words = (1...30).map { index in
+            WordCard(id: index, text: "word \(index)", meaning: "意味", partOfSpeech: nil,
+                     sentenceEnglish: nil, sentenceJapanese: nil, imageAssetPath: nil,
+                     audioAssetPath: nil, tags: [], learningStatus: nil, learning: nil)
+        }
+        for width: CGFloat in [320, 393] {
+            _ = try renderedWordList(words: words, displayMode: .list, width: width, redSheetEnabled: true) { root in
+                let scroll = try XCTUnwrap(self.descendants(of: root).compactMap { $0 as? UIScrollView }
+                    .first { $0.contentSize.height > $0.bounds.height && $0.contentSize.height > 1500 })
+                XCTAssertTrue(try XCTUnwrap(scroll.delegate).responds(to:
+                    #selector(UIScrollViewDelegate.scrollViewWillEndDragging(_:withVelocity:targetContentOffset:))))
+                for proposedY: CGFloat in [113, 207, 357] {
+                    var target = CGPoint(x: 0, y: proposedY)
+                    scroll.delegate?.scrollViewWillEndDragging?(scroll, withVelocity: .zero, targetContentOffset: &target)
+                    XCTAssertEqual(target.y.truncatingRemainder(dividingBy: 80), 0, accuracy: 0.5,
+                                   "Expected a row boundary for proposed offset \(proposedY), got \(target.y)")
+                    XCTAssertLessThanOrEqual(abs(target.y - proposedY), 40.5,
+                                             "Must choose the nearest row, not jump back to the first row")
+                }
+                XCTAssertEqual(scroll.contentSize.height - scroll.bounds.height, 29 * 80, accuracy: 1)
+                for offset: CGFloat in [320, 29 * 80] {
+                    scroll.setContentOffset(CGPoint(x: 0, y: offset), animated: false)
+                    RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+                    root.layoutIfNeeded()
+                    let snapshot = self.renderedImage(of: root)
+                    let sheetTop = try self.firstRedY(in: snapshot)
+                    let viewportTop = scroll.convert(scroll.bounds.origin, to: root).y
+                    let relativeTop = sheetTop - viewportTop
+                    let remainder = relativeTop.truncatingRemainder(dividingBy: 80)
+                    XCTAssertLessThanOrEqual(min(abs(remainder), abs(80 - remainder)), 1,
+                                             "Red sheet must realign after scrolling, including the final row")
+                    let attachment = XCTAttachment(image: snapshot)
+                    attachment.name = "Row snapping width \(Int(width)) offset \(Int(offset))"
+                    attachment.lifetime = .keepAlways
+                    self.add(attachment)
+                }
+            }
+        }
+    }
+
+    @MainActor
+    private func descendants(of view: UIView) -> [UIView] {
+        [view] + view.subviews.flatMap { descendants(of: $0) }
+    }
+
+    private func firstRedY(in image: UIImage) throws -> CGFloat {
+        let cgImage = try XCTUnwrap(image.cgImage)
+        let width = cgImage.width
+        let height = cgImage.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let context = try XCTUnwrap(CGContext(data: &pixels, width: width, height: height,
+            bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+        let x = width * 3 / 4
+        let y = try XCTUnwrap((0..<height).first { y in
+            let i = (y * width + x) * 4
+            return pixels[i] > 230 && pixels[i + 1] < 90 && pixels[i + 2] < 100
+        })
+        return CGFloat(y) / image.scale
+    }
+
     private func redPixelCount(in image: UIImage, rightHalf: Bool) throws -> Int {
         let cgImage = try XCTUnwrap(image.cgImage)
         let width = cgImage.width
@@ -311,7 +416,8 @@ final class WordCardTests: XCTestCase {
         words: [WordCard],
         displayMode: WordListDisplayMode,
         width: CGFloat = 393,
-        redSheetEnabled: Bool = false
+        redSheetEnabled: Bool = false,
+        inspect: ((UIView) throws -> Void)? = nil
     ) throws -> UIImage {
         let appState = AppState(restoresSession: false)
         let rootView = NavigationStack {
@@ -325,10 +431,11 @@ final class WordCardTests: XCTestCase {
         window.makeKeyAndVisible()
         controller.view.frame = window.bounds
         controller.view.layoutIfNeeded()
-        RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        RunLoop.main.run(until: Date().addingTimeInterval(0.4))
         controller.view.layoutIfNeeded()
+        defer { window.isHidden = true }
+        try inspect?(controller.view)
         let image = renderedImage(of: controller.view)
-        window.isHidden = true
         return image
     }
 }
