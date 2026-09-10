@@ -41,7 +41,8 @@ enum WordPartOfSpeech: String, CaseIterable, Identifiable {
 /// 類義語と語源はまだ `words` テーブルに列が無い。実データが入ったら
 /// `WordCard.synonyms` / `WordCard.etymology` に値が乗り、サンプルは自動で使われなくなる。
 struct WordCardContent {
-    let partOfSpeech: WordPartOfSpeech?
+    /// 意味ごとの品詞。重複は取り除いてある。
+    let partsOfSpeech: [WordPartOfSpeech]
     let synonyms: [WordSynonym]
     let etymology: String?
 
@@ -51,7 +52,10 @@ struct WordCardContent {
     }
 
     init(card: WordCard) {
-        partOfSpeech = WordPartOfSpeech(englishOrJapanese: card.partOfSpeech)
+        var seen: Set<WordPartOfSpeech> = []
+        partsOfSpeech = card.partsOfSpeech
+            .compactMap { WordPartOfSpeech(englishOrJapanese: $0) }
+            .filter { seen.insert($0).inserted }
 
         let hasRealSynonyms = !card.synonyms.isEmpty
         let hasRealEtymology = (card.etymology?.isEmpty == false)
