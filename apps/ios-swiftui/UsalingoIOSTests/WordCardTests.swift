@@ -252,6 +252,53 @@ final class WordCardTests: XCTestCase {
     }
 
     @MainActor
+    func testRedSheetRendersOverMeaningColumnAtNarrowAndStandardWidths() throws {
+        let words = (1...16).map { index in
+            WordCard(id: index, text: index == 1 ? "accommodate" : "word \(index)",
+                     meaning: "収容する、対応する", partOfSpeech: nil,
+                     sentenceEnglish: nil, sentenceJapanese: nil, imageAssetPath: nil,
+                     audioAssetPath: nil, tags: [], learningStatus: nil, learning: nil)
+        }
+        for width: CGFloat in [320, 393] {
+            let off = try renderedWordList(words: words, displayMode: .list, width: width)
+            let on = try renderedWordList(words: words, displayMode: .list, width: width, redSheetEnabled: true)
+            XCTAssertNotEqual(off.pngData(), on.pngData())
+            // A broad, solid red area must cover the meaning column, never the English column.
+            let right = try redPixelCount(in: on, rightHalf: true)
+            let left = try redPixelCount(in: on, rightHalf: false)
+            XCTAssertGreaterThan(right, 10_000)
+            XCTAssertLessThan(left, 5_000)
+            XCTAssertLessThan(try redPixelCount(in: off, rightHalf: true), 5_000)
+            for (name, image) in [("off", off), ("on", on)] {
+                let attachment = XCTAttachment(image: image)
+                attachment.name = "Red sheet \(name) width \(Int(width))"
+                attachment.lifetime = .keepAlways
+                add(attachment)
+            }
+        }
+    }
+
+    private func redPixelCount(in image: UIImage, rightHalf: Bool) throws -> Int {
+        let cgImage = try XCTUnwrap(image.cgImage)
+        let width = cgImage.width
+        let height = cgImage.height
+        var pixels = [UInt8](repeating: 0, count: width * height * 4)
+        let context = try XCTUnwrap(CGContext(data: &pixels, width: width, height: height,
+            bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+        context.draw(cgImage, in: CGRect(x: 0, y: 0, width: width, height: height))
+        let columns = rightHalf ? (width / 2..<width) : (0..<width / 2)
+        var count = 0
+        for y in 0..<height {
+            for x in columns {
+                let i = (y * width + x) * 4
+                if pixels[i] > 230 && pixels[i + 1] < 90 && pixels[i + 2] < 100 { count += 1 }
+            }
+        }
+        return Int(CGFloat(count) / (image.scale * image.scale))
+    }
+
+    @MainActor
     private func renderedImage(of view: UIView) -> UIImage {
         UIGraphicsImageRenderer(bounds: view.bounds).image { _ in
             view.drawHierarchy(in: view.bounds, afterScreenUpdates: true)
@@ -262,21 +309,27 @@ final class WordCardTests: XCTestCase {
     @MainActor
     private func renderedWordList(
         words: [WordCard],
-        displayMode: WordListDisplayMode
+        displayMode: WordListDisplayMode,
+        width: CGFloat = 393,
+        redSheetEnabled: Bool = false
     ) throws -> UIImage {
         let appState = AppState(restoresSession: false)
         let rootView = NavigationStack {
-            WordListView(previewWords: words, displayMode: displayMode)
+            WordListView(previewWords: words, displayMode: displayMode, previewRedSheetEnabled: redSheetEnabled)
         }
         .environmentObject(appState)
         .environmentObject(appState.designSettings)
         let controller = UIHostingController(rootView: rootView)
-        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 852))
         window.rootViewController = controller
         window.makeKeyAndVisible()
         controller.view.frame = window.bounds
         controller.view.layoutIfNeeded()
-        return renderedImage(of: controller.view)
+        RunLoop.main.run(until: Date().addingTimeInterval(0.2))
+        controller.view.layoutIfNeeded()
+        let image = renderedImage(of: controller.view)
+        window.isHidden = true
+        return image
     }
 }
 

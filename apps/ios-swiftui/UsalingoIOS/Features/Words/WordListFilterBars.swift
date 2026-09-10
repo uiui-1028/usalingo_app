@@ -1,24 +1,24 @@
 import SwiftUI
 
 /// 表示切り替え（リスト / カード）。操作バーの横に、もう1本の小さなバーとして置く。
-/// 文字は入れず、アイコンだけで表す。
+/// 選択中のアイコンを入口にして、メニューで表示形式を選ぶ。
 struct WordListDisplayModeBar: View {
     @Binding var selectedMode: WordListDisplayMode
 
     var body: some View {
-        HStack(spacing: WireMetrics.spacingS) {
+        Menu {
             ForEach(WordListDisplayMode.allCases) { mode in
-                let isSelected = selectedMode == mode
                 Button {
                     selectedMode = mode
                 } label: {
-                    WordListActionBarIcon(symbol: mode.symbol, isActive: isSelected)
+                    Label(mode.title, systemImage: selectedMode == mode ? "checkmark" : mode.symbol)
                 }
-                .buttonStyle(.plain)
-                .accessibilityLabel(mode.title)
-                .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
+        } label: {
+            WordListActionBarIcon(symbol: selectedMode.symbol, isActive: false)
         }
+        .accessibilityLabel("表示切り替え")
+        .accessibilityValue(selectedMode.title)
         .wordListBarChrome()
     }
 }
@@ -33,30 +33,46 @@ struct WordListBottomBars: View {
     @Binding var selectedSort: WordSortOption
     @Binding var searchText: String
     @Binding var selectedDisplayMode: WordListDisplayMode
+    @Binding var isRedSheetEnabled: Bool
 
     @State private var isSearchExpanded = false
 
     var body: some View {
-        HStack(spacing: WireMetrics.spacingS) {
-            WordListActionBar(
-                tags: tags,
-                selectedTag: $selectedTag,
-                selectedStatusFilter: $selectedStatusFilter,
-                selectedDueFilter: $selectedDueFilter,
-                selectedSort: $selectedSort,
-                searchText: $searchText,
-                isSearchExpanded: $isSearchExpanded
-            )
-
-            if !isSearchExpanded {
-                WordListDisplayModeBar(selectedMode: $selectedDisplayMode)
-                    .transition(.opacity.combined(with: .move(edge: .trailing)))
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: WireMetrics.spacingS) {
+                actionBar
+                displayBar
+            }
+            VStack(spacing: WireMetrics.spacingS) {
+                displayBar
+                actionBar
             }
         }
         .padding(.horizontal, WireMetrics.screenPadding)
         .padding(.bottom, WireMetrics.spacingXL)
         .animation(.spring(response: 0.28, dampingFraction: 0.86), value: isSearchExpanded)
     }
+
+    private var actionBar: some View {
+        WordListActionBar(
+            tags: tags,
+            selectedTag: $selectedTag,
+            selectedStatusFilter: $selectedStatusFilter,
+            selectedDueFilter: $selectedDueFilter,
+            selectedSort: $selectedSort,
+            searchText: $searchText,
+            isSearchExpanded: $isSearchExpanded,
+            isRedSheetEnabled: $isRedSheetEnabled,
+            selectedDisplayMode: $selectedDisplayMode
+        )
+    }
+
+    @ViewBuilder private var displayBar: some View {
+        if !isSearchExpanded {
+            WordListDisplayModeBar(selectedMode: $selectedDisplayMode)
+        }
+    }
+
 }
 
 /// 絞り込み・並べ替え・検索をひとまとめにした、画面下端の浮動バー。
@@ -69,6 +85,8 @@ struct WordListActionBar: View {
     @Binding var selectedSort: WordSortOption
     @Binding var searchText: String
     @Binding var isSearchExpanded: Bool
+    @Binding var isRedSheetEnabled: Bool
+    @Binding var selectedDisplayMode: WordListDisplayMode
 
     @FocusState private var isSearchFocused: Bool
 
@@ -83,6 +101,21 @@ struct WordListActionBar: View {
                 )
 
                 WordListSortMenu(selectedSort: $selectedSort)
+
+                Button {
+                    if !isRedSheetEnabled { selectedDisplayMode = .list }
+                    isRedSheetEnabled.toggle()
+                } label: {
+                    Image(systemName: "rectangle.fill")
+                        .foregroundStyle(isRedSheetEnabled ? .white : .red)
+                        .frame(width: 48, height: 48)
+                        .background(Capsule().fill(isRedSheetEnabled ? Color.red : WireColor.surface))
+                        .overlay(Capsule().strokeBorder(Color.red, lineWidth: WireMetrics.strokeBase))
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("赤シート")
+                .accessibilityValue(isRedSheetEnabled ? "オン" : "オフ")
+                .accessibilityHint("意味欄を隠すシートを切り替えます")
             }
 
             searchControl
