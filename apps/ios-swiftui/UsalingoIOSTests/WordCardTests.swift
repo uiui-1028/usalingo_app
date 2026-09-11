@@ -287,10 +287,11 @@ final class WordCardTests: XCTestCase {
             CGRect(x: 0, y: 430, width: 320, height: 80)
         ]
         let stops = WordListRowSnapping.sheetStops(frames: frames, availableHeight: 500)
-        XCTAssertEqual(stops, [180, 270])
+        // 通常範囲の180・270に、上下1行分の50・430を足した範囲。
+        XCTAssertEqual(stops, [50, 180, 270, 430])
         XCTAssertEqual(WordListRowSnapping.nearestStop(to: 230, stops: stops), 270)
-        XCTAssertEqual(WordListRowSnapping.nearestStop(to: -500, stops: stops), 180)
-        XCTAssertEqual(WordListRowSnapping.nearestStop(to: 900, stops: stops), 270)
+        XCTAssertEqual(WordListRowSnapping.nearestStop(to: -500, stops: stops), 50)
+        XCTAssertEqual(WordListRowSnapping.nearestStop(to: 900, stops: stops), 430)
     }
 
     func testRedSheetShortListsAndLargeTextNeverInventMidRowStops() {

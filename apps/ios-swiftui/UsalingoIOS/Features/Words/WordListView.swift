@@ -259,9 +259,14 @@ enum WordListRowSnapping {
         let boundaries = Array(Set(frames.flatMap { [$0.minY, $0.maxY] }))
             .filter { $0.isFinite && $0 >= 0 && $0 <= max(0, availableHeight - 44) }
             .sorted()
-        let preferred = boundaries.filter { $0 >= availableHeight * 0.2 && $0 <= availableHeight * 0.8 }
-        // 少数の単語や大きな文字で通常範囲に境界がない場合も、行途中には置かない。
-        return preferred.isEmpty ? (boundaries.isEmpty ? [0] : boundaries) : preferred
+        // 通常範囲（20〜80%）に加え、その外側の境界を上下1行分ずつ動かせる範囲に含める。
+        guard let first = boundaries.firstIndex(where: { $0 >= availableHeight * 0.2 }),
+              let last = boundaries.lastIndex(where: { $0 <= availableHeight * 0.8 }),
+              first <= last else {
+            // 少数の単語や大きな文字で通常範囲に境界がない場合も、行途中には置かない。
+            return boundaries.isEmpty ? [0] : boundaries
+        }
+        return Array(boundaries[max(0, first - 1)...min(boundaries.count - 1, last + 1)])
     }
 
     static func nearestStop(to position: CGFloat, stops: [CGFloat]) -> CGFloat {
