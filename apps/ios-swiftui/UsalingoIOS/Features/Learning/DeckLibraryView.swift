@@ -36,9 +36,10 @@ struct DeckLibraryView: View {
 
     var body: some View {
         List {
+            // 追加できるデッキは見出しを付けずに先頭へ並べる。
             Section {
                 if bundledDecks.isEmpty {
-                    Text("追加できる同梱デッキはありません。")
+                    Text("追加できるデッキはありません。")
                         .wireFont(.caption)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(WireMetrics.spacingL)
@@ -50,15 +51,13 @@ struct DeckLibraryView: View {
                             .wireListRow()
                     }
                 }
-            } header: {
-                sectionHeader("同梱デッキ")
             }
 
             // JSONの取り込みは端末のデッキファイルを元にする操作。保存先が
             // リモートのときは扱えないので、ログインの有無ではなく
             // 「その保存先がファイルを扱えるか」で出し分ける。
-            Section {
-                if appState.studyDataSource.supportsDeckFileTransfer {
+            if appState.studyDataSource.supportsDeckFileTransfer {
+                Section {
                     Button {
                         message = nil
                         isMessageError = false
@@ -71,14 +70,7 @@ struct DeckLibraryView: View {
                     }
                     .buttonStyle(.plain)
                     .wireListRow()
-                } else {
-                    WireframeNotice(
-                        text: "デッキは配信中の単語から作ります。ファイルの読み込みは使えません。"
-                    )
-                    .wireListRow()
                 }
-            } header: {
-                sectionHeader("ファイルから追加")
             }
 
             if let message {
@@ -101,10 +93,12 @@ struct DeckLibraryView: View {
         .scrollContentBackground(.hidden)
         .background(WireColor.background)
         .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
-        .navigationTitle("デッキを追加")
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbarBackground(WireColor.background, for: .navigationBar)
-        .toolbarBackground(.visible, for: .navigationBar)
+        // 上のヘッダーは出さない。ヘッダーを消すと戻るスワイプも一緒に止まるため、
+        // 単語リストと同じ仕組みで戻す。
+        .toolbar(.hidden, for: .navigationBar)
+        .background {
+            BackSwipeEnabler()
+        }
         .fileImporter(
             isPresented: $isImporting,
             allowedContentTypes: [.json],
@@ -113,13 +107,13 @@ struct DeckLibraryView: View {
             handleImport(result)
         }
         .task { reload() }
-    }
-
-    private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .wireFont(.titleS)
-            .textCase(nil)
-            .wireListRow(vertical: WireMetrics.spacingXS)
+        // シェルの浮動タブバーを隠す。戻る導線はスワイプが担う。
+        .onAppear {
+            appState.isShellChromeHidden = true
+        }
+        .onDisappear {
+            appState.isShellChromeHidden = false
+        }
     }
 
     private func bundledRow(_ file: DeckFile) -> some View {
