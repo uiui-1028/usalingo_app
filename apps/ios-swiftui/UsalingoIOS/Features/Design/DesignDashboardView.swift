@@ -3,56 +3,118 @@ import SwiftUI
 /// デザインカスタマイズタブ（モック）。
 ///
 /// 画面上 4 割はデザインのプレビュー枠、下 6 割は 4 つの設定モジュールの入口。
-/// 実際の設定反映や永続化は行わず、項目と既定値の見え方だけを確認する。
+/// 実際の設定反映や永続化は行わず、ページ内で選択とスイッチの操作だけを確認する。
 struct DesignDashboardView: View {
-    /// 上（プレビュー）と下（ボタン）の高さの比率。
-    private static let previewHeightRatio: CGFloat = 0.4
-    /// ボトムシートの上端を、プレビュー枠の下端からどれだけ離すか。
-    private static let sheetGapBelowPreview: CGFloat = 10
-
     @State private var selectedModule: DesignMockModule?
 
     var body: some View {
-        GeometryReader { proxy in
-            let spacing = WireMetrics.spacingL
-            let contentHeight = max(proxy.size.height - WireMetrics.screenPadding * 2 - spacing, 0)
-            let previewHeight = contentHeight * Self.previewHeightRatio
-            // プレビュー枠の下端をウインドウ座標で求め、その 10pt 下をシートの上端にする。
-            let previewBottom = proxy.frame(in: .global).minY + WireMetrics.screenPadding + previewHeight
-            let sheetHeight = max(windowHeight - previewBottom - Self.sheetGapBelowPreview, 0)
-
-            VStack(spacing: spacing) {
-                DesignPreviewStage()
-                    .frame(height: previewHeight)
-
-                DesignModuleGrid(spacing: spacing) { module in
-                    selectedModule = module
+        NavigationStack {
+            GeometryReader { proxy in
+                let spacing = WireMetrics.spacingL
+                let contentHeight = max(proxy.size.height - WireMetrics.screenPadding * 2 - spacing, 0)
+                VStack(spacing: spacing) {
+                    DesignPreviewStage()
+                        .frame(height: contentHeight * 0.4)
+                    DesignModuleGrid(spacing: spacing) { selectedModule = $0 }
+                        .frame(height: contentHeight * 0.6)
                 }
-                .frame(height: contentHeight - previewHeight)
+                .padding(WireMetrics.screenPadding)
             }
-            .padding(WireMetrics.screenPadding)
-            .sheet(item: $selectedModule) { module in
-                DesignModuleSheet(module: module)
-                    .presentationDetents(sheetHeight > 0 ? [.height(sheetHeight)] : [.medium, .large])
-                    .presentationDragIndicator(.visible)
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(item: $selectedModule) { module in
+                DesignModulePage(module: module)
             }
         }
     }
+}
 
-    /// シートはウインドウの下端から立ち上がるので、タブバー用の余白を含まない
-    /// ウインドウそのものの高さを基準にする。
-    private var windowHeight: CGFloat {
-        UIApplication.shared.connectedScenes
-            .compactMap { ($0 as? UIWindowScene)?.keyWindow }
-            .first?
-            .bounds.height ?? 0
+/// モジュールごとの仮編集ページ。設定状態はこのページ内だけで保持する。
+private struct DesignModulePage: View {
+    let module: DesignMockModule
+    @EnvironmentObject private var appState: AppState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isExpanded = false
+    @GestureState private var sheetDrag: CGFloat = 0
+
+    var body: some View {
+        GeometryReader { geometry in
+            let height = geometry.size.height
+            let panelHeight = min(height * 0.75, max(height * 0.4,
+                height * (isExpanded ? 0.75 : 0.5) - sheetDrag))
+            let stageHeight = max(0, height - panelHeight)
+            let cardHeight = max(0, min(stageHeight - 32, (geometry.size.width - 56) / 0.64))
+
+            ZStack(alignment: .bottom) {
+                LinearGradient(colors: [Color(red: 0.87, green: 0.86, blue: 0.94),
+                                        Color(red: 0.72, green: 0.81, blue: 0.91)],
+                               startPoint: .topLeading, endPoint: .bottomTrailing)
+                    .ignoresSafeArea()
+
+                VStack(spacing: 0) {
+                    RoundedRectangle(cornerRadius: 22, style: .continuous)
+                        .fill(Color.black)
+                        .frame(width: cardHeight * 0.64, height: cardHeight)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: stageHeight)
+                        .allowsHitTesting(false)
+                        .accessibilityLabel("カードの仮プレビュー")
+                    Spacer(minLength: 0)
+                }
+
+                VStack(spacing: 0) {
+                    Button { setExpanded(!isExpanded) } label: {
+                        Capsule()
+                            .fill(.secondary.opacity(0.3))
+                            .frame(width: 44, height: 5)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel(isExpanded ? "編集シートを縮小" : "編集シートを展開")
+                    .simultaneousGesture(DragGesture(minimumDistance: 12)
+                        .updating($sheetDrag) { value, state, _ in
+                            state = value.translation.height
+                        }
+                        .onEnded { value in
+                            if value.predictedEndTranslation.height < -35 { setExpanded(true) }
+                            if value.predictedEndTranslation.height > 35 { setExpanded(false) }
+                        })
+                    DesignModuleSheet(module: module)
+                }
+                .frame(height: panelHeight)
+                .frame(maxWidth: .infinity)
+                .background(Color(red: 0.94, green: 0.98, blue: 1))
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 30, topTrailingRadius: 30))
+                .background(alignment: .bottom) {
+                    Color(red: 0.94, green: 0.98, blue: 1)
+                        .frame(height: geometry.safeAreaInsets.bottom)
+                        .offset(y: geometry.safeAreaInsets.bottom)
+                }
+                .shadow(color: .black.opacity(0.12), radius: 20, y: -5)
+            }
+        }
+        .navigationTitle(module.name)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
+        .onAppear { appState.isShellChromeHidden = true }
+        .onDisappear { appState.isShellChromeHidden = false }
+    }
+
+    private func setExpanded(_ expanded: Bool) {
+        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.24)) {
+            isExpanded = expanded
+        }
     }
 }
 
 // MARK: - モックデータ
 
 /// 設定モジュール1件（モック）。
-struct DesignMockModule: Identifiable {
+struct DesignMockModule: Identifiable, Hashable {
+    static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+    func hash(into hasher: inout Hasher) { hasher.combine(id) }
+
     let id: String
     let name: String
     let symbol: String
@@ -355,38 +417,35 @@ private struct DesignSettingBlock: View {
 
 private struct DesignControlBlock: View {
     let control: DesignMockSetting.Control
+    @State private var selectedIndex: Int?
+    @State private var toggleValues: [Int: Bool] = [:]
 
     var body: some View {
         switch control {
         case let .choice(options, defaultIndex):
             WireFlowLayout(spacing: WireMetrics.spacingS) {
                 ForEach(Array(options.enumerated()), id: \.offset) { index, option in
-                    WirePill(
-                        title: index == defaultIndex ? "\(option)（デフォルト）" : option,
-                        isSelected: index == defaultIndex,
-                        font: .caption
-                    )
+                    Button { selectedIndex = index } label: {
+                        WirePill(
+                            title: index == defaultIndex ? "\(option)（デフォルト）" : option,
+                            isSelected: index == (selectedIndex ?? defaultIndex),
+                            font: .caption
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(index == (selectedIndex ?? defaultIndex) ? .isSelected : [])
                 }
             }
 
         case let .toggles(items):
             VStack(spacing: WireMetrics.spacingXS) {
-                ForEach(Array(items.enumerated()), id: \.offset) { _, item in
-                    HStack {
-                        Text(item.label)
-                            .wireFont(.caption, color: WireColor.ink)
-                        Spacer()
-                        Text(item.onByDefault ? "ON" : "OFF")
-                            .wireFont(.caption, color: WireColor.ink)
-                            .fontWeight(item.onByDefault ? .bold : .regular)
-                            .padding(.vertical, WireMetrics.spacingXS)
-                            .padding(.horizontal, WireMetrics.spacingS)
-                            .outlineSurface(
-                                radius: WireMetrics.radiusPill,
-                                stroke: item.onByDefault ? WireMetrics.strokeHeavy : WireMetrics.strokeHair,
-                                shadow: nil
-                            )
-                    }
+                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                    Toggle(item.label, isOn: Binding(
+                        get: { toggleValues[index] ?? item.onByDefault },
+                        set: { toggleValues[index] = $0 }
+                    ))
+                    .wireFont(.caption, color: WireColor.ink)
+                    .padding(.vertical, WireMetrics.spacingXS)
                 }
             }
 
