@@ -23,6 +23,32 @@ credit usage.
 - Do not write to Notion or other external services unless the user requested the
   write. Read-only inspection does not authorize an external mutation.
 
+## Coding baseline
+
+Adapted from [Ponytail](https://github.com/DietrichGebert/ponytail) (MIT).
+
+Before writing code, stop at the first rung that holds:
+
+1. Does this need to be built at all? (YAGNI)
+2. Does it already exist in this codebase? Reuse it, don't re-write it.
+3. Does the standard library do it? Use it.
+4. Does a native platform feature (SwiftUI, Foundation, iOS API) cover it? Use it.
+5. Does an already-installed dependency solve it? Use it.
+6. Can it be one line? Make it one line.
+7. Only then: write the minimum code that works.
+
+The ladder runs after you understand the problem, not instead of it: read the code
+the change touches and trace the real flow first. A bug fix addresses the root
+cause, not the symptom the report names.
+
+- No abstraction, dependency, or boilerplate that was not requested.
+- Deletion over addition. Boring over clever. The shortest working diff wins.
+- Never cut input validation at trust boundaries, error handling, security,
+  accessibility, required tests, or anything the user explicitly asked for. This
+  overrides every rung above.
+- Mark a deliberate simplification that cuts a real corner with a `ponytail:`
+  comment naming the ceiling and the upgrade path.
+
 ## Multi-agent baseline
 
 - Treat existing uncommitted changes as user or another agent's work. Never
