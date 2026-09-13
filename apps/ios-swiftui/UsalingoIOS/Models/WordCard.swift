@@ -30,9 +30,9 @@ struct WordCard: Identifiable, Hashable {
     let tags: [String]
     let learningStatus: String?
     let learning: WordLearningSnapshot?
-    /// 類義語。まだ配信データが無いため、未指定なら表示側でサンプルを当てる。
+    /// 類義語。配信データに無ければ空のままにし、表示側で隠す。
     let synonyms: [WordSynonym]
-    /// 語源。まだ配信データが無いため、未指定なら表示側でサンプルを当てる。
+    /// 語源。配信データに無ければ nil のままにし、表示側で隠す。
     let etymology: String?
 
     var id: Int {
@@ -289,6 +289,14 @@ struct WordRecord: Decodable {
         // 例文は優先度順にすべての意味から探す。優先度1の意味に例文が無いだけで
         // 例文・訳・イラスト・音声が4つとも消えることを防ぐ。
         let example = meanings.lazy.compactMap { $0.exampleContents?.first }.first
+        // 類義語と語源も例文と同じく優先度順に探す。優先度1の意味に無いだけで
+        // 補足が丸ごと消えることを防ぐ。
+        let etymology = meanings.lazy
+            .compactMap { $0.etymology?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .first { !$0.isEmpty }
+        let synonyms = meanings.lazy
+            .map { ($0.synonyms ?? []).flatMap(WordSynonym.parse) }
+            .first { !$0.isEmpty } ?? []
         return WordCard(
             id: id,
             cardId: cardId,
@@ -302,7 +310,9 @@ struct WordRecord: Decodable {
             audioAssetPath: example?.audioAssetPath,
             tags: [],
             learningStatus: nil,
-            learning: nil
+            learning: nil,
+            synonyms: synonyms,
+            etymology: etymology
         )
     }
 }
@@ -343,6 +353,9 @@ struct WordMeaning: Decodable {
     let priority: Int?
     let partOfSpeechEnglish: String?
     let definitionJapanese: String
+    let etymology: String?
+    /// `word_meanings.synonyms`（text[]）。1要素が `単語 :: 訳 :: 補足` の1件にあたる。
+    let synonyms: [String]?
     let exampleContents: [ExampleContent]?
 
     enum CodingKeys: String, CodingKey {
@@ -350,6 +363,8 @@ struct WordMeaning: Decodable {
         case priority
         case partOfSpeechEnglish = "part_of_speech_en"
         case definitionJapanese = "definition_jp"
+        case etymology
+        case synonyms
         case exampleContents = "example_contents"
     }
 }

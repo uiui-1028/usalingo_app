@@ -546,6 +546,70 @@ final class WordCardTests: XCTestCase {
         XCTAssertEqual(card.audioAssetPath, "content-audio/example/simple/0000-0499/200.mp3")
     }
 
+    /// USL-305: 配信された類義語と語源がカードまで届くことを確かめる。
+    /// 以前は表示側がサンプルを当てていたため、利用者は別の単語の値を見ていた。
+    func testWordRecordCarriesRealSynonymsAndEtymology() throws {
+        let json = """
+        {
+          "id": 9,
+          "word_text": "fast",
+          "word_meanings": [
+            {
+              "id": 1,
+              "priority": 1,
+              "part_of_speech_en": "adjective",
+              "definition_jp": "速い",
+              "etymology": "古英語 *fæst*（固い）から。「しっかり動く」→「速い」へ移った。",
+              "synonyms": [
+                "quick :: すばやい :: 反応や動作の速さ。",
+                "rapid :: 急速な :: 変化の速さ。書き言葉でよく使う。"
+              ],
+              "example_contents": []
+            }
+          ]
+        }
+        """
+
+        let record = try JSONDecoder().decode(WordRecord.self, from: Data(json.utf8))
+        let card = try XCTUnwrap(record.toCard())
+
+        XCTAssertEqual(card.etymology, "古英語 *fæst*（固い）から。「しっかり動く」→「速い」へ移った。")
+        XCTAssertEqual(card.synonyms.map(\.word), ["quick", "rapid"])
+        XCTAssertEqual(card.synonyms.first?.meaning, "すばやい")
+        XCTAssertEqual(card.synonyms.first?.note, "反応や動作の速さ。")
+
+        let content = WordCardContent(card: card)
+        XCTAssertEqual(content.synonyms.map(\.word), ["quick", "rapid"])
+        XCTAssertTrue(content.hasSupplements)
+    }
+
+    /// USL-305: 類義語も語源も無い単語では、偽の値を出さず裏面を空のままにする。
+    func testWordCardWithoutSupplementsShowsNothing() throws {
+        let json = """
+        {
+          "id": 10,
+          "word_text": "apple",
+          "word_meanings": [
+            {
+              "id": 1,
+              "priority": 1,
+              "part_of_speech_en": "noun",
+              "definition_jp": "りんご",
+              "example_contents": []
+            }
+          ]
+        }
+        """
+
+        let record = try JSONDecoder().decode(WordRecord.self, from: Data(json.utf8))
+        let card = try XCTUnwrap(record.toCard())
+        let content = WordCardContent(card: card)
+
+        XCTAssertTrue(content.synonyms.isEmpty)
+        XCTAssertNil(content.etymology)
+        XCTAssertFalse(content.hasSupplements)
+    }
+
     func testWordRecordListsEveryMeaningInPriorityOrder() throws {
         let json = """
         {
