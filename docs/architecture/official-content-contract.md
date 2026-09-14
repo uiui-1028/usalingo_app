@@ -44,7 +44,7 @@ DBには完全URLではなく、`bucket/object-key` を保存します。`theme-
 - ID 500〜999: `0500-0999`
 - ID 1000〜1499: `1000-1499`
 
-ファイル名の数字は `example_contents.id` と一致させます。原本シートのID（`e-0100`）は頭文字付きですが、パスには頭文字を外したDBの整数（`100`）を使います（[決定](../decisions/sheet-id-prefix-and-1000-at-once-20260914.md)）。画像はWebP、音声はMP3だけをこの契約の対象にします。SwiftUIは相対パスを `SupabaseConfig.publicStorageURL(for:)` で公開URLへ変換します。
+ファイル名の数字は `example_contents.id` と一致させます。原本シートの `example_id` も同じ整数です。画像はWebP、音声はMP3だけをこの契約の対象にします。SwiftUIは相対パスを `SupabaseConfig.publicStorageURL(for:)` で公開URLへ変換します。
 
 ## 4. 読み取りと書き込み
 

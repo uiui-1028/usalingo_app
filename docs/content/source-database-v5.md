@@ -9,7 +9,7 @@
 Supabaseは配信用の写しであり、人が直接編集しません。
 
 ```text
-Google Spreadsheet（V5の8シート）
+Google Spreadsheet（V5の6シート）
   → Supabase公式コンテンツ
   → SwiftUIアプリ
 ```
@@ -33,31 +33,28 @@ Ankiは退役しました。1000語ぶんの取り出しは人が手で1回だ�
 
 ```text
 word（見出し語）
-  └─ sense（意味・品詞）
-       └─ example（例文・画像）
-            ├─ concept（シンプル、ホラーなど）
-            └─ example_audio（例文音声）
-
-word
-  ├─ pronunciation（発音・単語音声）
-  ├─ forms_json（語形）
-  └─ relations_json（類義語など）
+  ├─ sense（意味・品詞・活用・類義語など）
+  │    └─ example（例文・画像）
+  │         ├─ concept（シンプル、ホラーなど）
+  │         └─ example_audio（例文音声）
+  └─ pronunciation（発音・単語音声）
 ```
 
-独立して増える意味、例文、発音、音声は行を分けます。まとめて見る語形と関連語は、1単語につき1つのJSONオブジェクトにします。
+独立して増える意味、例文、発音、音声は行を分けます。活用と類義語などの関連語は、行を分けずに
+意味の行の中へ収めます。品詞が変わると活用も変わるため（`light` の名詞と形容詞など）、
+単語ではなく意味ごとに持ちます。経緯は
+[意味の行に活用と関連語を収める](../decisions/senses-hold-forms-and-relations-20260914.md) にあります。
 
-## 3. 原本の8シート
+## 3. 原本の6シート
 
 | シート | 主キー | 必須項目 | 用途 |
 |---|---|---|---|
 | `01_core_words` | `word_id` | `word_text` | 見出し語 |
-| `01_core_senses` | `sense_id` | `word_id`, `priority`, `part_of_speech_en`, `definition_jp` | 意味と品詞 |
+| `01_core_senses` | `sense_id` | `word_id`, `priority`, `part_of_speech_en`, `definition_jp` | 意味、品詞、活用、関連語 |
 | `02_content_concepts` | `concept_id` | `concept_code`, `concept_name`, `is_active` | 教材コンセプト |
 | `02_content_examples` | `example_id` | `sense_id`, `concept_id`, `sentence_en`, `sentence_jp`, `image_state`, `display_order` | 例文と画像 |
 | `03_audio_pronunciations` | `pronunciation_id` | `word_id`, `ipa_state`, `audio_state`, `voice_label`, `is_primary`, `display_order` | 発音と単語音声 |
 | `03_audio_example_audio` | `example_audio_id` | `example_id`, `audio_state`, `voice_label`, `is_primary`, `display_order` | 例文音声 |
-| `04_extra_forms` | `word_id` | `forms_json` | 語形 |
-| `04_extra_relations` | `word_id` | `relations_json` | 類義語など |
 
 共通ルール:
 
@@ -70,26 +67,13 @@ word
 
 ### IDの形
 
-シートのIDは `<頭文字>-<4桁>` にします。参照列にも同じ形を使います。
+シートのIDは整数にし、頭文字は付けません。シートの数字が、そのままSupabaseの整数IDとStorageパスの数字になります。
+番号は**シートごとに1から**数え、ゼロ埋めはしません。
+IDが重複してはいけないのは、同じシートの中だけです。別のシートで同じ数字を使ってもかまいません。
 
-| シート | 頭文字 | 例 |
-|---|---|---|
-| `01_core_words` | `w` | `w-0001` |
-| `01_core_senses` | `s` | `s-0001` |
-| `02_content_concepts` | `c` | `c-0001` |
-| `02_content_examples` | `e` | `e-0001` |
-| `03_audio_pronunciations` | `p` | `p-0001` |
-| `03_audio_example_audio` | `a` | `a-0001` |
-
-`04_extra_forms` と `04_extra_relations` は専用IDを持たず、`word_id`（`w-`）を主キーにします。
-
-Supabaseの主キーは整数のままです。取りこむときに頭文字を外し、数字部分を入れます
-（`w-0001` → `words.id = 1`）。Storageパスの数字も、この整数IDです。
-頭文字が列に合わない値（例: `word_id` 列の `s-0001`）は、取りこみを止めます。
-経緯は [シートのIDに頭文字を付け、1000語を一度に流す](../decisions/sheet-id-prefix-and-1000-at-once-20260914.md) にあります。
-
-活用は `04_extra_forms`、発音記号は `03_audio_pronunciations.ipa`、派生語は
-`04_extra_relations` の `derivatives` に入れます。`01_core_senses` には入れません。
+千の位でシートを見分ける付け方（単語 `1001`、意味 `2001`、例文 `3001`、発音 `4001`）は使いません。
+1つのシートが999件を超えると守れないためです。
+経緯は [シートのIDは頭文字を付けず、これまでどおり数字にする](../decisions/sheet-id-keep-numbers-20260914.md) にあります。
 
 ## 4. 各シートの列
 
@@ -118,8 +102,28 @@ Supabaseの主キーは整数のままです。取りこむときに頭文字を
 | `definition_jp` | 必須 | 日本語の意味 |
 | `cefr_level` | 任意 | Usalingoで採用したCEFR |
 | `etymology` | 任意 | 語源 |
+| `inflections` | 任意 | 活用。JSONオブジェクトをそのまま書く |
+| `synonyms` | 任意 | 類義語。`;` 区切り |
+| `antonyms` | 任意 | 反意語。`;` 区切り |
+| `derivatives` | 任意 | 派生語。`;` 区切り |
+| `collocations` | 任意 | コロケーション。`;` 区切り |
+| `related` | 任意 | 関連語。`;` 区切り |
 
 1つの原本セルに「動詞／名詞」「増加する／増加」のような複数の意味がある場合は、対応する順番で複数のsenseへ分けます。
+
+`inflections` は、最上位をJSONオブジェクトにします。
+
+```json
+{"third_person": "runs", "past": "ran", "past_participle": "run", "present_participle": "running"}
+```
+
+`;` 区切りの列は、1つのセルに複数の項目を入れます。前後の空白は取りこみで除きます。
+項目の中では `;` を使いません。類義語の1項目は、アプリが `単語 :: 訳 :: 補足` の形で読みます
+（訳と補足は省けます）。
+
+```text
+jog :: ジョギングする; sprint :: 全力で走る
+```
 
 ### `02_content_concepts`
 
@@ -162,30 +166,6 @@ Supabaseの主キーは整数のままです。取りこむときに頭文字を
 
 `example_id`, `audio_asset_path`, `audio_state`, `voice_label`, `is_primary`, `display_order` を持ちます。標準音声は1例文につき最大1件です。
 
-### `04_extra_forms`
-
-```json
-{
-  "third_person": "runs",
-  "past": "ran",
-  "past_participle": "run",
-  "present_participle": "running"
-}
-```
-
-### `04_extra_relations`
-
-```json
-{
-  "synonyms": ["large", "huge"],
-  "antonyms": ["small"],
-  "derivatives": ["bigness"],
-  "related": ["size"]
-}
-```
-
-どちらもJSON配列ではなくJSONオブジェクトを最上位に置きます。
-
 ## 5. 状態値
 
 画像、音声、IPAだけに次の状態を使います。
@@ -209,10 +189,20 @@ Supabaseの主キーは整数のままです。取りこむときに頭文字を
 | `02_content_examples` | `example_contents` |
 | `03_audio_pronunciations` | `word_pronunciations` |
 | `03_audio_example_audio` | `example_audio` |
-| `04_extra_forms` | `word_forms` |
-| `04_extra_relations` | `word_relations` |
 
-既存SwiftUIとの互換期間は、`word_meanings.audio_asset_path`、`word_meanings.inflections`、`example_contents.theme`、`example_contents.audio_asset_path` などの旧列を残します。新しい投入処理はV5テーブルへ書き、アプリ切替後の別migrationで旧列を廃止します。
+`01_core_senses` の活用と関連語は、`word_meanings` の同じ名前の列へ入れます。
+
+| シートの列 | `word_meanings` の列 | 型 |
+|---|---|---|
+| `inflections` | `inflections` | `jsonb`（オブジェクト） |
+| `synonyms`, `antonyms` | 同名 | `text[]` |
+| `derivatives`, `collocations` | 同名 | `jsonb`（配列） |
+| `related` | `related` | `text[]`。USL-308のmigrationで足す |
+
+`word_forms`・`word_relations` の2表は使いません。USL-308のmigrationで消します。
+本番には過去の50語ぶん（各50行）が入っているため、本番への適用は別に実行承認を得ます。
+
+既存SwiftUIとの互換期間は、`word_meanings.audio_asset_path`、`example_contents.theme`、`example_contents.audio_asset_path` などの旧列を残します。新しい投入処理はV5テーブルへ書き、アプリ切替後の別migrationで旧列を廃止します。
 
 既存の `example_contents.theme = 'シンプル'` は、固定コード `content_concepts.concept_code = 'simple'` へbackfillします。
 
@@ -224,7 +214,7 @@ Supabaseの主キーは整数のままです。取りこむときに頭文字を
 - 外部キー切れが0件。
 - 見出し語、最優先の意味、例文、例文訳が空でない。
 - 状態と値が一致する。`present` / `unverified` は非NULL、`blank` / `not_applicable` はNULLである。
-- JSONがオブジェクトである。
+- `inflections` がJSONオブジェクトである。
 - Storage参照が実ファイルへつながる。
 - 認証利用者は公式コンテンツを読めるが書けない。
 - `anon` は公式DBを読めない。
