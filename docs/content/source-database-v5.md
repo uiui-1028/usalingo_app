@@ -1,6 +1,6 @@
 # 英単語原本データベース V5
 
-最終更新日: 2026-09-07
+最終更新日: 2026-09-14
 対象: 教材原本、Supabase公式コンテンツ、SwiftUIアプリ
 
 ## 1. 正本と役割
@@ -67,6 +67,29 @@ word
 - 時刻はタイムゾーン付きISO 8601を使う。
 - CEFRは `A1`, `A2`, `B1`, `B2`, `C1`, `C2` または未設定とする。
 - `concept_code` は半角小文字、数字、ハイフンだけを使う。
+
+### IDの形
+
+シートのIDは `<頭文字>-<4桁>` にします。参照列にも同じ形を使います。
+
+| シート | 頭文字 | 例 |
+|---|---|---|
+| `01_core_words` | `w` | `w-0001` |
+| `01_core_senses` | `s` | `s-0001` |
+| `02_content_concepts` | `c` | `c-0001` |
+| `02_content_examples` | `e` | `e-0001` |
+| `03_audio_pronunciations` | `p` | `p-0001` |
+| `03_audio_example_audio` | `a` | `a-0001` |
+
+`04_extra_forms` と `04_extra_relations` は専用IDを持たず、`word_id`（`w-`）を主キーにします。
+
+Supabaseの主キーは整数のままです。取りこむときに頭文字を外し、数字部分を入れます
+（`w-0001` → `words.id = 1`）。Storageパスの数字も、この整数IDです。
+頭文字が列に合わない値（例: `word_id` 列の `s-0001`）は、取りこみを止めます。
+経緯は [シートのIDに頭文字を付け、1000語を一度に流す](../decisions/sheet-id-prefix-and-1000-at-once-20260914.md) にあります。
+
+活用は `04_extra_forms`、発音記号は `03_audio_pronunciations.ipa`、派生語は
+`04_extra_relations` の `derivatives` に入れます。`01_core_senses` には入れません。
 
 ## 4. 各シートの列
 
