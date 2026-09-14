@@ -274,14 +274,26 @@ final class LocalStudyDataSource: StudyDataSource {
     }
 
     func saveAnswerWithUndo(card: WordCard, isCorrect: Bool) async throws -> SavedAnswer {
+        try await saveAnswerWithUndo(card: card, isCorrect: isCorrect, attempt: AnswerSaveAttempt())
+    }
+
+    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool, attempt: AnswerSaveAttempt) async throws -> SavedAnswer {
         guard let cardId = card.cardId else { throw LocalStudyError.missingCardId }
-        let previousProgress = progressByCardId[String(cardId)]
-        let current = previousProgress
-            ?? LearningProgress.initial(userId: Self.guestUserId, cardId: cardId)
-        let progress = current.marking(isCorrect: isCorrect)
-        progressByCardId[String(cardId)] = progress
+        let prepared: SavedAnswer
+        if let cached = attempt.prepared {
+            guard cached.progress.cardId == cardId, cached.progress.userId == Self.guestUserId else {
+                throw LocalStudyError.missingCardId
+            }
+            prepared = cached
+        } else {
+            let previous = progressByCardId[String(cardId)]
+            let current = previous ?? LearningProgress.initial(userId: Self.guestUserId, cardId: cardId)
+            prepared = SavedAnswer(progress: current.marking(isCorrect: isCorrect), previousProgress: previous)
+            attempt.prepared = prepared
+        }
+        progressByCardId[String(cardId)] = prepared.progress
         try persist(progressByCardId, to: FileName.progress)
-        return SavedAnswer(progress: progress, previousProgress: previousProgress)
+        return prepared
     }
 
     func restoreLearningProgress(cardId: Int, previousProgress: LearningProgress?) async throws {

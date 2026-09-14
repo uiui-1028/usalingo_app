@@ -278,6 +278,99 @@ final class WordCardTests: XCTestCase {
         }
     }
 
+    @MainActor
+    func testRedSheetCheckRendersHiddenRevealedAndMarkedRows() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = LocalStudyDataSource(directoryURL: directory)
+        let words = (1...8).map { index in
+            WordCard(id: index, cardId: index, text: index == 1 ? "accommodate" : "word \(index)",
+                     meaning: "収容する、対応する", partOfSpeech: nil,
+                     sentenceEnglish: nil, sentenceJapanese: nil, imageAssetPath: nil,
+                     audioAssetPath: nil, tags: [], learningStatus: nil, learning: nil)
+        }
+        for width: CGFloat in [320, 393] {
+            let model = RedSheetCheckModel()
+            model.start(words: words, source: source) { _ in }
+            let hidden = try renderedWordList(words: words, displayMode: .list, width: width, redSheetEnabled: true, check: model)
+            model.isAnswerVisible = true
+            let revealed = try renderedWordList(words: words, displayMode: .list, width: width, redSheetEnabled: true, check: model)
+            XCTAssertGreaterThan(try redPixelCount(in: hidden, rightHalf: true), try redPixelCount(in: revealed, rightHalf: true))
+            model.submit(isCorrect: true)
+            model.isAnswerVisible = true
+            model.submit(isCorrect: false)
+            let marked = try renderedWordList(words: words, displayMode: .list, width: width, redSheetEnabled: true, check: model)
+            XCTAssertNotEqual(revealed.pngData(), marked.pngData())
+            for (name, image) in [("hidden", hidden), ("revealed", revealed), ("marked", marked)] {
+                let attachment = XCTAttachment(image: image)
+                attachment.name = "Red check \(name) width \(Int(width))"
+                attachment.lifetime = .keepAlways
+                add(attachment)
+            }
+        }
+        let largeModel = RedSheetCheckModel()
+        largeModel.start(words: words, source: source) { _ in }
+        let large = try renderedWordList(words: words, displayMode: .list, width: 320, redSheetEnabled: true,
+                                        check: largeModel, dynamicTypeSize: .accessibility1)
+        let attachment = XCTAttachment(image: large)
+        attachment.name = "Red check large text width 320"
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    @MainActor
+    func testRedSheetCheckAdvancesScrollsCompletesAndUndoesInSameView() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = LocalStudyDataSource(directoryURL: directory)
+        let words = (1...12).map { id in
+            WordCard(id: id, cardId: id, text: "word \(id)", meaning: "意味", partOfSpeech: nil,
+                     sentenceEnglish: nil, sentenceJapanese: nil, imageAssetPath: nil,
+                     audioAssetPath: nil, tags: [], learningStatus: nil, learning: nil)
+        }
+        let model = RedSheetCheckModel()
+        model.start(words: words, source: source) { _ in }
+        _ = try renderedWordList(words: words, displayMode: .list, redSheetEnabled: true, check: model) { root in
+            for index in 0..<10 {
+                model.isAnswerVisible = true
+                model.submit(isCorrect: index.isMultiple(of: 2))
+                RunLoop.main.run(until: Date().addingTimeInterval(0.25))
+            }
+            let scroll = try XCTUnwrap(self.descendants(of: root).compactMap { $0 as? UIScrollView }
+                .first { $0.contentSize.height > 1500 })
+            let advanced = try self.settledRedSheetImage(in: root)
+            let visibleTop = scroll.contentOffset.y + scroll.adjustedContentInset.top
+            XCTAssertGreaterThan(visibleTop, 400)
+            XCTAssertLessThanOrEqual(visibleTop, 10 * 80)
+            XCTAssertLessThan(10 * 80 - visibleTop, scroll.bounds.height - 200)
+            XCTAssertFalse(model.isAnswerVisible)
+            let advancedAttachment = XCTAttachment(image: advanced)
+            advancedAttachment.name = "Red check automatically advanced to row 11"
+            advancedAttachment.lifetime = .keepAlways
+            self.add(advancedAttachment)
+            for _ in 0..<2 {
+                model.isAnswerVisible = true
+                model.submit(isCorrect: true)
+                RunLoop.main.run(until: Date().addingTimeInterval(0.25))
+            }
+            XCTAssertTrue(model.isComplete)
+            let completed = self.renderedImage(of: root)
+            XCTAssertLessThan(try self.redPixelCount(in: completed, rightHalf: true), 5_000)
+            let completionAttachment = XCTAttachment(image: completed)
+            completionAttachment.name = "Red check completed"
+            completionAttachment.lifetime = .keepAlways
+            self.add(completionAttachment)
+            var undone = false
+            Task { await model.undo(); undone = true }
+            let deadline = Date().addingTimeInterval(2)
+            while !undone && Date() < deadline { RunLoop.main.run(until: Date().addingTimeInterval(0.05)) }
+            XCTAssertTrue(undone)
+            XCTAssertEqual(model.index, 11)
+            XCTAssertNil(model.answers[12])
+            XCTAssertFalse(model.isAnswerVisible)
+        }
+    }
+
     func testRedSheetStopsUseActualVariableHeightRowBoundaries() {
         let frames = [
             CGRect(x: 0, y: -30, width: 320, height: 80),
@@ -333,20 +426,27 @@ final class WordCardTests: XCTestCase {
                     .first { $0.contentSize.height > $0.bounds.height && $0.contentSize.height > 1500 })
                 XCTAssertTrue(try XCTUnwrap(scroll.delegate).responds(to:
                     #selector(UIScrollViewDelegate.scrollViewWillEndDragging(_:withVelocity:targetContentOffset:))))
+                // 赤シートは画面上部まで広がるため、UIScrollView の自動セーフエリアも含める。
+                let topInset = scroll.adjustedContentInset.top
                 for proposedY: CGFloat in [113, 207, 357] {
                     var target = CGPoint(x: 0, y: proposedY)
                     scroll.delegate?.scrollViewWillEndDragging?(scroll, withVelocity: .zero, targetContentOffset: &target)
-                    XCTAssertEqual(target.y.truncatingRemainder(dividingBy: 80), 0, accuracy: 0.5,
+                    XCTAssertEqual((target.y + topInset).truncatingRemainder(dividingBy: 80), 0, accuracy: 0.5,
                                    "Expected a row boundary for proposed offset \(proposedY), got \(target.y)")
                     XCTAssertLessThanOrEqual(abs(target.y - proposedY), 40.5,
                                              "Must choose the nearest row, not jump back to the first row")
                 }
-                XCTAssertEqual(scroll.contentSize.height - scroll.bounds.height, 29 * 80, accuracy: 1)
+                scroll.delegate?.scrollViewDidEndDragging?(scroll, willDecelerate: false)
+                XCTAssertEqual(scroll.contentSize.height - scroll.bounds.height + topInset + scroll.adjustedContentInset.bottom, 29 * 80, accuracy: 1)
                 for offset: CGFloat in [320, 29 * 80] {
-                    scroll.setContentOffset(CGPoint(x: 0, y: offset), animated: false)
+                    scroll.setContentOffset(CGPoint(x: 0, y: offset - scroll.adjustedContentInset.top), animated: false)
+                    _ = try self.settledRedSheetImage(in: root)
+                    // 初回の全画面レイアウトでナビゲーションの余白が変わったら、その後の座標へ合わせる。
+                    scroll.setContentOffset(CGPoint(x: 0, y: offset - scroll.adjustedContentInset.top), animated: false)
                     let snapshot = try self.settledRedSheetImage(in: root)
                     let sheetTop = try self.firstRedY(in: snapshot)
-                    let viewportTop = scroll.convert(scroll.bounds.origin, to: root).y
+                    let viewportTop = scroll.convert(scroll.bounds.origin, to: root).y + scroll.adjustedContentInset.top
+                    XCTAssertEqual(scroll.contentOffset.y + scroll.adjustedContentInset.top, offset, accuracy: 1)
                     let relativeTop = sheetTop - viewportTop
                     let remainder = relativeTop.truncatingRemainder(dividingBy: 80)
                     XCTAssertLessThanOrEqual(min(abs(remainder), abs(80 - remainder)), 1,
@@ -483,11 +583,14 @@ final class WordCardTests: XCTestCase {
         displayMode: WordListDisplayMode,
         width: CGFloat = 393,
         redSheetEnabled: Bool = false,
+        check: RedSheetCheckModel? = nil,
+        dynamicTypeSize: DynamicTypeSize = .large,
         inspect: ((UIView) throws -> Void)? = nil
     ) throws -> UIImage {
         let appState = AppState(restoresSession: false)
         let rootView = NavigationStack {
-            WordListView(previewWords: words, displayMode: displayMode, previewRedSheetEnabled: redSheetEnabled)
+            WordListView(previewWords: words, displayMode: displayMode, previewRedSheetEnabled: redSheetEnabled, previewCheck: check)
+                .environment(\.dynamicTypeSize, dynamicTypeSize)
         }
         .environmentObject(appState)
         .environmentObject(appState.designSettings)

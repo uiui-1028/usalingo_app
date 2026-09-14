@@ -88,6 +88,28 @@ final class AuthTransportTests: XCTestCase {
         }
     }
 
+    func testAnswerRetryReusesExactProgressAfterLostResponse() async throws {
+        let client = LostAnswerResponseClient()
+        let session = AuthSession(accessToken: "test", refreshToken: nil, expiresAt: nil, user: AuthUser(id: "user-1", email: nil))
+        let source: any StudyDataSource = RemoteStudyDataSource(service: StudyService(client: client), session: session)
+        let card = WordCard(id: 1, cardId: 7, text: "word", meaning: "意味", partOfSpeech: nil,
+                            sentenceEnglish: nil, sentenceJapanese: nil, imageAssetPath: nil,
+                            audioAssetPath: nil, tags: [], learningStatus: nil, learning: nil)
+        let attempt = AnswerSaveAttempt()
+        do {
+            _ = try await source.saveAnswerWithUndo(card: card, isCorrect: false, attempt: attempt)
+            XCTFail("Expected lost response")
+        } catch is URLError {}
+        let saved = try await source.saveAnswerWithUndo(card: card, isCorrect: false, attempt: attempt)
+        XCTAssertEqual(saved.progress.incorrectCount, 1)
+        XCTAssertNil(saved.previousProgress)
+        XCTAssertEqual(client.readCount, 1)
+        XCTAssertEqual(client.writes.count, 2)
+        XCTAssertEqual(client.writes.first, client.writes.last)
+        try await source.restoreLearningProgress(cardId: 7, previousProgress: saved.previousProgress)
+        XCTAssertNil(client.stored)
+    }
+
     func testStudyServicePropagatesMalformedOrUnauthorizedResponseWithoutNetwork() async {
         let service = StudyService(client: FailingStudySupabaseClient())
         let session = AuthSession(accessToken: "expired-token", refreshToken: nil, expiresAt: nil, user: AuthUser(id: "user-1", email: nil))
@@ -100,6 +122,29 @@ final class AuthTransportTests: XCTestCase {
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
+    }
+}
+
+private final class LostAnswerResponseClient: SupabaseRequesting {
+    var stored: LearningProgress?
+    var writes: [Data] = []
+    var readCount = 0
+
+    func request<T: Decodable>(path: String, method: HTTPMethod, queryItems: [URLQueryItem], accessToken: String?, body: Encodable?, prefer: String?) async throws -> T {
+        if let progress = body as? LearningProgress {
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = .sortedKeys
+            writes.append(try encoder.encode(progress))
+            stored = progress
+            if writes.count == 1 { throw URLError(.networkConnectionLost) }
+        } else {
+            readCount += 1
+        }
+        return try JSONDecoder().decode(T.self, from: JSONEncoder().encode(stored.map { [$0] } ?? []))
+    }
+
+    func execute(path: String, method: HTTPMethod, queryItems: [URLQueryItem], accessToken: String?, body: Encodable?, prefer: String?) async throws {
+        stored = nil
     }
 }
 

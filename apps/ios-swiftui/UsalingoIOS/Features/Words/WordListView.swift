@@ -11,6 +11,9 @@ struct WordListView: View {
     @State private var redSheetTopRatio: CGFloat = 0.4
     @State private var rowFrames: [Int: CGRect] = [:]
     @State private var lastRowHeight: CGFloat = 80
+    @StateObject private var check = RedSheetCheckModel()
+    @State private var showsRedSheetChoice = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel: WordListViewModel
@@ -23,9 +26,11 @@ struct WordListView: View {
         previewWords: [WordCard]? = nil,
         displayMode: WordListDisplayMode = .list,
         previewRedSheetEnabled: Bool = false,
+        previewCheck: RedSheetCheckModel? = nil,
         sheetOnly: Bool = false
     ) {
         self.sheetOnly = sheetOnly
+        _check = StateObject(wrappedValue: previewCheck ?? RedSheetCheckModel())
         _isRedSheetEnabled = State(initialValue: previewWords != nil && previewRedSheetEnabled && displayMode == .list)
         _viewModel = StateObject(wrappedValue: WordListViewModel(
             deck: deck,
@@ -44,7 +49,9 @@ struct WordListView: View {
                 let insets = proxy.safeAreaInsets
                 // セーフエリアまで含めた画面の高さ。シートの高さはここから割合で決める。
                 let screenHeight = proxy.size.height + insets.top + insets.bottom
-                let sheetHeight = screenHeight * Self.sheetHeightRatio
+                let sheetHeight = isRedSheetEnabled
+                    ? proxy.size.height + insets.bottom
+                    : screenHeight * Self.sheetHeightRatio
                 let bannerHeight = max(0, screenHeight - sheetHeight - insets.top - WireMetrics.spacingS)
 
                 ZStack(alignment: .top) {
@@ -52,13 +59,14 @@ struct WordListView: View {
                     WireColor.scrim
                         .ignoresSafeArea()
 
-                    WordListDeckBanner(decks: bannerDecks) { deck in
-                        selectedDeckID = deck.id
+                    if !isRedSheetEnabled {
+                        WordListDeckBanner(decks: bannerDecks) { deck in
+                            selectedDeckID = deck.id
+                        }
+                        .padding(.horizontal, WireMetrics.screenPadding)
+                        .padding(.top, WireMetrics.spacingS)
+                        .frame(height: bannerHeight + WireMetrics.spacingS, alignment: .top)
                     }
-                    .padding(.horizontal, WireMetrics.screenPadding)
-                    .padding(.top, WireMetrics.spacingS)
-                    // シートに覆われない分だけを使う。
-                    .frame(height: bannerHeight + WireMetrics.spacingS, alignment: .top)
 
                     VStack(spacing: 0) {
                         Spacer(minLength: 0)
@@ -71,9 +79,21 @@ struct WordListView: View {
         }
         // 操作はすべてシートの中の浮動バーに集めたので、上のヘッダーごと消す。
         // ヘッダーを消すと戻るスワイプも一緒に止まるため、学習画面と同じ仕組みで戻す。
-        .toolbar(sheetOnly ? .visible : .hidden, for: .navigationBar)
+        .toolbar(sheetOnly && !isRedSheetEnabled ? .visible : .hidden, for: .navigationBar)
         .background {
-            if !sheetOnly { BackSwipeEnabler() }
+            if !sheetOnly || isRedSheetEnabled { BackSwipeEnabler() }
+            // 未保存の判定を置いたまま画面を離れない。赤シート専用の終了ボタンを使う。
+            if isRedSheetEnabled { BackSwipeProtectedRegionMarker() }
+        }
+        .confirmationDialog("赤シートの使い方", isPresented: $showsRedSheetChoice, titleVisibility: .visible) {
+            Button("通常利用") {}
+            Button("チェック開始", action: startCheck)
+                .disabled(!canStartCheck)
+        } message: {
+            Text(canStartCheck ? "自由に隠して使うか、1行ずつ判定して学習記録に保存できます。" : "この一覧は通常利用のみです。チェックには保存できる学習カードが必要です。")
+        }
+        .onChange(of: isRedSheetEnabled) { _, enabled in
+            if enabled { showsRedSheetChoice = true }
         }
         .fullScreenCover(item: $selectedWord) { word in
             WordDetailSheet(word: word, words: viewModel.filteredWords) { savedWord in
@@ -99,11 +119,16 @@ struct WordListView: View {
             wordScroll(bottomInset: bottomInset, viewportHeight: proxy.size.height)
                 .overlay(alignment: .topTrailing) {
                     if isRedSheetEnabled && viewModel.selectedDisplayMode == .list
-                        && !viewModel.filteredWords.isEmpty && !viewModel.isLoading {
+                        && !displayedWords.isEmpty && !viewModel.isLoading && !check.isComplete {
                         WordRedSheet(
                             topRatio: $redSheetTopRatio,
                             availableHeight: contentHeight,
-                            stops: WordListRowSnapping.sheetStops(frames: Array(rowFrames.values), availableHeight: contentHeight)
+                            stops: check.isStarted ? checkStops : WordListRowSnapping.sheetStops(frames: Array(rowFrames.values), availableHeight: contentHeight),
+                            controlledTop: check.isStarted ? checkSheetTop : nil,
+                            onSettle: check.isStarted ? { position in
+                                guard let frame = currentRowFrame else { return }
+                                check.isAnswerVisible = position >= frame.midY
+                            } : nil
                         )
                             .frame(width: proxy.size.width / 2, height: proxy.size.height)
                     }
@@ -111,11 +136,11 @@ struct WordListView: View {
                 .coordinateSpace(name: "wordListViewport")
                 .onPreferenceChange(WordListRowFramesKey.self) { frames in
                     rowFrames = frames
-                    if let id = viewModel.filteredWords.last?.id, let height = frames[id]?.height {
+                    if let id = displayedWords.last?.id, let height = frames[id]?.height {
                         lastRowHeight = height
                     }
                 }
-                .onChange(of: viewModel.filteredWords.last?.id) { _, _ in lastRowHeight = 80 }
+                .onChange(of: displayedWords.last?.id) { _, _ in lastRowHeight = 80 }
         }
             .background(WireColor.surface)
             .clipShape(sheetShape)
@@ -126,16 +151,22 @@ struct WordListView: View {
             // 左のバーに絞り込み・並べ替え・検索、右のバーに表示切り替えを収める。
             // 横に触ることが多いので、ここから始めたスワイプでは戻さない。
             .overlay(alignment: .bottom) {
-                WordListBottomBars(
-                    tags: viewModel.availableTags,
-                    selectedTag: $viewModel.selectedTagFilter,
-                    selectedStatusFilter: $viewModel.selectedStatusFilter,
-                    selectedDueFilter: $viewModel.selectedDueFilter,
-                    selectedSort: $viewModel.selectedSort,
-                    searchText: $viewModel.searchText,
-                    selectedDisplayMode: $viewModel.selectedDisplayMode,
-                    isRedSheetEnabled: $isRedSheetEnabled
-                )
+                Group {
+                    if isRedSheetEnabled {
+                        redSheetControls
+                    } else {
+                        WordListBottomBars(
+                            tags: viewModel.availableTags,
+                            selectedTag: $viewModel.selectedTagFilter,
+                            selectedStatusFilter: $viewModel.selectedStatusFilter,
+                            selectedDueFilter: $viewModel.selectedDueFilter,
+                            selectedSort: $viewModel.selectedSort,
+                            searchText: $viewModel.searchText,
+                            selectedDisplayMode: $viewModel.selectedDisplayMode,
+                            isRedSheetEnabled: $isRedSheetEnabled
+                        )
+                    }
+                }
                 .background {
                     GeometryReader { bar in
                         Color.clear.preference(key: WordListBarHeightKey.self, value: bar.size.height)
@@ -165,55 +196,189 @@ struct WordListView: View {
     /// 背景は戻るスワイプが使う場所なので、行の枠だけがタップに応えるよう
     /// 自前の縦並びにする（この画面はスワイプ削除も並べ替えも使わない）。
     private func wordScroll(bottomInset: CGFloat, viewportHeight: CGFloat) -> some View {
-        ScrollView {
-            LazyVStack(spacing: 0) {
-                if viewModel.isLoading {
-                    ProgressView()
-                        .tint(WireColor.ink)
-                        .frame(maxWidth: .infinity)
+        ScrollViewReader { reader in
+            ScrollView {
+                LazyVStack(spacing: 0) {
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .tint(WireColor.ink)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, WireMetrics.spacingXL)
+                    } else if !viewModel.message.isEmpty && viewModel.words.isEmpty {
+                        WordListErrorBox(info: WordListErrorInfo(rawMessage: viewModel.message)) {
+                            Task { await viewModel.load(dataSource: appState.studyDataSource) }
+                        }
                         .padding(.vertical, WireMetrics.spacingXL)
-                } else if !viewModel.message.isEmpty && viewModel.words.isEmpty {
-                    WordListErrorBox(info: WordListErrorInfo(rawMessage: viewModel.message)) {
-                        Task { await viewModel.load(dataSource: appState.studyDataSource) }
-                    }
-                    .padding(.vertical, WireMetrics.spacingXL)
-                } else if viewModel.filteredWords.isEmpty {
-                    ContentUnavailableView("単語がありません", systemImage: "magnifyingglass", description: Text("検索条件またはタグを変更してください"))
-                        .padding(.vertical, WireMetrics.spacingXL)
-                } else if viewModel.selectedDisplayMode == .cards {
-                    LazyVGrid(columns: cardColumns, spacing: WireMetrics.spacingM) {
-                        ForEach(viewModel.filteredWords) { word in
-                            WordLibraryCard(word: word)
-                                .cardTapTarget { selectedWord = word }
+                    } else if displayedWords.isEmpty {
+                        ContentUnavailableView("単語がありません", systemImage: "magnifyingglass", description: Text("検索条件またはタグを変更してください"))
+                            .padding(.vertical, WireMetrics.spacingXL)
+                    } else if viewModel.selectedDisplayMode == .cards {
+                        LazyVGrid(columns: cardColumns, spacing: WireMetrics.spacingM) {
+                            ForEach(displayedWords) { word in
+                                WordLibraryCard(word: word)
+                                    .cardTapTarget { selectedWord = word }
+                            }
+                        }
+                        .padding(WireMetrics.screenPadding)
+                    } else {
+                        ForEach(Array(displayedWords.enumerated()), id: \.element.id) { index, word in
+                            WordRow(
+                                word: word,
+                                number: index + 1,
+                                hidesMeaningFromAccessibility: meaningIsHidden(at: index),
+                                checkResult: check.answers[word.id],
+                                reservesCheckResultSpace: check.isStarted,
+                                isCheckTarget: check.current?.id == word.id,
+                                coversMeaning: check.isStarted && meaningIsHidden(at: index)
+                            )
+                                .cardTapTarget(radius: 0) {
+                                    if check.isStarted {
+                                        if word.id == check.current?.id { check.isAnswerVisible = true }
+                                    } else {
+                                        selectedWord = word
+                                    }
+                                }
+                                .id(word.id)
+                                .background {
+                                    GeometryReader { row in
+                                        Color.clear.preference(
+                                            key: WordListRowFramesKey.self,
+                                            value: [word.id: row.frame(in: .named("wordListViewport"))]
+                                        )
+                                    }
+                                }
                         }
                     }
-                    .padding(WireMetrics.screenPadding)
-                } else {
-                    ForEach(Array(viewModel.filteredWords.enumerated()), id: \.element.id) { index, word in
-                        WordRow(word: word, number: index + 1, hidesMeaningFromAccessibility: isRedSheetEnabled)
-                            .cardTapTarget(radius: 0) { selectedWord = word }
-                            .background {
-                                GeometryReader { row in
-                                    Color.clear.preference(
-                                        key: WordListRowFramesKey.self,
-                                        value: [word.id: row.frame(in: .named("wordListViewport"))]
-                                    )
-                                }
-                            }
-                    }
+                }
+                .scrollTargetLayout(isEnabled: viewModel.selectedDisplayMode == .list)
+                // 最終行も上端へ揃えられる余白。カード表示は従来どおりの余白。
+                .padding(.bottom, viewModel.selectedDisplayMode == .list
+                    ? WordListRowSnapping.bottomPadding(
+                        viewportHeight: viewportHeight,
+                        lastRowHeight: lastRowHeight
+                    )
+                    : bottomBarClearance + bottomInset)
+            }
+            .scrollIndicators(.hidden)
+            .scrollTargetBehavior(WordListRowScrollBehavior(isEnabled: viewModel.selectedDisplayMode == .list))
+            .onChange(of: check.current?.id) { _, id in
+                guard let id else { return }
+                // 前の印を少し残しつつ、大きな文字でも対象行が画面内に収まる位置へ進める。
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                    reader.scrollTo(id, anchor: UnitPoint(x: 0, y: 0.25))
                 }
             }
-            .scrollTargetLayout(isEnabled: viewModel.selectedDisplayMode == .list)
-            // 最終行も上端へ揃えられる余白。カード表示は従来どおりの余白。
-            .padding(.bottom, viewModel.selectedDisplayMode == .list
-                ? WordListRowSnapping.bottomPadding(
-                    viewportHeight: viewportHeight,
-                    lastRowHeight: lastRowHeight
-                )
-                : bottomBarClearance + bottomInset)
         }
-        .scrollIndicators(.hidden)
-        .scrollTargetBehavior(WordListRowScrollBehavior(isEnabled: viewModel.selectedDisplayMode == .list))
+    }
+
+    private var displayedWords: [WordCard] { check.isStarted ? check.words : viewModel.filteredWords }
+    private var canStartCheck: Bool {
+        !viewModel.isLoading && !viewModel.filteredWords.isEmpty
+            && viewModel.filteredWords.allSatisfy { $0.cardId != nil }
+    }
+    private var currentRowFrame: CGRect? { check.current.flatMap { rowFrames[$0.id] } }
+    private var checkStops: [CGFloat] {
+        guard let frame = currentRowFrame else { return [0] }
+        return [max(0, frame.minY), max(0, frame.maxY)]
+    }
+    private var checkSheetTop: CGFloat {
+        guard let frame = currentRowFrame else { return 0 }
+        return max(0, check.isAnswerVisible ? frame.maxY : frame.minY)
+    }
+
+    private func meaningIsHidden(at index: Int) -> Bool {
+        guard isRedSheetEnabled else { return false }
+        guard check.isStarted else { return true }
+        return index > check.index || (index == check.index && !check.isAnswerVisible)
+    }
+
+    private func startCheck() {
+        check.start(words: viewModel.filteredWords, source: appState.studyDataSource) { word in
+            viewModel.replaceWord(word)
+            appState.markStudyDataChanged()
+        }
+    }
+
+    private var redSheetControls: some View {
+        VStack(spacing: 10) {
+            if let error = check.errorMessage {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+                if check.pendingCount > 0 {
+                    Button("もう一度保存", action: check.retry)
+                        .disabled(check.isSaving || check.isUndoing)
+                }
+            }
+            if check.pendingCount > 0 {
+                Text("未保存 \(check.pendingCount)件\(check.isSaving ? "・保存中" : "")")
+                    .font(.caption.monospacedDigit())
+            }
+            if check.isStarted {
+                HStack {
+                    Button {
+                        Task { await check.undo() }
+                    } label: {
+                        Image(systemName: "arrow.uturn.backward")
+                            .frame(width: 44, height: 44)
+                    }
+                    .accessibilityLabel("戻る：直前の判定を取り消す")
+                    .disabled(!check.canUndo || check.isUndoing)
+                    Spacer()
+                    Text(check.isComplete ? "チェック完了 \(check.words.count)語" : "\(check.index + 1) / \(check.words.count)")
+                        .font(.subheadline.monospacedDigit())
+                    Spacer()
+                    endRedSheetButton
+                }
+                if check.isComplete {
+                    Text("○ \(check.answers.values.filter { $0 }.count)　× \(check.answers.values.filter { !$0 }.count)")
+                        .font(.headline)
+                } else {
+                    HStack(spacing: 16) {
+                        Button { check.submit(isCorrect: false) } label: {
+                            Image(systemName: "xmark").font(.title2.weight(.bold))
+                        }
+                        .buttonStyle(.wireIcon(diameter: 56))
+                        .accessibilityLabel("わからない")
+                        .disabled(!check.isAnswerVisible || check.isUndoing)
+                        Button(check.isAnswerVisible ? "答えを隠す" : "答えを見る") {
+                            check.isAnswerVisible.toggle()
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 48)
+                        .disabled(check.isUndoing)
+                        Button { check.submit(isCorrect: true) } label: {
+                            Image(systemName: "circle").font(.title2.weight(.bold))
+                        }
+                        .buttonStyle(.wireIcon(diameter: 56, isSelected: true, invertsWhenSelected: true))
+                        .accessibilityLabel("わかる")
+                        .disabled(!check.isAnswerVisible || check.isUndoing)
+                    }
+                }
+            } else {
+                HStack {
+                    endRedSheetButton
+                    Spacer()
+                    Button("チェック開始", action: startCheck)
+                        .disabled(!canStartCheck)
+                }
+                .frame(minHeight: 48)
+            }
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(WireColor.ink)
+        .padding(16)
+        .background(WireColor.surface)
+        .overlay(alignment: .top) { Divider() }
+    }
+
+    private var endRedSheetButton: some View {
+        Button("終了") {
+            check.reset()
+            isRedSheetEnabled = false
+        }
+        .frame(minWidth: 44, minHeight: 44)
+        .disabled(!check.canLeave)
+        .accessibilityLabel("赤シートを終了")
     }
 
     private var cardColumns: [GridItem] {
@@ -297,12 +462,14 @@ private struct WordRedSheet: View {
     @Binding var topRatio: CGFloat
     let availableHeight: CGFloat
     let stops: [CGFloat]
+    var controlledTop: CGFloat? = nil
+    var onSettle: ((CGFloat) -> Void)? = nil
     @State private var settledTop: CGFloat?
     @GestureState(resetTransaction: Transaction(animation: .easeOut(duration: 0.18)))
     private var dragTranslation: CGFloat?
 
     private var restingTop: CGFloat {
-        settledTop ?? WordListRowSnapping.nearestStop(to: availableHeight * topRatio, stops: stops)
+        controlledTop ?? settledTop ?? WordListRowSnapping.nearestStop(to: availableHeight * topRatio, stops: stops)
     }
 
     private var displayedTop: CGFloat {
@@ -353,6 +520,7 @@ private struct WordRedSheet: View {
         // iOS 17でも減速終了・並べ替え・文字サイズ変更を扱えるよう、実測値の
         // 更新が落ち着いてから合わせ直す。スクロール中はシートを飛び跳ねさせない。
         .task(id: stops) {
+            guard controlledTop == nil else { return }
             do { try await Task.sleep(for: .milliseconds(160)) } catch { return }
             guard dragTranslation == nil else { return }
             settle(at: availableHeight * topRatio)
@@ -361,6 +529,10 @@ private struct WordRedSheet: View {
 
     private func settle(at position: CGFloat) {
         let top = WordListRowSnapping.nearestStop(to: position, stops: stops)
+        if let onSettle {
+            onSettle(top)
+            return
+        }
         withAnimation(.easeOut(duration: 0.18)) {
             settledTop = top
             topRatio = top / max(1, availableHeight)

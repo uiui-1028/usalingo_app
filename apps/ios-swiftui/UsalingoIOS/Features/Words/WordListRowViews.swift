@@ -60,6 +60,10 @@ struct WordRow: View {
     let word: WordCard
     let number: Int
     var hidesMeaningFromAccessibility = false
+    var checkResult: Bool? = nil
+    var reservesCheckResultSpace = false
+    var isCheckTarget = false
+    var coversMeaning = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -81,7 +85,8 @@ struct WordRow: View {
             Text(word.meaning)
                 .wireFont(.body, color: Color(red: 0.65, green: 0.09, blue: 0.1))
                 .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 14)
+                .padding(.leading, 14)
+                .padding(.trailing, reservesCheckResultSpace || checkResult != nil ? 42 : 14)
                 .padding(.vertical, 20)
                 .frame(maxHeight: .infinity, alignment: .leading)
             .containerRelativeFrame(.horizontal, count: 2, spacing: 0)
@@ -89,16 +94,42 @@ struct WordRow: View {
                     Rectangle().fill(WireColor.ink.opacity(0.12)).frame(width: 1)
                 }
                 .accessibilityHidden(hidesMeaningFromAccessibility)
+                .overlay {
+                    if coversMeaning {
+                        Color(red: 1, green: 0.18, blue: 0.23)
+                            .accessibilityHidden(true)
+                    }
+                }
+                .overlay(alignment: .trailing) {
+                    if let checkResult {
+                        Image(systemName: checkResult ? "checkmark.circle.fill" : "xmark.circle.fill")
+                            .font(.system(size: 25, weight: .semibold))
+                            .symbolRenderingMode(.palette)
+                            .foregroundStyle(.white, checkResult ? Color.black : Color.red)
+                            .padding(.trailing, 10)
+                            .accessibilityLabel(checkResult ? "わかる" : "わからない")
+                    }
+                }
         }
         .frame(minHeight: 80)
         .fixedSize(horizontal: false, vertical: true)
         .background(number.isMultiple(of: 2) ? WireColor.surface : WireColor.ink.opacity(0.04))
+        .overlay {
+            if isCheckTarget {
+                Rectangle().fill(Color.black.opacity(0.055))
+                    .overlay(alignment: .leading) { Rectangle().fill(Color.black).frame(width: 3) }
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+        }
         .overlay(alignment: .bottom) {
             Rectangle().fill(WireColor.ink.opacity(0.12)).frame(height: 1)
         }
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-        .accessibilityHint("単語の詳細を開きます")
+        .accessibilityHint(reservesCheckResultSpace
+            ? (isCheckTarget ? "チェック中の単語。タップで答えを表示します" : "単語を順番にチェックします")
+            : "単語の詳細を開きます")
     }
 }
 
