@@ -70,6 +70,8 @@ struct WordDetailSheet: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            // 伸縮するシートではなく、動かない親画面で指の移動量を測る。
+            .coordinateSpace(name: "wordDetailViewport")
             .foregroundStyle(Color(red: 0.19, green: 0.25, blue: 0.32))
         }
         .sheet(isPresented: $isEditing) {
@@ -154,7 +156,10 @@ struct WordDetailSheet: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel(isExpanded ? "詳細シートを縮小" : "詳細シートを展開")
-            .simultaneousGesture(DragGesture(minimumDistance: 12)
+            .simultaneousGesture(DragGesture(
+                minimumDistance: 12,
+                coordinateSpace: .named("wordDetailViewport")
+            )
                 .updating($sheetDrag) { value, state, _ in
                     guard abs(value.translation.height) > abs(value.translation.width) else { return }
                     state = value.translation.height

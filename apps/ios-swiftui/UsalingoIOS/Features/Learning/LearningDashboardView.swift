@@ -1,7 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 学習タブ。デッキをタップして学習モード設定を開き、上部の開始ボタンから学習へ進む。
+/// 学習タブ。デッキをタップすると、既定の学習モードですぐに学習を始める。
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
@@ -10,11 +10,7 @@ struct LearningDashboardView: View {
     private let setActionBarHidden: (Bool) -> Void
 
     @State private var decks: [Deck] = []
-    @State private var countsByDeckId: [Int: StudyDeckCounts] = [:]
     @State private var studyLaunch: StudyLaunch?
-    @State private var conceptDeck: Deck?
-    /// 開始ボタンをシートの外へ出したので、選ばれた学習モードはここで持つ。
-    @State private var conceptMode: StudyMode = .all
     /// 並べ替えモード。`.constant` で渡すと `List` 側から抜けられなくなるので、
     /// 書き戻せる状態として持つ。
     @State private var editMode: EditMode = .inactive
@@ -47,44 +43,6 @@ struct LearningDashboardView: View {
                 .navigationDestination(isPresented: $isShowingWordList) {
                     WordListView()
                 }
-        }
-        // デッキ設定は `.sheet` では出さない。ボタンと面を同じまとまりで動かすため、
-        // この画面へ重ねる。位置と高さは DeckConceptSheet が自分で持つ。
-        .overlay {
-            if let deck = conceptDeck {
-                ZStack(alignment: .bottom) {
-                    // `.sheet` なら勝手に付く「後ろを暗くする幕」も自前で置く。
-                    // これがないと、シートと学習タブの境目が読み取れない。
-                    // 幕をタップしたら閉じる（`.sheet` の外側タップと同じ）。
-                    WireColor.ink
-                        .opacity(0.32)
-                        .ignoresSafeArea()
-                        .contentShape(Rectangle())
-                        .onTapGesture { conceptDeck = nil }
-                        .accessibilityLabel("デッキ設定を閉じる")
-                        .accessibilityAddTraits(.isButton)
-                        .transition(.opacity)
-
-                    DeckConceptSheet(
-                        deck: deck,
-                        counts: countsByDeckId[deck.id],
-                        selectedMode: $conceptMode,
-                        onStart: { mode in
-                            conceptDeck = nil
-                            studyLaunch = StudyLaunch(deck: deck, mode: mode)
-                        },
-                        onClose: { conceptDeck = nil }
-                    )
-                    .transition(.move(edge: .bottom))
-                }
-                .zIndex(1)
-            }
-        }
-        .animation(.spring(response: 0.38, dampingFraction: 0.82), value: conceptDeck?.id)
-        // 重ねているだけなので、シェルの浮動バーは自分で隠す。
-        // `.sheet` のように勝手に覆ってはくれない。
-        .onChange(of: conceptDeck?.id) { _, id in
-            setActionBarHidden(id != nil)
         }
         .task(id: reloadKey) { await reload() }
     }
@@ -265,12 +223,11 @@ struct LearningDashboardView: View {
         setActionBarHidden(verticalMovement < 0)
     }
 
-    /// デッキ全体を設定への入口にする。長押しによる並べ替えは維持する。
+    /// デッキ全体を学習開始の入口にする。長押しによる並べ替えは維持する。
     private func deckRow(_ deck: Deck) -> some View {
         Button {
             guard !isEditing else { return }
-            conceptMode = .all
-            conceptDeck = deck
+            studyLaunch = StudyLaunch(deck: deck, mode: .all)
         } label: {
             VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
                 HStack(alignment: .top, spacing: WireMetrics.spacingM) {
@@ -295,7 +252,7 @@ struct LearningDashboardView: View {
         // デッキは1件ずつ枠で囲う。どこからどこまでが1つのデッキか、
         // 区切り線だけだと分かりにくかったため（外枠より細い線と1段濃い面）。
         .buttonStyle(.bentoCard(tone: deckCardTone))
-        .accessibilityHint("学習モード設定を開きます")
+        .accessibilityHint("学習を始めます")
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                 guard appState.studyDataSource.supportsDeckReordering, !isEditing else { return }
@@ -377,26 +334,15 @@ struct LearningDashboardView: View {
 
     private func reload() async {
         let dataSource = appState.studyDataSource
-        var counts: [Int: StudyDeckCounts] = [:]
-        var failed: [String] = []
         do {
             decks = try await dataSource.fetchDecks()
+            errorMessage = nil
         } catch {
             decks = []
-            countsByDeckId = [:]
             errorMessage = UserFacingError.message(for: error)
             editMode = .inactive
             return
         }
-        for deck in decks {
-            do {
-                counts[deck.id] = try await dataSource.fetchDeckCounts(deckId: deck.id)
-            } catch {
-                failed.append(deck.deckName)
-            }
-        }
-        countsByDeckId = counts
-        errorMessage = failed.isEmpty ? nil : "\(failed.joined(separator: "、")) のカードを読み込めませんでした。"
         if decks.isEmpty {
             editMode = .inactive
         }

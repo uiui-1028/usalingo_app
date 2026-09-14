@@ -120,11 +120,6 @@ struct StudySessionView: View {
             .backSwipeProtectedRegion()
 
             VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-                HStack {
-                    Text(cards.isEmpty ? "0 / 0" : "\(min(index + 1, cards.count)) / \(cards.count)")
-                    Text(studyMode.title)
-                }
-                .wireFont(.caption)
                 // 進み具合は色ではなく「枠の中がどれだけ塗られたか」で示す。
                 GeometryReader { proxy in
                     ZStack(alignment: .leading) {

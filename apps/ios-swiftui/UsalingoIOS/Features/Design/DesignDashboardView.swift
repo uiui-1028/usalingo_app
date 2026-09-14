@@ -39,8 +39,10 @@ private struct DesignModulePage: View {
     var body: some View {
         GeometryReader { geometry in
             let height = geometry.size.height
-            let panelHeight = min(height * 0.75, max(height * 0.4,
-                height * (isExpanded ? 0.75 : 0.5) - sheetDrag))
+            let collapsedHeight = height * 0.5
+            let expandedHeight = height * 0.9
+            let restingHeight = isExpanded ? expandedHeight : collapsedHeight
+            let panelHeight = min(expandedHeight, max(collapsedHeight, restingHeight - sheetDrag))
             let stageHeight = max(0, height - panelHeight)
             let cardHeight = max(0, min(stageHeight - 32, (geometry.size.width - 56) / 0.64))
 
@@ -72,13 +74,18 @@ private struct DesignModulePage: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(isExpanded ? "編集シートを縮小" : "編集シートを展開")
-                    .simultaneousGesture(DragGesture(minimumDistance: 12)
+                    .accessibilityHint("タップするか、上下にドラッグして高さを固定します")
+                    .gesture(DragGesture(
+                        minimumDistance: 12,
+                        coordinateSpace: .named("designModulePage")
+                    )
                         .updating($sheetDrag) { value, state, _ in
                             state = value.translation.height
                         }
                         .onEnded { value in
-                            if value.predictedEndTranslation.height < -35 { setExpanded(true) }
-                            if value.predictedEndTranslation.height > 35 { setExpanded(false) }
+                            let projectedHeight = restingHeight - value.predictedEndTranslation.height
+                            let snapPoint = (collapsedHeight + expandedHeight) / 2
+                            setExpanded(projectedHeight >= snapPoint)
                         })
                     DesignModuleSheet(module: module)
                 }
@@ -93,6 +100,8 @@ private struct DesignModulePage: View {
                 }
                 .shadow(color: .black.opacity(0.12), radius: 20, y: -5)
             }
+            // シート自身はドラッグで動くため、移動しない親をジェスチャーの基準にする。
+            .coordinateSpace(name: "designModulePage")
         }
         .navigationTitle(module.name)
         .navigationBarTitleDisplayMode(.inline)
@@ -120,6 +129,16 @@ struct DesignMockModule: Identifiable, Hashable {
     let symbol: String
     let description: String
     let settings: [DesignMockSetting]
+    let tabs: [DesignMockTab]
+}
+
+/// シート上で設定をひとかたまりに分けるタブ（モック）。
+struct DesignMockTab: Identifiable {
+    let id: String
+    let name: String
+    let symbol: String
+    let description: String
+    let settingIDs: [String]
 }
 
 /// モジュール内の設定項目1件（モック）。
@@ -177,6 +196,11 @@ extension DesignMockModule {
                     defaultIndex: 0
                 )
             )
+        ],
+        tabs: [
+            DesignMockTab(id: "style", name: "スタイル", symbol: "square.on.circle", description: "アプリ全体の見た目を選びます", settingIDs: ["design_style"]),
+            DesignMockTab(id: "mode", name: "表示", symbol: "circle.lefthalf.filled", description: "画面の明るさに合う表示を選びます", settingIDs: ["color_mode"]),
+            DesignMockTab(id: "color", name: "カラー", symbol: "paintpalette", description: "ボタンなどに使う差し色を選びます", settingIDs: ["accent_color"])
         ]
     )
 
@@ -224,6 +248,10 @@ extension DesignMockModule {
                     defaultIndex: 0
                 )
             )
+        ],
+        tabs: [
+            DesignMockTab(id: "fields", name: "情報", symbol: "text.justify.left", description: "カードに載せる情報を整理します", settingIDs: ["card_fields"]),
+            DesignMockTab(id: "interaction", name: "操作", symbol: "hand.tap", description: "答えを表示する操作を選びます", settingIDs: ["answer_interaction"])
         ]
     )
 
@@ -260,6 +288,11 @@ extension DesignMockModule {
                     ("振動（Haptics）", true)
                 ])
             )
+        ],
+        tabs: [
+            DesignMockTab(id: "type", name: "文字", symbol: "textformat", description: "読みやすい文字の形を選びます", settingIDs: ["font"]),
+            DesignMockTab(id: "voice", name: "音声", symbol: "waveform", description: "単語や例文の読み上げ方を選びます", settingIDs: ["tts_voice"]),
+            DesignMockTab(id: "feedback", name: "効果", symbol: "speaker.wave.2", description: "音と振動の手応えを調整します", settingIDs: ["sound_haptics"])
         ]
     )
 
@@ -299,6 +332,11 @@ extension DesignMockModule {
                 description: "復習間隔がこの日数を超えないようにする上限値。",
                 control: .value(text: "365", unit: "日")
             )
+        ],
+        tabs: [
+            DesignMockTab(id: "daily", name: "枚数", symbol: "rectangle.stack", description: "1日に取り組む量を決めます", settingIDs: ["new_cards_per_day"]),
+            DesignMockTab(id: "first_steps", name: "初期", symbol: "figure.walk", description: "覚え始めの復習ペースを決めます", settingIDs: ["graduating_interval", "easy_interval"]),
+            DesignMockTab(id: "interval", name: "間隔", symbol: "calendar", description: "長く覚えるための間隔を調整します", settingIDs: ["interval_modifier", "maximum_interval"])
         ]
     )
 }
@@ -359,28 +397,121 @@ private struct DesignModuleTile: View {
 
 private struct DesignModuleSheet: View {
     let module: DesignMockModule
+    @State private var selectedTabID: String
+
+    init(module: DesignMockModule) {
+        self.module = module
+        _selectedTabID = State(initialValue: module.tabs.first?.id ?? "")
+    }
+
+    private var selectedSettings: [DesignMockSetting] {
+        guard let tab = module.tabs.first(where: { $0.id == selectedTabID }) else {
+            return module.settings
+        }
+        return tab.settingIDs.compactMap { settingID in
+            module.settings.first(where: { $0.id == settingID })
+        }
+    }
+
+    private var selectedTab: DesignMockTab? {
+        module.tabs.first(where: { $0.id == selectedTabID })
+    }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: WireMetrics.spacingL) {
-                HStack(spacing: WireMetrics.spacingM) {
-                    Image(systemName: module.symbol)
-                        .wireFont(.titleS)
-                        .frame(width: 44, height: 44)
-                        .outlineCircleSurface()
+        VStack(spacing: 0) {
+            DesignModuleTabBar(tabs: module.tabs, selectedTabID: $selectedTabID)
 
-                    Text(module.name)
-                        .wireFont(.titleS)
+            ScrollViewReader { scrollProxy in
+                ScrollView {
+                    VStack(alignment: .leading, spacing: WireMetrics.spacingL) {
+                        Color.clear
+                            .frame(height: 0)
+                            .id("designModuleSheetTop")
+
+                        if let selectedTab {
+                            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+                                Text(selectedTab.name)
+                                    .wireFont(.titleS)
+                                Text(selectedTab.description)
+                                    .wireFont(.caption)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .accessibilityElement(children: .combine)
+                        }
+
+                        ForEach(selectedSettings) { setting in
+                            DesignSettingBlock(setting: setting)
+                        }
+                    }
+                    .id(selectedTabID)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(WireMetrics.screenPadding)
+                    .transition(.opacity.combined(with: .move(edge: .trailing)))
                 }
-
-                ForEach(module.settings) { setting in
-                    DesignSettingBlock(setting: setting)
+                .onChange(of: selectedTabID) {
+                    scrollProxy.scrollTo("designModuleSheetTop", anchor: .top)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(WireMetrics.screenPadding)
         }
         .accessibilityElement(children: .contain)
+    }
+}
+
+/// 添付例のように、アイコンと下線で現在の編集グループを示すタブ列。
+private struct DesignModuleTabBar: View {
+    let tabs: [DesignMockTab]
+    @Binding var selectedTabID: String
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var selectionAnimation
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(tabs) { tab in
+                let isSelected = tab.id == selectedTabID
+                Button {
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                        selectedTabID = tab.id
+                    }
+                } label: {
+                    VStack(spacing: WireMetrics.spacingXS) {
+                        Image(systemName: tab.symbol)
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(isSelected ? WireColor.surface : WireColor.subText)
+                            .frame(width: 38, height: 38)
+                            .background {
+                                Circle()
+                                    .fill(isSelected ? WireColor.ink : WireColor.groupL2)
+                            }
+                        Text(tab.name)
+                            .font(.system(.caption, design: .rounded, weight: isSelected ? .bold : .medium))
+                            .foregroundStyle(isSelected ? WireColor.ink : WireColor.subText)
+                        ZStack {
+                            Color.clear
+                            if isSelected {
+                                Capsule()
+                                    .fill(WireColor.ink)
+                                    .matchedGeometryEffect(id: "selectedDesignModuleTab", in: selectionAnimation)
+                            }
+                        }
+                        .frame(height: 3)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .frame(minHeight: 72)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("\(tab.name)タブ")
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(.horizontal, WireMetrics.spacingS)
+        .padding(.top, WireMetrics.spacingXS)
+        .background(WireColor.surface)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(WireColor.ink.opacity(0.12))
+                .frame(height: 1)
+        }
     }
 }
 

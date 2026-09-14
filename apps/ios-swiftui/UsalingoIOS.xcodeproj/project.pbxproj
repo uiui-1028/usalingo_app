@@ -8,86 +8,86 @@
 
 /* Begin PBXBuildFile section */
 		A10000000000000000000001 /* UsalingoIOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000001 /* UsalingoIOSApp.swift */; };
-		A10000000000000000000002 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AppState.swift */; };
-		A10000000000000000000003 /* Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Deck.swift */; };
-		A10000000000000000000004 /* WordCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* WordCard.swift */; };
-		A10000000000000000000005 /* LearningProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* LearningProgress.swift */; };
-		A10000000000000000000006 /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* SupabaseConfig.swift */; };
-		A1000000000000000000002A /* UserFacingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002A /* UserFacingError.swift */; };
-		A10000000000000000000007 /* SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* SupabaseClient.swift */; };
-		A10000000000000000000008 /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* AuthService.swift */; };
-		A1000000000000000000000A /* StudyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* StudyService.swift */; };
-		A10000000000000000000030 /* WireColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000030 /* WireColor.swift */; };
-		A10000000000000000000031 /* WireMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000031 /* WireMetrics.swift */; };
-		A10000000000000000000032 /* WireTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000032 /* WireTypography.swift */; };
-		A10000000000000000000033 /* OffsetShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000033 /* OffsetShadow.swift */; };
-		A10000000000000000000034 /* OutlineSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000034 /* OutlineSurface.swift */; };
-		A10000000000000000000035 /* WireCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000035 /* WireCard.swift */; };
-		A10000000000000000000036 /* WireButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000036 /* WireButton.swift */; };
-		A10000000000000000000037 /* WireTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000037 /* WireTextField.swift */; };
-		A10000000000000000000038 /* WirePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000038 /* WirePill.swift */; };
-		A10000000000000000000039 /* WireIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000039 /* WireIconButton.swift */; };
-		A1000000000000000000003A /* WireImagePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003A /* WireImagePlaceholder.swift */; };
-		A1000000000000000000003B /* WireTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003B /* WireTimeline.swift */; };
-		A1000000000000000000003C /* DesignSystemGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003C /* DesignSystemGallery.swift */; };
-		A1000000000000000000003D /* BentoGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003D /* BentoGroup.swift */; };
-		A1000000000000000000000C /* AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* AuthView.swift */; };
-		A1000000000000000000000E /* StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* StudySessionView.swift */; };
-		A1000000000000000000000F /* StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* StudyCardView.swift */; };
-		A10000000000000000000FA1 /* WordCardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000FA1 /* WordCardContent.swift */; };
-		A10000000000000000000013 /* AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* AppShellView.swift */; };
-		A10000000000000000000014 /* LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* LearningDashboardView.swift */; };
-		A10000000000000000000015 /* DesignDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* DesignDashboardView.swift */; };
-		A10000000000000000000F02 /* DesignPreviewStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000F02 /* DesignPreviewStage.swift */; };
-		A10000000000000000000016 /* ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* ProfileDashboardView.swift */; };
-		A10000000000000000000017 /* SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* SessionStore.swift */; };
-		A10000000000000000000018 /* WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* WordListView.swift */; };
-		A100000000000000000070 /* WordListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000070 /* WordListViewModel.swift */; };
-		A100000000000000000071 /* WordListFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000071 /* WordListFilters.swift */; };
-		A100000000000000000072 /* WordListFilterBars.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000072 /* WordListFilterBars.swift */; };
-		A1000000000000000000F1 /* InteractiveSwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000F1 /* InteractiveSwipeBack.swift */; };
-		A1000000000000000000F3 /* WordListDeckBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000F3 /* WordListDeckBanner.swift */; };
-		A100000000000000000073 /* WordListRowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000073 /* WordListRowViews.swift */; };
-		A100000000000000000074 /* WordListErrorBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000074 /* WordListErrorBox.swift */; };
-		A100000000000000000075 /* WordDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000075 /* WordDetailSheet.swift */; };
-		A1000000000000000000076 /* LearningConcept.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000076 /* LearningConcept.swift */; };
-		A1000000000000000000077 /* DeckSummaryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000077 /* DeckSummaryViews.swift */; };
-		A1000000000000000000078 /* DeckConceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000078 /* DeckConceptView.swift */; };
-		A10000000000000000000019 /* AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* AudioPlaybackService.swift */; };
-		A1000000000000000000003E /* HapticFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003E /* HapticFeedbackService.swift */; };
-		A1000000000000000000003F /* CardImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002D /* CardImageLoader.swift */; };
+		A10000000000000000000002 /* App/AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* App/AppState.swift */; };
+		A10000000000000000000003 /* Models/Deck.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000003 /* Models/Deck.swift */; };
+		A10000000000000000000004 /* Models/WordCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000004 /* Models/WordCard.swift */; };
+		A10000000000000000000005 /* Models/LearningProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000005 /* Models/LearningProgress.swift */; };
+		A10000000000000000000006 /* Services/SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000006 /* Services/SupabaseConfig.swift */; };
+		A10000000000000000000007 /* Services/SupabaseClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000007 /* Services/SupabaseClient.swift */; };
+		A10000000000000000000008 /* Services/AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000008 /* Services/AuthService.swift */; };
+		A1000000000000000000000A /* Services/StudyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* Services/StudyService.swift */; };
+		A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* Features/Auth/AuthView.swift */; };
+		A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* Features/Study/StudySessionView.swift */; };
+		A1000000000000000000000F /* Features/Study/StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* Features/Study/StudyCardView.swift */; };
+		A10000000000000000000013 /* Features/Shell/AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* Features/Shell/AppShellView.swift */; };
+		A10000000000000000000014 /* Features/Learning/LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */; };
+		A10000000000000000000015 /* Features/Design/DesignDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000015 /* Features/Design/DesignDashboardView.swift */; };
+		A10000000000000000000016 /* Features/Profile/ProfileDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* Features/Profile/ProfileDashboardView.swift */; };
+		A10000000000000000000017 /* Services/SessionStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000017 /* Services/SessionStore.swift */; };
+		A10000000000000000000018 /* Features/Words/WordListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* Features/Words/WordListView.swift */; };
+		A10000000000000000000019 /* Services/AudioPlaybackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000019 /* Services/AudioPlaybackService.swift */; };
+		A1000000000000000000001A /* Features/Words/WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* Features/Words/WordEditSheet.swift */; };
+		A1000000000000000000001B /* Features/Words/TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* Features/Words/TagSheet.swift */; };
+		A1000000000000000000001C /* Models/DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* Models/DesignSettings.swift */; };
+		A1000000000000000000001F /* Features/Study/SwipeTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001F /* Features/Study/SwipeTutorialView.swift */; };
+		A10000000000000000000020 /* Services/AccountDeletionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* Services/AccountDeletionService.swift */; };
+		A10000000000000000000021 /* Services/AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* Services/AppInfo.swift */; };
+		A10000000000000000000022 /* Resources/Licenses in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* Resources/Licenses */; };
+		A10000000000000000000023 /* Models/DeckFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* Models/DeckFile.swift */; };
+		A10000000000000000000024 /* Services/StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* Services/StudyDataSource.swift */; };
+		A10000000000000000000025 /* Services/LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* Services/LocalStudyDataSource.swift */; };
+		A10000000000000000000026 /* Features/Learning/DeckLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */; };
+		A10000000000000000000027 /* Resources/SampleDecks in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* Resources/SampleDecks */; };
+		A10000000000000000000028 /* Services/GuestStudyBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* Services/GuestStudyBackupService.swift */; };
+		A10000000000000000000029 /* Services/StudyBackupSyncer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* Services/StudyBackupSyncer.swift */; };
+		A1000000000000000000002A /* Services/UserFacingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002A /* Services/UserFacingError.swift */; };
+		A1000000000000000000002B /* Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002B /* Resources/Assets.xcassets */; };
+		A1000000000000000000002C /* Resources/PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */; };
+		A10000000000000000000030 /* DesignSystem/Tokens/WireColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000030 /* DesignSystem/Tokens/WireColor.swift */; };
+		A10000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift */; };
+		A10000000000000000000032 /* DesignSystem/Tokens/WireTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000032 /* DesignSystem/Tokens/WireTypography.swift */; };
+		A10000000000000000000033 /* DesignSystem/Modifiers/OffsetShadow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000033 /* DesignSystem/Modifiers/OffsetShadow.swift */; };
+		A10000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift */; };
+		A10000000000000000000035 /* DesignSystem/Components/WireCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000035 /* DesignSystem/Components/WireCard.swift */; };
+		A10000000000000000000036 /* DesignSystem/Components/WireButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000036 /* DesignSystem/Components/WireButton.swift */; };
+		A10000000000000000000037 /* DesignSystem/Components/WireTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000037 /* DesignSystem/Components/WireTextField.swift */; };
+		A10000000000000000000038 /* DesignSystem/Components/WirePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000038 /* DesignSystem/Components/WirePill.swift */; };
+		A10000000000000000000039 /* DesignSystem/Components/WireIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000039 /* DesignSystem/Components/WireIconButton.swift */; };
+		A1000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift */; };
+		A1000000000000000000003B /* DesignSystem/Components/WireTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003B /* DesignSystem/Components/WireTimeline.swift */; };
+		A1000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift */; };
+		A1000000000000000000003D /* DesignSystem/Components/BentoGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003D /* DesignSystem/Components/BentoGroup.swift */; };
+		A1000000000000000000003E /* Services/HapticFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003E /* Services/HapticFeedbackService.swift */; };
+		A1000000000000000000003F /* Services/ImageLoading/CardImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002D /* Services/ImageLoading/CardImageLoader.swift */; };
 		A10000000000000000000040 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C1 /* Nuke */; };
 		A10000000000000000000041 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C2 /* NukeUI */; };
-		A1000000000000000000001A /* WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* WordEditSheet.swift */; };
-		A1000000000000000000001B /* TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* TagSheet.swift */; };
-		A1000000000000000000001C /* DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* DesignSettings.swift */; };
-		A1000000000000000000001F /* SwipeTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001F /* SwipeTutorialView.swift */; };
-		A10000000000000000000020 /* AccountDeletionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* AccountDeletionService.swift */; };
-		A10000000000000000000021 /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* AppInfo.swift */; };
-		A10000000000000000000022 /* Licenses in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* Licenses */; };
-		A10000000000000000000027 /* SampleDecks in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* SampleDecks */; };
-		A1000000000000000000002B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002B /* Assets.xcassets */; };
-		A1000000000000000000002C /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002C /* PrivacyInfo.xcprivacy */; };
-		A10000000000000000000023 /* DeckFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* DeckFile.swift */; };
-		A10000000000000000000024 /* StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* StudyDataSource.swift */; };
-		A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* LocalStudyDataSource.swift */; };
-		A10000000000000000000026 /* DeckLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* DeckLibraryView.swift */; };
-		A10000000000000000000029 /* StudyBackupSyncer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* StudyBackupSyncer.swift */; };
-		A10000000000000000000028 /* GuestStudyBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* GuestStudyBackupService.swift */; };
+		A1000000000000000000076 /* Features/Learning/LearningConcept.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000076 /* Features/Learning/LearningConcept.swift */; };
+		A1000000000000000000077 /* Features/Learning/DeckSummaryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */; };
+		A1000000000000000000078 /* Features/Learning/DeckConceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */; };
+		A10000000000000000000F02 /* Features/Design/DesignPreviewStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000F02 /* Features/Design/DesignPreviewStage.swift */; };
+		A10000000000000000000FA1 /* Features/Study/WordCardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */; };
+		A100000000000000000070 /* Features/Words/WordListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000070 /* Features/Words/WordListViewModel.swift */; };
+		A100000000000000000071 /* Features/Words/WordListFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000071 /* Features/Words/WordListFilters.swift */; };
+		A100000000000000000072 /* Features/Words/WordListFilterBars.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000072 /* Features/Words/WordListFilterBars.swift */; };
+		A100000000000000000073 /* Features/Words/WordListRowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000073 /* Features/Words/WordListRowViews.swift */; };
+		A100000000000000000074 /* Features/Words/WordListErrorBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000074 /* Features/Words/WordListErrorBox.swift */; };
+		A100000000000000000075 /* Features/Words/WordDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000075 /* Features/Words/WordDetailSheet.swift */; };
+		A1000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */; };
+		A1000000000000000000F3 /* Features/Words/WordListDeckBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000F3 /* Features/Words/WordListDeckBanner.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
-		B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000B /* UserFacingErrorTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
-		B100000000000000000012 /* WordListFiltersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000000000000000012 /* WordListFiltersTests.swift */; };
-		B100000000000000000013 /* WordListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000000000000000013 /* WordListViewModelTests.swift */; };
 		B10000000000000000000004 /* AuthTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* AuthTransportTests.swift */; };
 		B10000000000000000000005 /* AuthConfirmationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000006 /* AuthConfirmationTests.swift */; };
 		B10000000000000000000006 /* AccountDeletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000007 /* AccountDeletionTests.swift */; };
 		B10000000000000000000007 /* AppInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000008 /* AppInfoTests.swift */; };
-		B1000000000000000000002A /* LegalDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* LegalDocumentTests.swift */; };
 		B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000009 /* LocalStudyDataSourceTests.swift */; };
 		B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */; };
+		B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000B /* UserFacingErrorTests.swift */; };
+		B1000000000000000000002A /* LegalDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* LegalDocumentTests.swift */; };
 		B1000000000000000000009B /* StudyBackupSyncerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009B /* StudyBackupSyncerTests.swift */; };
 		B1000000000000000000009C /* CardImageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009C /* CardImageCacheTests.swift */; };
+		B100000000000000000012 /* WordListFiltersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000000000000000012 /* WordListFiltersTests.swift */; };
+		B100000000000000000013 /* WordListViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B200000000000000000013 /* WordListViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,88 +102,88 @@
 
 /* Begin PBXFileReference section */
 		A20000000000000000000001 /* UsalingoIOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsalingoIOSApp.swift; sourceTree = "<group>"; };
-		A20000000000000000000002 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppState.swift; sourceTree = "<group>"; };
-		A20000000000000000000003 /* Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/Deck.swift; sourceTree = "<group>"; };
-		A20000000000000000000004 /* WordCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/WordCard.swift; sourceTree = "<group>"; };
-		A20000000000000000000005 /* LearningProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/LearningProgress.swift; sourceTree = "<group>"; };
-		A20000000000000000000006 /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseConfig.swift; sourceTree = "<group>"; };
-		A2000000000000000000002A /* UserFacingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/UserFacingError.swift; sourceTree = "<group>"; };
-		A20000000000000000000007 /* SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseClient.swift; sourceTree = "<group>"; };
-		A20000000000000000000008 /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AuthService.swift; sourceTree = "<group>"; };
-		A2000000000000000000000A /* StudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyService.swift; sourceTree = "<group>"; };
-		A20000000000000000000030 /* WireColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireColor.swift; sourceTree = "<group>"; };
-		A20000000000000000000031 /* WireMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireMetrics.swift; sourceTree = "<group>"; };
-		A20000000000000000000032 /* WireTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireTypography.swift; sourceTree = "<group>"; };
-		A20000000000000000000033 /* OffsetShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Modifiers/OffsetShadow.swift; sourceTree = "<group>"; };
-		A20000000000000000000034 /* OutlineSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Modifiers/OutlineSurface.swift; sourceTree = "<group>"; };
-		A20000000000000000000035 /* WireCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireCard.swift; sourceTree = "<group>"; };
-		A20000000000000000000036 /* WireButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireButton.swift; sourceTree = "<group>"; };
-		A20000000000000000000037 /* WireTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTextField.swift; sourceTree = "<group>"; };
-		A20000000000000000000038 /* WirePill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WirePill.swift; sourceTree = "<group>"; };
-		A20000000000000000000039 /* WireIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireIconButton.swift; sourceTree = "<group>"; };
-		A2000000000000000000003A /* WireImagePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireImagePlaceholder.swift; sourceTree = "<group>"; };
-		A2000000000000000000003B /* WireTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTimeline.swift; sourceTree = "<group>"; };
-		A2000000000000000000003C /* DesignSystemGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Previews/DesignSystemGallery.swift; sourceTree = "<group>"; };
-		A2000000000000000000003D /* BentoGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/BentoGroup.swift; sourceTree = "<group>"; };
-		A2000000000000000000000C /* AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
-		A2000000000000000000000E /* StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
-		A2000000000000000000000F /* StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
-		A20000000000000000000FA1 /* WordCardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/WordCardContent.swift; sourceTree = "<group>"; };
+		A20000000000000000000002 /* App/AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App/AppState.swift; sourceTree = "<group>"; };
+		A20000000000000000000003 /* Models/Deck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/Deck.swift; sourceTree = "<group>"; };
+		A20000000000000000000004 /* Models/WordCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/WordCard.swift; sourceTree = "<group>"; };
+		A20000000000000000000005 /* Models/LearningProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/LearningProgress.swift; sourceTree = "<group>"; };
+		A20000000000000000000006 /* Services/SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseConfig.swift; sourceTree = "<group>"; };
+		A20000000000000000000007 /* Services/SupabaseClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SupabaseClient.swift; sourceTree = "<group>"; };
+		A20000000000000000000008 /* Services/AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AuthService.swift; sourceTree = "<group>"; };
+		A2000000000000000000000A /* Services/StudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyService.swift; sourceTree = "<group>"; };
+		A2000000000000000000000C /* Features/Auth/AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000E /* Features/Study/StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
+		A2000000000000000000000F /* Features/Study/StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* UsalingoIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UsalingoIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A20000000000000000000011 /* Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Local.xcconfig; sourceTree = "<group>"; };
+		A20000000000000000000011 /* Config/Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Local.xcconfig; sourceTree = "<group>"; };
 		A20000000000000000000012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		A20000000000000000000013 /* AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/AppShellView.swift; sourceTree = "<group>"; };
-		A20000000000000000000014 /* LearningDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningDashboardView.swift; sourceTree = "<group>"; };
-		A20000000000000000000015 /* DesignDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignDashboardView.swift; sourceTree = "<group>"; };
-		A20000000000000000000F02 /* DesignPreviewStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignPreviewStage.swift; sourceTree = "<group>"; };
-		A20000000000000000000016 /* ProfileDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileDashboardView.swift; sourceTree = "<group>"; };
-		A20000000000000000000017 /* SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SessionStore.swift; sourceTree = "<group>"; };
-		A20000000000000000000018 /* WordListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListView.swift; sourceTree = "<group>"; };
-		A200000000000000000070 /* WordListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListViewModel.swift; sourceTree = "<group>"; };
-		A200000000000000000071 /* WordListFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilters.swift; sourceTree = "<group>"; };
-		A200000000000000000072 /* WordListFilterBars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilterBars.swift; sourceTree = "<group>"; };
-		A2000000000000000000F1 /* InteractiveSwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/InteractiveSwipeBack.swift; sourceTree = "<group>"; };
-		A2000000000000000000F3 /* WordListDeckBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListDeckBanner.swift; sourceTree = "<group>"; };
-		A200000000000000000073 /* WordListRowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListRowViews.swift; sourceTree = "<group>"; };
-		A200000000000000000074 /* WordListErrorBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListErrorBox.swift; sourceTree = "<group>"; };
-		A200000000000000000075 /* WordDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordDetailSheet.swift; sourceTree = "<group>"; };
-		A2000000000000000000076 /* LearningConcept.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningConcept.swift; sourceTree = "<group>"; };
-		A2000000000000000000077 /* DeckSummaryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckSummaryViews.swift; sourceTree = "<group>"; };
-		A2000000000000000000078 /* DeckConceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckConceptView.swift; sourceTree = "<group>"; };
-		A20000000000000000000019 /* AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AudioPlaybackService.swift; sourceTree = "<group>"; };
-		A2000000000000000000003E /* HapticFeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HapticFeedbackService.swift; sourceTree = "<group>"; };
-		A2000000000000000000001A /* WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
-		A2000000000000000000001B /* TagSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/TagSheet.swift; sourceTree = "<group>"; };
-		A2000000000000000000001C /* DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
-		A2000000000000000000001F /* SwipeTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/SwipeTutorialView.swift; sourceTree = "<group>"; };
-		A20000000000000000000020 /* AccountDeletionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AccountDeletionService.swift; sourceTree = "<group>"; };
-		A20000000000000000000021 /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AppInfo.swift; sourceTree = "<group>"; };
-		A20000000000000000000022 /* Licenses */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Licenses; sourceTree = "<group>"; };
-		A20000000000000000000027 /* SampleDecks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/SampleDecks; sourceTree = "<group>"; };
-		A2000000000000000000002B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
-		A2000000000000000000002C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		A2000000000000000000002D /* CardImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ImageLoading/CardImageLoader.swift; sourceTree = "<group>"; };
-		A20000000000000000000023 /* DeckFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DeckFile.swift; sourceTree = "<group>"; };
-		A20000000000000000000024 /* StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
-		A20000000000000000000025 /* LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
-		A20000000000000000000026 /* DeckLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckLibraryView.swift; sourceTree = "<group>"; };
-		A20000000000000000000029 /* StudyBackupSyncer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyBackupSyncer.swift; sourceTree = "<group>"; };
-		A20000000000000000000028 /* GuestStudyBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/GuestStudyBackupService.swift; sourceTree = "<group>"; };
+		A20000000000000000000013 /* Features/Shell/AppShellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Shell/AppShellView.swift; sourceTree = "<group>"; };
+		A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000015 /* Features/Design/DesignDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* Features/Profile/ProfileDashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Profile/ProfileDashboardView.swift; sourceTree = "<group>"; };
+		A20000000000000000000017 /* Services/SessionStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/SessionStore.swift; sourceTree = "<group>"; };
+		A20000000000000000000018 /* Features/Words/WordListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListView.swift; sourceTree = "<group>"; };
+		A20000000000000000000019 /* Services/AudioPlaybackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AudioPlaybackService.swift; sourceTree = "<group>"; };
+		A2000000000000000000001A /* Features/Words/WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
+		A2000000000000000000001B /* Features/Words/TagSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/TagSheet.swift; sourceTree = "<group>"; };
+		A2000000000000000000001C /* Models/DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
+		A2000000000000000000001F /* Features/Study/SwipeTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/SwipeTutorialView.swift; sourceTree = "<group>"; };
+		A20000000000000000000020 /* Services/AccountDeletionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AccountDeletionService.swift; sourceTree = "<group>"; };
+		A20000000000000000000021 /* Services/AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AppInfo.swift; sourceTree = "<group>"; };
+		A20000000000000000000022 /* Resources/Licenses */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Licenses; sourceTree = "<group>"; };
+		A20000000000000000000023 /* Models/DeckFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DeckFile.swift; sourceTree = "<group>"; };
+		A20000000000000000000024 /* Services/StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
+		A20000000000000000000025 /* Services/LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
+		A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckLibraryView.swift; sourceTree = "<group>"; };
+		A20000000000000000000027 /* Resources/SampleDecks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/SampleDecks; sourceTree = "<group>"; };
+		A20000000000000000000028 /* Services/GuestStudyBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/GuestStudyBackupService.swift; sourceTree = "<group>"; };
+		A20000000000000000000029 /* Services/StudyBackupSyncer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyBackupSyncer.swift; sourceTree = "<group>"; };
+		A2000000000000000000002A /* Services/UserFacingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/UserFacingError.swift; sourceTree = "<group>"; };
+		A2000000000000000000002B /* Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
+		A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A2000000000000000000002D /* Services/ImageLoading/CardImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ImageLoading/CardImageLoader.swift; sourceTree = "<group>"; };
+		A20000000000000000000030 /* DesignSystem/Tokens/WireColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireColor.swift; sourceTree = "<group>"; };
+		A20000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireMetrics.swift; sourceTree = "<group>"; };
+		A20000000000000000000032 /* DesignSystem/Tokens/WireTypography.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireTypography.swift; sourceTree = "<group>"; };
+		A20000000000000000000033 /* DesignSystem/Modifiers/OffsetShadow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Modifiers/OffsetShadow.swift; sourceTree = "<group>"; };
+		A20000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Modifiers/OutlineSurface.swift; sourceTree = "<group>"; };
+		A20000000000000000000035 /* DesignSystem/Components/WireCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireCard.swift; sourceTree = "<group>"; };
+		A20000000000000000000036 /* DesignSystem/Components/WireButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireButton.swift; sourceTree = "<group>"; };
+		A20000000000000000000037 /* DesignSystem/Components/WireTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTextField.swift; sourceTree = "<group>"; };
+		A20000000000000000000038 /* DesignSystem/Components/WirePill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WirePill.swift; sourceTree = "<group>"; };
+		A20000000000000000000039 /* DesignSystem/Components/WireIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireIconButton.swift; sourceTree = "<group>"; };
+		A2000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireImagePlaceholder.swift; sourceTree = "<group>"; };
+		A2000000000000000000003B /* DesignSystem/Components/WireTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTimeline.swift; sourceTree = "<group>"; };
+		A2000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Previews/DesignSystemGallery.swift; sourceTree = "<group>"; };
+		A2000000000000000000003D /* DesignSystem/Components/BentoGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/BentoGroup.swift; sourceTree = "<group>"; };
+		A2000000000000000000003E /* Services/HapticFeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HapticFeedbackService.swift; sourceTree = "<group>"; };
+		A2000000000000000000076 /* Features/Learning/LearningConcept.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningConcept.swift; sourceTree = "<group>"; };
+		A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckSummaryViews.swift; sourceTree = "<group>"; };
+		A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckConceptView.swift; sourceTree = "<group>"; };
+		A20000000000000000000F02 /* Features/Design/DesignPreviewStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignPreviewStage.swift; sourceTree = "<group>"; };
+		A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/WordCardContent.swift; sourceTree = "<group>"; };
+		A200000000000000000070 /* Features/Words/WordListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListViewModel.swift; sourceTree = "<group>"; };
+		A200000000000000000071 /* Features/Words/WordListFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilters.swift; sourceTree = "<group>"; };
+		A200000000000000000072 /* Features/Words/WordListFilterBars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilterBars.swift; sourceTree = "<group>"; };
+		A200000000000000000073 /* Features/Words/WordListRowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListRowViews.swift; sourceTree = "<group>"; };
+		A200000000000000000074 /* Features/Words/WordListErrorBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListErrorBox.swift; sourceTree = "<group>"; };
+		A200000000000000000075 /* Features/Words/WordDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordDetailSheet.swift; sourceTree = "<group>"; };
+		A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/InteractiveSwipeBack.swift; sourceTree = "<group>"; };
+		A2000000000000000000F3 /* Features/Words/WordListDeckBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListDeckBanner.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
-		B2000000000000000000000B /* UserFacingErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingErrorTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
-		B200000000000000000012 /* WordListFiltersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListFiltersTests.swift; sourceTree = "<group>"; };
-		B200000000000000000013 /* WordListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListViewModelTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000005 /* AuthTransportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthTransportTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000006 /* AuthConfirmationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthConfirmationTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000007 /* AccountDeletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountDeletionTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000008 /* AppInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfoTests.swift; sourceTree = "<group>"; };
-		B2000000000000000000002A /* LegalDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000009 /* LocalStudyDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStudyDataSourceTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestStudyBackupServiceTests.swift; sourceTree = "<group>"; };
+		B2000000000000000000000B /* UserFacingErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingErrorTests.swift; sourceTree = "<group>"; };
+		B2000000000000000000002A /* LegalDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009B /* StudyBackupSyncerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyBackupSyncerTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009C /* CardImageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardImageCacheTests.swift; sourceTree = "<group>"; };
+		B200000000000000000012 /* WordListFiltersTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListFiltersTests.swift; sourceTree = "<group>"; };
+		B200000000000000000013 /* WordListViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListViewModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -211,7 +211,7 @@
 			children = (
 				A40000000000000000000002 /* UsalingoIOS */,
 				B40000000000000000000001 /* UsalingoIOSTests */,
-				A20000000000000000000011 /* Local.xcconfig */,
+				A20000000000000000000011 /* Config/Local.xcconfig */,
 				A40000000000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -220,70 +220,70 @@
 			isa = PBXGroup;
 			children = (
 				A20000000000000000000001 /* UsalingoIOSApp.swift */,
-				A20000000000000000000002 /* AppState.swift */,
-				A20000000000000000000003 /* Deck.swift */,
-				A20000000000000000000004 /* WordCard.swift */,
-				A20000000000000000000005 /* LearningProgress.swift */,
-				A20000000000000000000023 /* DeckFile.swift */,
-				A2000000000000000000001C /* DesignSettings.swift */,
-				A20000000000000000000006 /* SupabaseConfig.swift */,
-				A2000000000000000000002A /* UserFacingError.swift */,
-				A20000000000000000000007 /* SupabaseClient.swift */,
-				A20000000000000000000008 /* AuthService.swift */,
-				A20000000000000000000020 /* AccountDeletionService.swift */,
-				A20000000000000000000021 /* AppInfo.swift */,
-				A2000000000000000000000A /* StudyService.swift */,
-				A20000000000000000000024 /* StudyDataSource.swift */,
-				A20000000000000000000025 /* LocalStudyDataSource.swift */,
-				A20000000000000000000017 /* SessionStore.swift */,
-				A20000000000000000000019 /* AudioPlaybackService.swift */,
-				A2000000000000000000003E /* HapticFeedbackService.swift */,
-				A2000000000000000000002D /* CardImageLoader.swift */,
-				A20000000000000000000030 /* WireColor.swift */,
-				A20000000000000000000031 /* WireMetrics.swift */,
-				A20000000000000000000032 /* WireTypography.swift */,
-				A20000000000000000000033 /* OffsetShadow.swift */,
-				A20000000000000000000034 /* OutlineSurface.swift */,
-				A20000000000000000000035 /* WireCard.swift */,
-				A20000000000000000000036 /* WireButton.swift */,
-				A20000000000000000000037 /* WireTextField.swift */,
-				A20000000000000000000038 /* WirePill.swift */,
-				A20000000000000000000039 /* WireIconButton.swift */,
-				A2000000000000000000003A /* WireImagePlaceholder.swift */,
-				A2000000000000000000003B /* WireTimeline.swift */,
-				A2000000000000000000003C /* DesignSystemGallery.swift */,
-				A2000000000000000000003D /* BentoGroup.swift */,
-				A2000000000000000000000C /* AuthView.swift */,
-				A2000000000000000000000E /* StudySessionView.swift */,
-				A2000000000000000000000F /* StudyCardView.swift */,
-				A20000000000000000000FA1 /* WordCardContent.swift */,
-				A20000000000000000000013 /* AppShellView.swift */,
-				A20000000000000000000014 /* LearningDashboardView.swift */,
-				A20000000000000000000026 /* DeckLibraryView.swift */,
-				A2000000000000000000076 /* LearningConcept.swift */,
-				A2000000000000000000077 /* DeckSummaryViews.swift */,
-				A2000000000000000000078 /* DeckConceptView.swift */,
-				A20000000000000000000029 /* StudyBackupSyncer.swift */,
-				A20000000000000000000028 /* GuestStudyBackupService.swift */,
-				A20000000000000000000015 /* DesignDashboardView.swift */,
-				A20000000000000000000F02 /* DesignPreviewStage.swift */,
-				A20000000000000000000016 /* ProfileDashboardView.swift */,
-				A20000000000000000000018 /* WordListView.swift */,
-				A200000000000000000070 /* WordListViewModel.swift */,
-				A200000000000000000071 /* WordListFilters.swift */,
-				A200000000000000000072 /* WordListFilterBars.swift */,
-				A2000000000000000000F1 /* InteractiveSwipeBack.swift */,
-				A2000000000000000000F3 /* WordListDeckBanner.swift */,
-				A200000000000000000073 /* WordListRowViews.swift */,
-				A200000000000000000074 /* WordListErrorBox.swift */,
-				A200000000000000000075 /* WordDetailSheet.swift */,
-				A2000000000000000000001A /* WordEditSheet.swift */,
-				A2000000000000000000001B /* TagSheet.swift */,
-				A2000000000000000000001F /* SwipeTutorialView.swift */,
-				A20000000000000000000022 /* Licenses */,
-				A20000000000000000000027 /* SampleDecks */,
-				A2000000000000000000002B /* Assets.xcassets */,
-				A2000000000000000000002C /* PrivacyInfo.xcprivacy */,
+				A20000000000000000000002 /* App/AppState.swift */,
+				A20000000000000000000003 /* Models/Deck.swift */,
+				A20000000000000000000004 /* Models/WordCard.swift */,
+				A20000000000000000000005 /* Models/LearningProgress.swift */,
+				A20000000000000000000023 /* Models/DeckFile.swift */,
+				A2000000000000000000001C /* Models/DesignSettings.swift */,
+				A20000000000000000000006 /* Services/SupabaseConfig.swift */,
+				A2000000000000000000002A /* Services/UserFacingError.swift */,
+				A20000000000000000000007 /* Services/SupabaseClient.swift */,
+				A20000000000000000000008 /* Services/AuthService.swift */,
+				A20000000000000000000020 /* Services/AccountDeletionService.swift */,
+				A20000000000000000000021 /* Services/AppInfo.swift */,
+				A2000000000000000000000A /* Services/StudyService.swift */,
+				A20000000000000000000024 /* Services/StudyDataSource.swift */,
+				A20000000000000000000025 /* Services/LocalStudyDataSource.swift */,
+				A20000000000000000000017 /* Services/SessionStore.swift */,
+				A20000000000000000000019 /* Services/AudioPlaybackService.swift */,
+				A2000000000000000000003E /* Services/HapticFeedbackService.swift */,
+				A2000000000000000000002D /* Services/ImageLoading/CardImageLoader.swift */,
+				A20000000000000000000030 /* DesignSystem/Tokens/WireColor.swift */,
+				A20000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift */,
+				A20000000000000000000032 /* DesignSystem/Tokens/WireTypography.swift */,
+				A20000000000000000000033 /* DesignSystem/Modifiers/OffsetShadow.swift */,
+				A20000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift */,
+				A20000000000000000000035 /* DesignSystem/Components/WireCard.swift */,
+				A20000000000000000000036 /* DesignSystem/Components/WireButton.swift */,
+				A20000000000000000000037 /* DesignSystem/Components/WireTextField.swift */,
+				A20000000000000000000038 /* DesignSystem/Components/WirePill.swift */,
+				A20000000000000000000039 /* DesignSystem/Components/WireIconButton.swift */,
+				A2000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift */,
+				A2000000000000000000003B /* DesignSystem/Components/WireTimeline.swift */,
+				A2000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift */,
+				A2000000000000000000003D /* DesignSystem/Components/BentoGroup.swift */,
+				A2000000000000000000000C /* Features/Auth/AuthView.swift */,
+				A2000000000000000000000E /* Features/Study/StudySessionView.swift */,
+				A2000000000000000000000F /* Features/Study/StudyCardView.swift */,
+				A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */,
+				A20000000000000000000013 /* Features/Shell/AppShellView.swift */,
+				A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */,
+				A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */,
+				A2000000000000000000076 /* Features/Learning/LearningConcept.swift */,
+				A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */,
+				A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */,
+				A20000000000000000000029 /* Services/StudyBackupSyncer.swift */,
+				A20000000000000000000028 /* Services/GuestStudyBackupService.swift */,
+				A20000000000000000000015 /* Features/Design/DesignDashboardView.swift */,
+				A20000000000000000000F02 /* Features/Design/DesignPreviewStage.swift */,
+				A20000000000000000000016 /* Features/Profile/ProfileDashboardView.swift */,
+				A20000000000000000000018 /* Features/Words/WordListView.swift */,
+				A200000000000000000070 /* Features/Words/WordListViewModel.swift */,
+				A200000000000000000071 /* Features/Words/WordListFilters.swift */,
+				A200000000000000000072 /* Features/Words/WordListFilterBars.swift */,
+				A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */,
+				A2000000000000000000F3 /* Features/Words/WordListDeckBanner.swift */,
+				A200000000000000000073 /* Features/Words/WordListRowViews.swift */,
+				A200000000000000000074 /* Features/Words/WordListErrorBox.swift */,
+				A200000000000000000075 /* Features/Words/WordDetailSheet.swift */,
+				A2000000000000000000001A /* Features/Words/WordEditSheet.swift */,
+				A2000000000000000000001B /* Features/Words/TagSheet.swift */,
+				A2000000000000000000001F /* Features/Study/SwipeTutorialView.swift */,
+				A20000000000000000000022 /* Resources/Licenses */,
+				A20000000000000000000027 /* Resources/SampleDecks */,
+				A2000000000000000000002B /* Resources/Assets.xcassets */,
+				A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */,
 				A20000000000000000000012 /* Info.plist */,
 			);
 			path = UsalingoIOS;
@@ -334,11 +334,11 @@
 			);
 			dependencies = (
 			);
+			name = UsalingoIOS;
 			packageProductDependencies = (
 				A100000000000000000000C1 /* Nuke */,
 				A100000000000000000000C2 /* NukeUI */,
 			);
-			name = UsalingoIOS;
 			productName = UsalingoIOS;
 			productReference = A20000000000000000000010 /* UsalingoIOS.app */;
 			productType = "com.apple.product-type.application";
@@ -388,12 +388,12 @@
 				Base,
 			);
 			mainGroup = A40000000000000000000001;
-			productRefGroup = A40000000000000000000003 /* Products */;
-			projectDirPath = "";
-			projectRoot = "";
 			packageReferences = (
 				A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */,
 			);
+			productRefGroup = A40000000000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
 			targets = (
 				A50000000000000000000001 /* UsalingoIOS */,
 				B50000000000000000000001 /* UsalingoIOSTests */,
@@ -406,10 +406,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10000000000000000000022 /* Licenses in Resources */,
-				A10000000000000000000027 /* SampleDecks in Resources */,
-				A1000000000000000000002B /* Assets.xcassets in Resources */,
-				A1000000000000000000002C /* PrivacyInfo.xcprivacy in Resources */,
+				A10000000000000000000022 /* Resources/Licenses in Resources */,
+				A10000000000000000000027 /* Resources/SampleDecks in Resources */,
+				A1000000000000000000002B /* Resources/Assets.xcassets in Resources */,
+				A1000000000000000000002C /* Resources/PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -421,66 +421,66 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000001 /* UsalingoIOSApp.swift in Sources */,
-				A10000000000000000000002 /* AppState.swift in Sources */,
-				A10000000000000000000003 /* Deck.swift in Sources */,
-				A10000000000000000000004 /* WordCard.swift in Sources */,
-				A10000000000000000000005 /* LearningProgress.swift in Sources */,
-				A10000000000000000000006 /* SupabaseConfig.swift in Sources */,
-				A1000000000000000000002A /* UserFacingError.swift in Sources */,
-				A10000000000000000000007 /* SupabaseClient.swift in Sources */,
-				A10000000000000000000008 /* AuthService.swift in Sources */,
-				A1000000000000000000000A /* StudyService.swift in Sources */,
-				A10000000000000000000023 /* DeckFile.swift in Sources */,
-				A10000000000000000000024 /* StudyDataSource.swift in Sources */,
-				A10000000000000000000025 /* LocalStudyDataSource.swift in Sources */,
-				A10000000000000000000030 /* WireColor.swift in Sources */,
-				A10000000000000000000031 /* WireMetrics.swift in Sources */,
-				A10000000000000000000032 /* WireTypography.swift in Sources */,
-				A10000000000000000000033 /* OffsetShadow.swift in Sources */,
-				A10000000000000000000034 /* OutlineSurface.swift in Sources */,
-				A10000000000000000000035 /* WireCard.swift in Sources */,
-				A10000000000000000000036 /* WireButton.swift in Sources */,
-				A10000000000000000000037 /* WireTextField.swift in Sources */,
-				A10000000000000000000038 /* WirePill.swift in Sources */,
-				A10000000000000000000039 /* WireIconButton.swift in Sources */,
-				A1000000000000000000003A /* WireImagePlaceholder.swift in Sources */,
-				A1000000000000000000003B /* WireTimeline.swift in Sources */,
-				A1000000000000000000003C /* DesignSystemGallery.swift in Sources */,
-				A1000000000000000000003D /* BentoGroup.swift in Sources */,
-				A1000000000000000000000C /* AuthView.swift in Sources */,
-				A1000000000000000000000E /* StudySessionView.swift in Sources */,
-				A1000000000000000000000F /* StudyCardView.swift in Sources */,
-				A10000000000000000000FA1 /* WordCardContent.swift in Sources */,
-				A10000000000000000000013 /* AppShellView.swift in Sources */,
-				A10000000000000000000014 /* LearningDashboardView.swift in Sources */,
-				A10000000000000000000026 /* DeckLibraryView.swift in Sources */,
-				A1000000000000000000076 /* LearningConcept.swift in Sources */,
-				A1000000000000000000077 /* DeckSummaryViews.swift in Sources */,
-				A1000000000000000000078 /* DeckConceptView.swift in Sources */,
-				A10000000000000000000029 /* StudyBackupSyncer.swift in Sources */,
-				A10000000000000000000028 /* GuestStudyBackupService.swift in Sources */,
-				A10000000000000000000015 /* DesignDashboardView.swift in Sources */,
-				A10000000000000000000F02 /* DesignPreviewStage.swift in Sources */,
-				A10000000000000000000016 /* ProfileDashboardView.swift in Sources */,
-				A10000000000000000000017 /* SessionStore.swift in Sources */,
-				A10000000000000000000018 /* WordListView.swift in Sources */,
-				A100000000000000000070 /* WordListViewModel.swift in Sources */,
-				A100000000000000000071 /* WordListFilters.swift in Sources */,
-				A100000000000000000072 /* WordListFilterBars.swift in Sources */,
-				A1000000000000000000F1 /* InteractiveSwipeBack.swift in Sources */,
-				A1000000000000000000F3 /* WordListDeckBanner.swift in Sources */,
-				A100000000000000000073 /* WordListRowViews.swift in Sources */,
-				A100000000000000000074 /* WordListErrorBox.swift in Sources */,
-				A100000000000000000075 /* WordDetailSheet.swift in Sources */,
-				A10000000000000000000019 /* AudioPlaybackService.swift in Sources */,
-				A1000000000000000000003E /* HapticFeedbackService.swift in Sources */,
-				A1000000000000000000003F /* CardImageLoader.swift in Sources */,
-				A1000000000000000000001A /* WordEditSheet.swift in Sources */,
-				A1000000000000000000001B /* TagSheet.swift in Sources */,
-				A1000000000000000000001C /* DesignSettings.swift in Sources */,
-				A1000000000000000000001F /* SwipeTutorialView.swift in Sources */,
-				A10000000000000000000020 /* AccountDeletionService.swift in Sources */,
-				A10000000000000000000021 /* AppInfo.swift in Sources */,
+				A10000000000000000000002 /* App/AppState.swift in Sources */,
+				A10000000000000000000003 /* Models/Deck.swift in Sources */,
+				A10000000000000000000004 /* Models/WordCard.swift in Sources */,
+				A10000000000000000000005 /* Models/LearningProgress.swift in Sources */,
+				A10000000000000000000006 /* Services/SupabaseConfig.swift in Sources */,
+				A1000000000000000000002A /* Services/UserFacingError.swift in Sources */,
+				A10000000000000000000007 /* Services/SupabaseClient.swift in Sources */,
+				A10000000000000000000008 /* Services/AuthService.swift in Sources */,
+				A1000000000000000000000A /* Services/StudyService.swift in Sources */,
+				A10000000000000000000023 /* Models/DeckFile.swift in Sources */,
+				A10000000000000000000024 /* Services/StudyDataSource.swift in Sources */,
+				A10000000000000000000025 /* Services/LocalStudyDataSource.swift in Sources */,
+				A10000000000000000000030 /* DesignSystem/Tokens/WireColor.swift in Sources */,
+				A10000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift in Sources */,
+				A10000000000000000000032 /* DesignSystem/Tokens/WireTypography.swift in Sources */,
+				A10000000000000000000033 /* DesignSystem/Modifiers/OffsetShadow.swift in Sources */,
+				A10000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift in Sources */,
+				A10000000000000000000035 /* DesignSystem/Components/WireCard.swift in Sources */,
+				A10000000000000000000036 /* DesignSystem/Components/WireButton.swift in Sources */,
+				A10000000000000000000037 /* DesignSystem/Components/WireTextField.swift in Sources */,
+				A10000000000000000000038 /* DesignSystem/Components/WirePill.swift in Sources */,
+				A10000000000000000000039 /* DesignSystem/Components/WireIconButton.swift in Sources */,
+				A1000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift in Sources */,
+				A1000000000000000000003B /* DesignSystem/Components/WireTimeline.swift in Sources */,
+				A1000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift in Sources */,
+				A1000000000000000000003D /* DesignSystem/Components/BentoGroup.swift in Sources */,
+				A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */,
+				A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */,
+				A1000000000000000000000F /* Features/Study/StudyCardView.swift in Sources */,
+				A10000000000000000000FA1 /* Features/Study/WordCardContent.swift in Sources */,
+				A10000000000000000000013 /* Features/Shell/AppShellView.swift in Sources */,
+				A10000000000000000000014 /* Features/Learning/LearningDashboardView.swift in Sources */,
+				A10000000000000000000026 /* Features/Learning/DeckLibraryView.swift in Sources */,
+				A1000000000000000000076 /* Features/Learning/LearningConcept.swift in Sources */,
+				A1000000000000000000077 /* Features/Learning/DeckSummaryViews.swift in Sources */,
+				A1000000000000000000078 /* Features/Learning/DeckConceptView.swift in Sources */,
+				A10000000000000000000029 /* Services/StudyBackupSyncer.swift in Sources */,
+				A10000000000000000000028 /* Services/GuestStudyBackupService.swift in Sources */,
+				A10000000000000000000015 /* Features/Design/DesignDashboardView.swift in Sources */,
+				A10000000000000000000F02 /* Features/Design/DesignPreviewStage.swift in Sources */,
+				A10000000000000000000016 /* Features/Profile/ProfileDashboardView.swift in Sources */,
+				A10000000000000000000017 /* Services/SessionStore.swift in Sources */,
+				A10000000000000000000018 /* Features/Words/WordListView.swift in Sources */,
+				A100000000000000000070 /* Features/Words/WordListViewModel.swift in Sources */,
+				A100000000000000000071 /* Features/Words/WordListFilters.swift in Sources */,
+				A100000000000000000072 /* Features/Words/WordListFilterBars.swift in Sources */,
+				A1000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift in Sources */,
+				A1000000000000000000F3 /* Features/Words/WordListDeckBanner.swift in Sources */,
+				A100000000000000000073 /* Features/Words/WordListRowViews.swift in Sources */,
+				A100000000000000000074 /* Features/Words/WordListErrorBox.swift in Sources */,
+				A100000000000000000075 /* Features/Words/WordDetailSheet.swift in Sources */,
+				A10000000000000000000019 /* Services/AudioPlaybackService.swift in Sources */,
+				A1000000000000000000003E /* Services/HapticFeedbackService.swift in Sources */,
+				A1000000000000000000003F /* Services/ImageLoading/CardImageLoader.swift in Sources */,
+				A1000000000000000000001A /* Features/Words/WordEditSheet.swift in Sources */,
+				A1000000000000000000001B /* Features/Words/TagSheet.swift in Sources */,
+				A1000000000000000000001C /* Models/DesignSettings.swift in Sources */,
+				A1000000000000000000001F /* Features/Study/SwipeTutorialView.swift in Sources */,
+				A10000000000000000000020 /* Services/AccountDeletionService.swift in Sources */,
+				A10000000000000000000021 /* Services/AppInfo.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -514,30 +514,6 @@
 			targetProxy = B00000000000000000000001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/kean/Nuke.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.9.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		A100000000000000000000C1 /* Nuke */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */;
-			productName = Nuke;
-		};
-		A100000000000000000000C2 /* NukeUI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */;
-			productName = NukeUI;
-		};
-/* End XCSwiftPackageProductDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A80000000000000000000001 /* Debug */ = {
@@ -655,12 +631,12 @@
 		};
 		A80000000000000000000003 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A20000000000000000000011 /* Local.xcconfig */;
+			baseConfigurationReference = A20000000000000000000011 /* Config/Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = CTSYH44JRG;
 				ENABLE_PREVIEWS = YES;
@@ -670,9 +646,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.usalingo.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -681,12 +661,12 @@
 		};
 		A80000000000000000000004 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = A20000000000000000000011 /* Local.xcconfig */;
+			baseConfigurationReference = A20000000000000000000011 /* Config/Local.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "";
 				DEVELOPMENT_TEAM = CTSYH44JRG;
 				ENABLE_PREVIEWS = YES;
@@ -696,9 +676,13 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.usalingo.ios;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 1;
@@ -772,6 +756,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kean/Nuke.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.9.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A100000000000000000000C1 /* Nuke */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = Nuke;
+		};
+		A100000000000000000000C2 /* NukeUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A100000000000000000000C0 /* XCRemoteSwiftPackageReference "Nuke" */;
+			productName = NukeUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A60000000000000000000001 /* Project object */;
 }
