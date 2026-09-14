@@ -53,8 +53,8 @@ word（見出し語）
 | `01_core_senses` | `sense_id` | `word_id`, `priority`, `part_of_speech_en`, `definition_jp` | 意味、品詞、活用、関連語 |
 | `02_content_concepts` | `concept_id` | `concept_code`, `concept_name`, `is_active` | 教材コンセプト |
 | `02_content_examples` | `example_id` | `sense_id`, `concept_id`, `sentence_en`, `sentence_jp`, `image_state`, `display_order` | 例文と画像 |
-| `03_audio_pronunciations` | `pronunciation_id` | `word_id`, `ipa_state`, `audio_state`, `voice_label`, `is_primary`, `display_order` | 発音と単語音声 |
-| `03_audio_example_audio` | `example_audio_id` | `example_id`, `audio_state`, `voice_label`, `is_primary`, `display_order` | 例文音声 |
+| `03_audio_pronunciations` | `pronunciation_id` | `word_id`, `voice_label` | 発音と単語音声 |
+| `03_audio_example_audio` | `example_audio_id` | `example_id`, `voice_label` | 例文音声 |
 
 共通ルール:
 
@@ -154,18 +154,28 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 |---|---:|---|
 | `pronunciation_id` | 必須 | 固定ID |
 | `word_id` | 必須 | 見出し語 |
-| `accent` | 必須 | `US`, `UK`, `unspecified` など |
 | `ipa` | 任意 | IPA |
-| `ipa_state` | 必須 | IPAの状態 |
 | `audio_asset_path` | 任意 | 単語音声のStorage相対パス |
-| `audio_state` | 必須 | 音声の状態 |
 | `voice_label` | 必須 | `default`, `male` など |
-| `is_primary` | 必須 | 標準音声か。1単語につき最大1件 |
-| `display_order` | 必須 | 表示順 |
 
 ### `03_audio_example_audio`
 
-`example_id`, `audio_asset_path`, `audio_state`, `voice_label`, `is_primary`, `display_order` を持ちます。標準音声は1例文につき最大1件です。
+`example_audio_id`, `example_id`, `audio_asset_path`, `voice_label` を持ちます。
+
+### 音声シートで取りこみが決める値
+
+音声の2シートは、状態・標準・順番・アクセントの列を持ちません。取りこみがDBの列を次のように決めます。
+
+| DBの列 | 決め方 |
+|---|---|
+| `ipa_state` | `ipa` があれば `present`、なければ `blank` |
+| `audio_state` | `audio_asset_path` があれば `present`、なければ `blank` |
+| `display_order` | 同じ単語（例文音声は同じ例文）の行のうち、シートで上から何番目か（1始まり） |
+| `is_primary` | 同じ単語（例文）の行のうち、シートで一番上の行だけ `true`。標準音声は1単語・1例文につき最大1件 |
+| `accent`（`word_pronunciations`） | いつも `US`。別のアクセントを足すときは、シートに列を戻す |
+
+標準の声を変えるときは、シートの行の並びを入れ替えます。経緯は
+[音声シートの状態・標準・順番の列は、取りこみで決める](../decisions/audio-sheet-derived-columns-20260914.md) にあります。
 
 ## 5. 状態値
 
