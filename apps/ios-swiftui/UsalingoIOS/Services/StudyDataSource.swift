@@ -22,6 +22,7 @@ protocol StudyDataSource {
     @discardableResult
     func saveAnswer(card: WordCard, isCorrect: Bool) async throws -> LearningProgress
     func saveAnswerWithUndo(card: WordCard, isCorrect: Bool) async throws -> SavedAnswer
+    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool, attempt: AnswerSaveAttempt) async throws -> SavedAnswer
     func restoreLearningProgress(cardId: Int, previousProgress: LearningProgress?) async throws
     /// 保存済みのユーザータグ。ユーザーがまだ一度も保存していない場合は nil を返す。
     func fetchTags(wordId: Int) async throws -> [String]?
@@ -46,6 +47,17 @@ protocol StudyDataSource {
 struct StudyDeckCounts: Equatable {
     let newCount: Int
     let dueCount: Int
+}
+
+/// 通信の応答だけが失われても、再送で学習回数を重ねないための1判定分の控え。
+final class AnswerSaveAttempt {
+    var prepared: SavedAnswer?
+}
+
+extension StudyDataSource {
+    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool, attempt: AnswerSaveAttempt) async throws -> SavedAnswer {
+        try await saveAnswerWithUndo(card: card, isCorrect: isCorrect)
+    }
 }
 
 /// 認証済み利用者の全学習操作を、同じセッションの StudyService へ渡すラッパー。
@@ -97,6 +109,10 @@ final class RemoteStudyDataSource: StudyDataSource {
 
     func saveAnswerWithUndo(card: WordCard, isCorrect: Bool) async throws -> SavedAnswer {
         try await service.saveAnswerWithUndo(card: card, isCorrect: isCorrect, session: session)
+    }
+
+    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool, attempt: AnswerSaveAttempt) async throws -> SavedAnswer {
+        try await service.saveAnswerWithUndo(card: card, isCorrect: isCorrect, session: session, attempt: attempt)
     }
 
     func restoreLearningProgress(cardId: Int, previousProgress: LearningProgress?) async throws {

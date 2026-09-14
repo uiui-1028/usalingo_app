@@ -511,6 +511,7 @@ struct StudyAnswerQueue {
         let cardIndex: Int
         let card: WordCard
         let isCorrect: Bool
+        let attempt = AnswerSaveAttempt()
     }
 
     private(set) var pending: [PendingAnswer] = []
@@ -537,6 +538,12 @@ struct StudyAnswerQueue {
 
     mutating func endDraining() {
         isDraining = false
+    }
+
+    /// 実行中の保存を終えてから、未送信の直前の判定だけを取り消す。
+    mutating func removeLast(cardIndex: Int) {
+        guard !isDraining, pending.last?.cardIndex == cardIndex else { return }
+        pending.removeLast()
     }
 
     mutating func reset() {

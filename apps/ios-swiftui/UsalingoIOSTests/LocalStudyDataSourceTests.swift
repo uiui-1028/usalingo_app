@@ -86,6 +86,45 @@ final class LocalStudyDataSourceTests: XCTestCase {
         XCTAssertEqual(counts.newCount, 2)
     }
 
+    @MainActor
+    func testRedCheckSharesWeakAndReviewProgressAndUndo() async throws {
+        let source = makeDataSource()
+        let deck = try source.importDeck(from: sampleDeckData(cardCount: 1))
+        let cards = try await source.fetchCards(deckId: deck.id)
+        var card = try XCTUnwrap(cards.first)
+        for _ in 0..<2 {
+            let progress = try await source.saveAnswer(card: card, isCorrect: false)
+            card = card.withLearningProgress(progress)
+        }
+        let model = RedSheetCheckModel()
+        model.start(words: [card], source: source) { _ in }
+        model.isAnswerVisible = true
+        model.submit(isCorrect: false)
+        for _ in 0..<1000 where model.isSaving { await Task.yield() }
+        XCTAssertFalse(model.isSaving)
+        let reopened = makeDataSource()
+        let weak = try await reopened.fetchStudyQueue(deckId: deck.id, mode: .weakOnly)
+        XCTAssertEqual(weak.map(\.id), [card.id])
+        XCTAssertEqual(weak.first?.learning?.incorrectCount, 3)
+        XCTAssertNotNil(weak.first?.learning?.nextReviewDate)
+        await model.undo()
+        let afterUndo = try await makeDataSource().fetchCards(deckId: deck.id)
+        XCTAssertEqual(afterUndo.first?.learning?.incorrectCount, 2)
+        XCTAssertFalse(afterUndo.first?.learning?.isWeak ?? true)
+    }
+
+    func testResendingSameLocalAttemptDoesNotIncreaseCountTwice() async throws {
+        let source = makeDataSource()
+        let deck = try source.importDeck(from: sampleDeckData(cardCount: 1))
+        let cards = try await source.fetchCards(deckId: deck.id)
+        let card = try XCTUnwrap(cards.first)
+        let attempt = AnswerSaveAttempt()
+        _ = try await source.saveAnswerWithUndo(card: card, isCorrect: false, attempt: attempt)
+        let repeated = try await source.saveAnswerWithUndo(card: card, isCorrect: false, attempt: attempt)
+        XCTAssertEqual(repeated.progress.incorrectCount, 1)
+        XCTAssertNil(repeated.previousProgress)
+    }
+
     func testDueCardComesFirstInQueue() async throws {
         let dataSource = makeDataSource()
         let deck = try dataSource.importDeck(from: sampleDeckData(cardCount: 3))

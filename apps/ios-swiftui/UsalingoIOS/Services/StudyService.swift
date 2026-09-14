@@ -420,24 +420,32 @@ final class StudyService {
         try await saveAnswerWithUndo(card: card, isCorrect: isCorrect, session: session).progress
     }
 
-    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool, session: AuthSession) async throws -> SavedAnswer {
+    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool, session: AuthSession, attempt: AnswerSaveAttempt? = nil) async throws -> SavedAnswer {
         guard let cardId = card.cardId else {
             throw SupabaseError.badResponse("Learning progress requires a card_id")
         }
-        let previousProgress = try await fetchLearningProgress(cardId: cardId, session: session)
-        let current = previousProgress
-            ?? LearningProgress.initial(userId: session.user.id, cardId: cardId)
-        let progress = current.marking(isCorrect: isCorrect)
+        let prepared: SavedAnswer
+        if let cached = attempt?.prepared {
+            guard cached.progress.cardId == cardId, cached.progress.userId == session.user.id else {
+                throw SupabaseError.badResponse("Answer does not belong to this card and session")
+            }
+            prepared = cached
+        } else {
+            let previous = try await fetchLearningProgress(cardId: cardId, session: session)
+            let current = previous ?? LearningProgress.initial(userId: session.user.id, cardId: cardId)
+            prepared = SavedAnswer(progress: current.marking(isCorrect: isCorrect), previousProgress: previous)
+            attempt?.prepared = prepared
+        }
 
         let rows: [LearningProgress] = try await request(
             path: "user_card_progress",
             method: .post,
             queryItems: [URLQueryItem(name: "on_conflict", value: "user_id,card_id")],
             accessToken: session.accessToken,
-            body: progress,
+            body: prepared.progress,
             prefer: "resolution=merge-duplicates,return=representation"
         )
-        return SavedAnswer(progress: rows.first ?? progress, previousProgress: previousProgress)
+        return SavedAnswer(progress: rows.first ?? prepared.progress, previousProgress: prepared.previousProgress)
     }
 
     func restoreLearningProgress(
