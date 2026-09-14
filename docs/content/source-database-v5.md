@@ -9,7 +9,7 @@
 Supabaseは配信用の写しであり、人が直接編集しません。
 
 ```text
-Google Spreadsheet（V5の6シート）
+Google Spreadsheet（V5の8シート）
   → Supabase公式コンテンツ
   → SwiftUIアプリ
 ```
@@ -38,6 +38,9 @@ word（見出し語）
   │         ├─ concept（シンプル、ホラーなど）
   │         └─ example_audio（例文音声）
   └─ pronunciation（発音・単語音声）
+
+deck（デッキ）
+  └─ deck_word（並び順と、主の意味 sense）
 ```
 
 独立して増える意味、例文、発音、音声は行を分けます。活用と類義語などの関連語は、行を分けずに
@@ -45,7 +48,7 @@ word（見出し語）
 単語ではなく意味ごとに持ちます。経緯は
 [意味の行に活用と関連語を収める](../decisions/senses-hold-forms-and-relations-20260914.md) にあります。
 
-## 3. 原本の6シート
+## 3. 原本の8シート
 
 | シート | 主キー | 必須項目 | 用途 |
 |---|---|---|---|
@@ -55,6 +58,8 @@ word（見出し語）
 | `02_content_examples` | `example_id` | `sense_id`, `concept_id`, `sentence_en`, `sentence_jp`, `image_state`, `display_order` | 例文と画像 |
 | `03_audio_pronunciations` | `pronunciation_id` | `word_id`, `voice_label` | 発音と単語音声 |
 | `03_audio_example_audio` | `example_audio_id` | `example_id`, `voice_label` | 例文音声 |
+| `04_decks` | `deck_id` | `deck_name`, `concept_id` | デッキ |
+| `04_deck_words` | なし（`deck_id` と `sense_id` の組で重複させない） | `deck_id`, `sense_id` | デッキに入れる単語、並び順、主の意味 |
 
 共通ルール:
 
@@ -177,6 +182,30 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 標準の声を変えるときは、シートの行の並びを入れ替えます。経緯は
 [音声シートの状態・標準・順番の列は、取りこみで決める](../decisions/audio-sheet-derived-columns-20260914.md) にあります。
 
+### `04_decks`
+
+| 列 | 必須 | 内容 |
+|---|---:|---|
+| `deck_id` | 必須 | 固定ID |
+| `deck_name` | 必須 | 表示名。例: `大学受験頻出1000語` |
+| `concept_id` | 必須 | このデッキの例文に使うコンセプト |
+
+### `04_deck_words`
+
+| 列 | 必須 | 内容 |
+|---|---:|---|
+| `deck_id` | 必須 | デッキ |
+| `sense_id` | 必須 | **主の意味**。単語は、この意味の `word_id` で決まる |
+
+- 行の並びが、デッキ内の並び順です。
+- 1つのデッキに、同じ単語を2回入れません（同じ単語の別の意味を2行書かない）。
+- 主の意味は、カードで大きく表示し、例文・画像・音声もこの意味のものを出します。
+  同じ単語のほかの意味は、副として `priority` 順に表示します。
+- 同じ単語でも、デッキごとに主の意味を変えられます。
+- 主の意味に、デッキのコンセプトの例文がないと、カードに例文が出ません。
+
+経緯は [デッキごとに単語の主の意味を決める](../decisions/deck-primary-sense-20260914.md) にあります。
+
 ## 5. 状態値
 
 画像、音声、IPAだけに次の状態を使います。
@@ -200,6 +229,13 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 | `02_content_examples` | `example_contents` |
 | `03_audio_pronunciations` | `word_pronunciations` |
 | `03_audio_example_audio` | `example_audio` |
+| `04_decks` | `decks`（`concept_id` 列あり） |
+| `04_deck_words` | `cards`（`deck_id`、`word_id`、`primary_meaning_id`、`sort_order`） |
+
+`04_deck_words` の1行から、デッキの出題形式（`card_templates`）ごとに `cards` を作ります。
+`word_id` は `sense_id` の単語、`primary_meaning_id` は `sense_id`、`sort_order` はシートの行の並びです。
+`cards.primary_meaning_id` はUSL-308のmigrationで足し、その単語の意味しか指せないように外部キーで止めます。
+カードの一意条件（`word_id + card_template_id + deck_id`）は変えないので、主の意味を変えても学習記録は残ります。
 
 `01_core_senses` の活用と関連語は、`word_meanings` の同じ名前の列へ入れます。
 
