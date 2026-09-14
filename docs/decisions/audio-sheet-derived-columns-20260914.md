@@ -14,7 +14,7 @@
 
 | シート | 消す列 |
 |---|---|
-| `03_audio_pronunciations` | `ipa_state`、`audio_state`、`is_primary`、`display_order` |
+| `03_audio_pronunciations` | `ipa_state`、`audio_state`、`is_primary`、`display_order`、`accent` |
 | `03_audio_example_audio` | `audio_state`、`is_primary`、`display_order` |
 
 | DBの列 | 決め方 |
@@ -23,6 +23,7 @@
 | `audio_state` | `audio_asset_path` があれば `present`、なければ `blank` |
 | `display_order` | 同じ単語（例文音声は同じ例文）の行のうち、シートで上から何番目か（1始まり） |
 | `is_primary` | 同じ単語（例文）の行のうち、シートで一番上の行だけ `true` |
+| `accent`（`word_pronunciations`） | いつも `US`。音声はすべて米国発音のため。別のアクセントを足すときは、シートに列を戻す |
 
 ## 理由
 
