@@ -70,23 +70,14 @@ word
 
 ### IDの形
 
-シートのIDは `<頭文字>-<4桁>` にします。参照列にも同じ形を使います。
+シートのIDは整数にし、頭文字は付けません。シートの数字が、そのままSupabaseの整数IDとStorageパスの数字になります。
+IDが重複してはいけないのは、同じシートの中だけです。別のシートで同じ数字を使ってもかまいません。
 
-| シート | 頭文字 | 例 |
-|---|---|---|
-| `01_core_words` | `w` | `w-0001` |
-| `01_core_senses` | `s` | `s-0001` |
-| `02_content_concepts` | `c` | `c-0001` |
-| `02_content_examples` | `e` | `e-0001` |
-| `03_audio_pronunciations` | `p` | `p-0001` |
-| `03_audio_example_audio` | `a` | `a-0001` |
+`04_extra_forms` と `04_extra_relations` は専用IDを持たず、`word_id` を主キーにします。
 
-`04_extra_forms` と `04_extra_relations` は専用IDを持たず、`word_id`（`w-`）を主キーにします。
-
-Supabaseの主キーは整数のままです。取りこむときに頭文字を外し、数字部分を入れます
-（`w-0001` → `words.id = 1`）。Storageパスの数字も、この整数IDです。
-頭文字が列に合わない値（例: `word_id` 列の `s-0001`）は、取りこみを止めます。
-経緯は [シートのIDに頭文字を付け、1000語を一度に流す](../decisions/sheet-id-prefix-and-1000-at-once-20260914.md) にあります。
+千の位でシートを見分ける付け方（単語 `1001`、意味 `2001`、例文 `3001`、発音 `4001`）は、
+1つのシートが999件を超えると守れません。番号の帯が重なっても、DBは壊れません。
+経緯は [シートのIDは頭文字を付けず、これまでどおり数字にする](../decisions/sheet-id-keep-numbers-20260914.md) にあります。
 
 活用は `04_extra_forms`、発音記号は `03_audio_pronunciations.ipa`、派生語は
 `04_extra_relations` の `derivatives` に入れます。`01_core_senses` には入れません。
