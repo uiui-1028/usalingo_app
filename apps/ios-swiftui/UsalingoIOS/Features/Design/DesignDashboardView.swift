@@ -72,7 +72,7 @@ private struct DesignModulePage: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(isExpanded ? "編集シートを縮小" : "編集シートを展開")
-                    .simultaneousGesture(DragGesture(
+                    .gesture(DragGesture(
                         minimumDistance: 12,
                         coordinateSpace: .named("designModulePage")
                     )
