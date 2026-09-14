@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "deckId": "gallery-en-daily-3",
+  "deckName": "暮らしのひとこま・英語",
+  "description": "暮らしのひとこまに使う6つの言葉を、英語から日本語で練習するサンプルです。",
+  "cards": [
+    {
+      "id": 801120,
+      "text": "breakfast",
+      "meaning": "朝食",
+      "tags": [
+        "日常"
+      ]
+    },
+    {
+      "id": 801121,
+      "text": "water",
+      "meaning": "水",
+      "tags": [
+        "日常"
+      ]
+    },
+    {
+      "id": 801122,
+      "text": "window",
+      "meaning": "窓",
+      "tags": [
+        "日常"
+      ]
+    },
+    {
+      "id": 801123,
+      "text": "kitchen",
+      "meaning": "台所",
+      "tags": [
+        "日常"
+      ]
+    },
+    {
+      "id": 801124,
+      "text": "umbrella",
+      "meaning": "傘",
+      "tags": [
+        "日常"
+      ]
+    },
+    {
+      "id": 801125,
+      "text": "weather",
+      "meaning": "天気",
+      "tags": [
+        "日常"
+      ]
+    }
+  ]
+}

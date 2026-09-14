@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "deckId": "gallery-ja-toeic-3",
+  "deckName": "ビジネスの数字・日本語",
+  "description": "ビジネスの数字に使う6つの言葉を、日本語から英語で練習するサンプルです。",
+  "cards": [
+    {
+      "id": 800020,
+      "text": "予算",
+      "meaning": "budget",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800021,
+      "text": "収益",
+      "meaning": "revenue",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800022,
+      "text": "請求書",
+      "meaning": "invoice",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800023,
+      "text": "利益",
+      "meaning": "profit",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800024,
+      "text": "費用",
+      "meaning": "expense",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800025,
+      "text": "見積もり",
+      "meaning": "estimate",
+      "tags": [
+        "TOEIC"
+      ]
+    }
+  ]
+}

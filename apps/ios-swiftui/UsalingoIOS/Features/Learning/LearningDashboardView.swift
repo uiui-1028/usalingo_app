@@ -45,6 +45,10 @@ struct LearningDashboardView: View {
                 }
         }
         .task(id: reloadKey) { await reload() }
+        // 詳細へのpushでも表示状態は変わらないため、画面ごとの出入りで競合させない。
+        .onChange(of: isShowingLibrary) { _, isPresented in
+            appState.isShellChromeHidden = isPresented
+        }
     }
 
     /// 画面は上から「デッキ一覧」「単語」「操作」「通知」へ分ける。

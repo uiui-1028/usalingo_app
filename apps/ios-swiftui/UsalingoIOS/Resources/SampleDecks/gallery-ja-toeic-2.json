@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "deckId": "gallery-ja-toeic-2",
+  "deckName": "仕事のやりとり・日本語",
+  "description": "仕事のやりとりに使う6つの言葉を、日本語から英語で練習するサンプルです。",
+  "cards": [
+    {
+      "id": 800010,
+      "text": "依頼",
+      "meaning": "request",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800011,
+      "text": "確認する",
+      "meaning": "confirm",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800012,
+      "text": "返信",
+      "meaning": "reply",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800013,
+      "text": "締め切り",
+      "meaning": "deadline",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800014,
+      "text": "承認する",
+      "meaning": "approve",
+      "tags": [
+        "TOEIC"
+      ]
+    },
+    {
+      "id": 800015,
+      "text": "話し合う",
+      "meaning": "discuss",
+      "tags": [
+        "TOEIC"
+      ]
+    }
+  ]
+}
