@@ -55,7 +55,7 @@ deck（デッキ）
 | `01_core_words` | `word_id` | `word_text` | 見出し語 |
 | `01_core_senses` | `sense_id` | `word_id`, `priority`, `part_of_speech_en`, `definition_jp` | 意味、品詞、活用、関連語 |
 | `02_content_concepts` | `concept_id` | `concept_code`, `concept_name`, `is_active` | 教材コンセプト |
-| `02_content_examples` | `example_id` | `sense_id`, `concept_id`, `sentence_en`, `sentence_jp`, `image_state`, `display_order` | 例文と画像 |
+| `02_content_examples` | `example_id` | `sense_id`, `concept_id`, `sentence_en`, `sentence_jp` | 例文と画像 |
 | `03_audio_pronunciations` | `pronunciation_id` | `word_id`, `voice_label` | 発音と単語音声 |
 | `03_audio_example_audio` | `example_audio_id` | `example_id`, `voice_label` | 例文音声 |
 | `04_decks` | `deck_id` | `deck_name`, `concept_id` | デッキ |
@@ -91,9 +91,9 @@ IDが重複してはいけないのは、同じシートの中だけです。別
 | `source_note_guid` | 任意 | 原本側の安定ID。Ankiの退役により、いまは使いません |
 | `source_deck_code` | 任意 | 原本デッキの固定コード |
 | `source_position` | 任意 | 原本内の1始まりの順番 |
-| `created_at`, `updated_at` | 必須 | 管理時刻 |
 
 `source_deck_code + source_position` と `source_note_guid` は、それぞれ重複させません。
+管理時刻（`created_at`、`updated_at`）はシートに書きません。DBが自動で入れます。
 
 ### `01_core_senses`
 
@@ -150,8 +150,15 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 | `concept_id` | 必須 | コンセプト |
 | `sentence_en`, `sentence_jp` | 必須 | 例文と訳 |
 | `image_asset_path` | 任意 | Storage相対パス |
-| `image_state` | 必須 | 画像の状態 |
-| `display_order` | 必須 | 同一sense・concept内の順番 |
+
+### `02_content_examples` で取りこみが決める値
+
+例文シートは、画像の状態と順番の列を持ちません。取りこみがDBの列を次のように決めます。
+
+| DBの列 | 決め方 |
+|---|---|
+| `image_state` | `image_asset_path` があれば `present`、なければ `blank` |
+| `display_order` | 同じ意味・同じコンセプトの行のうち、シートで上から何番目か（1始まり） |
 
 ### `03_audio_pronunciations`
 
