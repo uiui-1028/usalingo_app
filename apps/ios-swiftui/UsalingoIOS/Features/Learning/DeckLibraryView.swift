@@ -21,156 +21,86 @@ struct DeckDocument: FileDocument {
     }
 }
 
-/// 「デッキを追加」から開くデッキライブラリ。同梱サンプルデッキの追加と、
-/// JSONファイルの読み込みができる（D-7）。
+/// 言語 → ジャンル → 詳細から同梱デッキを選ぶギャラリー。
 struct DeckLibraryView: View {
     @EnvironmentObject private var appState: AppState
-
     let onChanged: () -> Void
-
+    @State private var language = "日本語"
     @State private var bundledDecks: [DeckFile] = []
     @State private var isImporting = false
     @State private var message: String?
-    /// `message` が失敗を表すかどうか。破線枠（Section 3.2）の出し分けにだけ使う。
     @State private var isMessageError = false
 
     var body: some View {
-        List {
-            // 追加できるデッキは見出しを付けずに先頭へ並べる。
-            Section {
-                if bundledDecks.isEmpty {
-                    Text("追加できるデッキはありません。")
-                        .wireFont(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(WireMetrics.spacingL)
-                        .outlineSurface(shadow: nil)
-                        .wireListRow()
-                } else {
-                    ForEach(bundledDecks, id: \.deckId) { file in
-                        bundledRow(file)
-                            .wireListRow()
+        ScrollView {
+            VStack(alignment: .leading, spacing: 28) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("次の「わかる」を、見つけよう。")
+                        .font(.title2.bold())
+                    Text("好きな言語とジャンルから、小さくはじめる。")
+                        .font(.subheadline).foregroundStyle(.secondary)
+                }
+                Picker("学ぶ言語", selection: $language) {
+                    Text("日本語").tag("日本語")
+                    Text("英語").tag("英語")
+                }
+                .pickerStyle(.segmented)
+
+                ForEach(GalleryDeck.genres, id: \.self) { genre in
+                    VStack(alignment: .leading, spacing: 14) {
+                        HStack {
+                            Text(genre).font(.title2.bold())
+                            Spacer()
+                            Text("3デッキ").font(.caption).foregroundStyle(.secondary)
+                        }
+                        ForEach(bundledDecks.filter {
+                            GalleryDeck.language($0) == language && GalleryDeck.genre($0) == genre
+                        }, id: \.deckId) { file in
+                            NavigationLink {
+                                GalleryDeckDetail(file: file, onChanged: onChanged)
+                            } label: {
+                                HStack(spacing: 16) {
+                                    GalleryDeckCover(file: file, size: 76)
+                                    VStack(alignment: .leading, spacing: 5) {
+                                        Text(file.deckName).font(.headline).foregroundStyle(.primary)
+                                        Text(file.description ?? "サンプルデッキ")
+                                            .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                                        Text("\(file.cards.count)語 · サンプル")
+                                            .font(.caption2).foregroundStyle(.secondary)
+                                    }
+                                    Spacer(minLength: 0)
+                                    Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
+                                }
+                                .padding(14)
+                                .background(.background, in: RoundedRectangle(cornerRadius: 22))
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                 }
-            }
-
-            // JSONの取り込みは端末のデッキファイルを元にする操作。保存先が
-            // リモートのときは扱えないので、ログインの有無ではなく
-            // 「その保存先がファイルを扱えるか」で出し分ける。
-            if appState.studyDataSource.supportsDeckFileTransfer {
-                Section {
-                    Button {
-                        message = nil
-                        isMessageError = false
-                        isImporting = true
-                    } label: {
-                        card(
-                            title: "JSONを読み込む",
-                            detail: "書き出したデッキJSONを選ぶと、デッキとして追加します。"
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .wireListRow()
+                if appState.studyDataSource.supportsDeckFileTransfer {
+                    Button { isImporting = true } label: {
+                        Label("JSONを読み込む", systemImage: "square.and.arrow.down")
+                            .frame(maxWidth: .infinity)
+                    }.buttonStyle(.bordered)
+                }
+                if let message {
+                    Text(message).font(.footnote)
+                        .foregroundStyle(isMessageError ? .red : .secondary)
                 }
             }
-
-            if let message {
-                Section {
-                    // 色相を使わずに異常を示す（破線 + 文言）。
-                    Text(message)
-                        .wireFont(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(WireMetrics.spacingM)
-                        .outlineSurface(
-                            radius: WireMetrics.radiusControl,
-                            shadow: nil,
-                            dashed: isMessageError
-                        )
-                        .wireListRow()
-                }
-            }
+            .padding(20)
         }
-        .listStyle(.plain)
-        .scrollContentBackground(.hidden)
-        .background(WireColor.background)
-        .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
-        // 上のヘッダーは出さない。ヘッダーを消すと戻るスワイプも一緒に止まるため、
-        // 単語リストと同じ仕組みで戻す。
-        .toolbar(.hidden, for: .navigationBar)
-        .background {
-            BackSwipeEnabler()
-        }
-        .fileImporter(
-            isPresented: $isImporting,
-            allowedContentTypes: [.json],
-            allowsMultipleSelection: false
-        ) { result in
-            handleImport(result)
-        }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("ギャラリー")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
+        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json], allowsMultipleSelection: false, onCompletion: handleImport)
         .task { reload() }
-        // シェルの浮動タブバーを隠す。戻る導線はスワイプが担う。
-        .onAppear {
-            appState.isShellChromeHidden = true
-        }
-        .onDisappear {
-            appState.isShellChromeHidden = false
-        }
-    }
-
-    private func bundledRow(_ file: DeckFile) -> some View {
-        Button {
-            add(file)
-        } label: {
-            card(
-                title: file.deckName,
-                detail: file.description ?? "\(file.cards.count) 語"
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// 一覧の 1 行。線で囲んだカードにする。
-    private func card(title: String, detail: String) -> some View {
-        VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-            Text(title)
-                .wireFont(.titleS)
-            Text(detail)
-                .wireFont(.caption)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(WireMetrics.spacingL)
-        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card)
-        .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard, style: .continuous))
     }
 
     private func reload() {
-        // 同梱JSONの一覧は端末側の資産。保存先がリモートのときは、端末の
-        // 一覧では「追加済みか」を判断できないので絞らずに出す。
-        bundledDecks = appState.studyDataSource.supportsDeckFileTransfer
-            ? appState.localStudy.availableBundledDecks()
-            : appState.localStudy.allBundledDecks()
-    }
-
-    private func add(_ file: DeckFile) {
-        Task {
-            do {
-                let outcome = try await appState.studyDataSource.installBundledDeck(file)
-                message = Self.installMessage(for: outcome)
-                isMessageError = false
-                reload()
-                onChanged()
-            } catch {
-                message = UserFacingError.message(for: error)
-                isMessageError = true
-            }
-        }
-    }
-
-    /// 落とした単語を黙って捨てない。何枚入って何枚入らなかったかを必ず出す。
-    private static func installMessage(for outcome: DeckInstallOutcome) -> String {
-        let base = "「\(outcome.deck.deckName)」を追加しました。"
-        guard outcome.skippedCardCount > 0 else { return base }
-        return base + "\(outcome.addedCardCount)語を入れ、"
-            + "\(outcome.skippedCardCount)語は配信中の単語に無いため入れていません。"
+        bundledDecks = appState.localStudy.allBundledDecks().filter { $0.deckId.hasPrefix("gallery-") }
     }
 
     /// 読み込み失敗は黙って捨てず、理由をそのまま画面へ出す。
@@ -196,6 +126,173 @@ struct DeckLibraryView: View {
         } catch {
             message = "ファイルを読み込めませんでした。\(UserFacingError.advice(for: error))"
             isMessageError = true
+        }
+    }
+}
+
+private enum GalleryDeck {
+    static let genres = ["TOEIC", "日常", "受験"]
+    static func language(_ file: DeckFile) -> String {
+        file.deckId.hasPrefix("gallery-ja-") ? "日本語" : "英語"
+    }
+    static func genre(_ file: DeckFile) -> String {
+        file.deckId.contains("-toeic-") ? "TOEIC" : file.deckId.contains("-daily-") ? "日常" : "受験"
+    }
+    static func tint(_ file: DeckFile) -> Color {
+        switch genre(file) {
+        case "TOEIC": .indigo
+        case "日常": .teal
+        default: .orange
+        }
+    }
+    static func symbol(_ file: DeckFile) -> String {
+        switch genre(file) {
+        case "TOEIC": "briefcase.fill"
+        case "日常": "bubble.left.and.bubble.right.fill"
+        default: "graduationcap.fill"
+        }
+    }
+}
+
+private struct GalleryDeckCover: View {
+    let file: DeckFile
+    let size: CGFloat
+    var body: some View {
+        ZStack(alignment: .bottomLeading) {
+            RoundedRectangle(cornerRadius: size * 0.23)
+                .fill(GalleryDeck.tint(file).gradient)
+            Image(systemName: GalleryDeck.symbol(file))
+                .font(.system(size: size * 0.36, weight: .medium))
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            Text(GalleryDeck.language(file) == "日本語" ? "あ" : "Aa")
+                .font(.system(size: size * 0.15, weight: .bold))
+                .padding(size * 0.12)
+        }
+        .foregroundStyle(.white)
+        .frame(width: size, height: size)
+        .accessibilityHidden(true)
+    }
+}
+
+private struct GalleryDeckDetail: View {
+    @EnvironmentObject private var appState: AppState
+    let file: DeckFile
+    let onChanged: () -> Void
+    @State private var isDownloading = false
+    @State private var isInstalled = false
+    @State private var isCheckingInstallation = true
+    @State private var message: String?
+
+    private var words: [WordCard] {
+        file.cards.map {
+            WordCard(id: $0.id, text: $0.text, meaning: $0.meaning,
+                     partOfSpeech: $0.partOfSpeech, sentenceEnglish: $0.sentenceEnglish,
+                     sentenceJapanese: $0.sentenceJapanese, imageAssetPath: $0.imageAssetPath,
+                     audioAssetPath: $0.audioAssetPath, tags: $0.tags ?? [], learningStatus: nil, learning: nil)
+        }
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 20) {
+                        HStack(alignment: .top, spacing: 18) {
+                            GalleryDeckCover(file: file, size: 94)
+                            VStack(alignment: .leading, spacing: 8) {
+                                Text(file.deckName).font(.title2.bold())
+                                Text("Usalingo · サンプルデッキ")
+                                    .font(.caption).foregroundStyle(.secondary)
+                                Button(action: download) {
+                                    HStack(spacing: 6) {
+                                        if isDownloading { ProgressView().tint(.white) }
+                                        Image(systemName: isInstalled ? "checkmark.circle.fill" : "arrow.down.circle.fill")
+                                        Text(isInstalled ? "ダウンロード済み" : isDownloading ? "追加中…" : "ダウンロード")
+                                    }.font(.subheadline.bold())
+                                }
+                                .buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
+                                .disabled(isDownloading || isInstalled || isCheckingInstallation)
+                                if let message {
+                                    Text(message).font(.footnote).accessibilityIdentifier("galleryDownloadMessage")
+                                }
+                            }
+                        }
+                        HStack(spacing: 0) {
+                            metric("収録単語", "\(file.cards.count)語")
+                            metric("言語", GalleryDeck.language(file))
+                            metric("ジャンル", GalleryDeck.genre(file))
+                        }
+                        Divider()
+                        Text("このデッキについて").font(.headline)
+                        Text(file.description ?? "毎日の学習にぴったりの単語を集めました。")
+                            .font(.subheadline)
+                        Text("1日3語から、自分のペースで。下のリストで収録語を確認してから追加できます。説明と教材は画面確認用のサンプルです。")
+                            .font(.subheadline).foregroundStyle(.secondary)
+                    }.padding(20)
+                }
+                .frame(height: proxy.size.height * 0.48)
+
+                VStack(spacing: 0) {
+                    HStack {
+                        Text("収録単語").font(.headline)
+                        Spacer()
+                        Text("\(file.cards.count)語").font(.caption).foregroundStyle(.secondary)
+                    }.padding(.horizontal, 20).padding(.vertical, 12)
+                    WordListView(previewWords: words, sheetOnly: true)
+                }
+                .background(WireColor.surface)
+                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28))
+                .overlay(alignment: .top) {
+                    UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28)
+                        .strokeBorder(WireColor.ink.opacity(0.15), lineWidth: 1)
+                        .allowsHitTesting(false)
+                }
+            }
+        }
+        .background(Color(uiColor: .systemGroupedBackground))
+        .navigationTitle("デッキ詳細")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar(.visible, for: .navigationBar)
+        .task(id: appState.session?.user.id ?? "guest") {
+            isCheckingInstallation = true
+            defer { isCheckingInstallation = false }
+            if appState.studyDataSource.supportsDeckFileTransfer {
+                isInstalled = appState.localStudy.decks().contains { $0.key == file.deckId }
+            } else {
+                do {
+                    let decks = try await appState.studyDataSource.fetchDecks()
+                    isInstalled = decks.contains { $0.deckName == file.deckName }
+                } catch {
+                    message = UserFacingError.message(for: error)
+                }
+            }
+        }
+    }
+
+    private func metric(_ title: String, _ value: String) -> some View {
+        VStack(spacing: 5) {
+            Text(title).font(.caption2).foregroundStyle(.secondary)
+            Text(value).font(.subheadline.bold())
+        }.frame(maxWidth: .infinity)
+    }
+
+    private func download() {
+        guard !isDownloading, !isInstalled else { return }
+        isDownloading = true
+        message = nil
+        Task { @MainActor in
+            defer { isDownloading = false }
+            do {
+                let outcome = try await appState.studyDataSource.installBundledDeck(file)
+                isInstalled = true
+                message = "学習タブに追加しました。"
+                if outcome.skippedCardCount > 0 {
+                    message = "\(outcome.addedCardCount)語を追加しました。\(outcome.skippedCardCount)語は配信中の単語に無いため追加していません。"
+                }
+                onChanged()
+            } catch {
+                message = UserFacingError.message(for: error)
+            }
         }
     }
 }

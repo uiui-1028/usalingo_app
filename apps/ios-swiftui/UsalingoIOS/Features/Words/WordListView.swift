@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct WordListView: View {
+    /// 詳細ページへ組み込むときは、バナーを省いて単語シートだけを表示する。
+    private let sheetOnly: Bool
     /// シートが画面の高さに占める割合。7.5割で固定し、引っ張っても変えない。
     private static let sheetHeightRatio: CGFloat = 0.75
     /// 浮動バーの高さと下余白のぶん、最後の行が隠れないように空ける量。
@@ -20,8 +22,10 @@ struct WordListView: View {
         deck: Deck? = nil,
         previewWords: [WordCard]? = nil,
         displayMode: WordListDisplayMode = .list,
-        previewRedSheetEnabled: Bool = false
+        previewRedSheetEnabled: Bool = false,
+        sheetOnly: Bool = false
     ) {
+        self.sheetOnly = sheetOnly
         _isRedSheetEnabled = State(initialValue: previewWords != nil && previewRedSheetEnabled && displayMode == .list)
         _viewModel = StateObject(wrappedValue: WordListViewModel(
             deck: deck,
@@ -34,38 +38,42 @@ struct WordListView: View {
     /// バナーは戻るスワイプの通り道でもあるので、横に動く操作は置かない。
     var body: some View {
         GeometryReader { proxy in
-            let insets = proxy.safeAreaInsets
-            // セーフエリアまで含めた画面の高さ。シートの高さはここから割合で決める。
-            let screenHeight = proxy.size.height + insets.top + insets.bottom
-            let sheetHeight = screenHeight * Self.sheetHeightRatio
-            let bannerHeight = max(0, screenHeight - sheetHeight - insets.top - WireMetrics.spacingS)
+            if sheetOnly {
+                sheet(bottomInset: 0)
+            } else {
+                let insets = proxy.safeAreaInsets
+                // セーフエリアまで含めた画面の高さ。シートの高さはここから割合で決める。
+                let screenHeight = proxy.size.height + insets.top + insets.bottom
+                let sheetHeight = screenHeight * Self.sheetHeightRatio
+                let bannerHeight = max(0, screenHeight - sheetHeight - insets.top - WireMetrics.spacingS)
 
-            ZStack(alignment: .top) {
-                // シートより1段退いた面。これで前後関係を作る。
-                WireColor.scrim
-                    .ignoresSafeArea()
+                ZStack(alignment: .top) {
+                    // シートより1段退いた面。これで前後関係を作る。
+                    WireColor.scrim
+                        .ignoresSafeArea()
 
-                WordListDeckBanner(decks: bannerDecks) { deck in
-                    selectedDeckID = deck.id
+                    WordListDeckBanner(decks: bannerDecks) { deck in
+                        selectedDeckID = deck.id
+                    }
+                    .padding(.horizontal, WireMetrics.screenPadding)
+                    .padding(.top, WireMetrics.spacingS)
+                    // シートに覆われない分だけを使う。
+                    .frame(height: bannerHeight + WireMetrics.spacingS, alignment: .top)
+
+                    VStack(spacing: 0) {
+                        Spacer(minLength: 0)
+                        sheet(bottomInset: insets.bottom)
+                            .frame(height: sheetHeight)
+                    }
+                    .ignoresSafeArea(edges: .bottom)
                 }
-                .padding(.horizontal, WireMetrics.screenPadding)
-                .padding(.top, WireMetrics.spacingS)
-                // シートに覆われない分だけを使う。
-                .frame(height: bannerHeight + WireMetrics.spacingS, alignment: .top)
-
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    sheet(bottomInset: insets.bottom)
-                        .frame(height: sheetHeight)
-                }
-                .ignoresSafeArea(edges: .bottom)
             }
         }
         // 操作はすべてシートの中の浮動バーに集めたので、上のヘッダーごと消す。
         // ヘッダーを消すと戻るスワイプも一緒に止まるため、学習画面と同じ仕組みで戻す。
-        .toolbar(.hidden, for: .navigationBar)
+        .toolbar(sheetOnly ? .visible : .hidden, for: .navigationBar)
         .background {
-            BackSwipeEnabler()
+            if !sheetOnly { BackSwipeEnabler() }
         }
         .fullScreenCover(item: $selectedWord) { word in
             WordDetailSheet(word: word, words: viewModel.filteredWords) { savedWord in
@@ -76,10 +84,10 @@ struct WordListView: View {
         // 浮いているタブバーが一覧の末尾に重なるので、この画面にいる間は
         // シェルの操作面を隠す。戻る導線はスワイプが担う。
         .onAppear {
-            appState.isShellChromeHidden = true
+            if !sheetOnly { appState.isShellChromeHidden = true }
         }
         .onDisappear {
-            appState.isShellChromeHidden = false
+            if !sheetOnly { appState.isShellChromeHidden = false }
         }
     }
 

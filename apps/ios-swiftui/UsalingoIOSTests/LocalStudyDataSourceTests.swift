@@ -13,6 +13,29 @@ final class LocalStudyDataSourceTests: XCTestCase {
         try? FileManager.default.removeItem(at: directoryURL)
     }
 
+    func testGallerySamplesInstallAndPersistWithTheirPreviewWords() async throws {
+        let source = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
+        let samples = source.allBundledDecks().filter { $0.deckId.hasPrefix("gallery-") }
+        XCTAssertEqual(samples.count, 18)
+        for language in ["ja", "en"] {
+            for genre in ["toeic", "daily", "exam"] {
+                XCTAssertEqual(samples.filter { $0.deckId.hasPrefix("gallery-\(language)-\(genre)-") }.count, 3)
+            }
+        }
+        for file in samples {
+            try file.validate()
+            XCTAssertFalse(file.cards.isEmpty)
+            let outcome = try await source.installBundledDeck(file)
+            XCTAssertEqual(outcome.addedCardCount, file.cards.count)
+            XCTAssertEqual(outcome.skippedCardCount, 0)
+            let reopened = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
+            let words = try await reopened.fetchCards(deckId: outcome.deck.id)
+            XCTAssertEqual(words.map(\.text), file.cards.map(\.text))
+            XCTAssertEqual(words.map(\.meaning), file.cards.map(\.meaning))
+            XCTAssertFalse(reopened.availableBundledDecks().contains { $0.deckId == file.deckId })
+        }
+    }
+
     func testImportedDeckProvidesNewCardQueue() async throws {
         let dataSource = makeDataSource()
         let deck = try dataSource.importDeck(from: sampleDeckData(cardCount: 3))

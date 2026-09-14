@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "deckId": "gallery-en-exam-1",
+  "deckName": "読解の基礎・英語",
+  "description": "読解の基礎に使う6つの言葉を、英語から日本語で練習するサンプルです。",
+  "cards": [
+    {
+      "id": 801200,
+      "text": "reason",
+      "meaning": "理由",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801201,
+      "text": "result",
+      "meaning": "結果",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801202,
+      "text": "purpose",
+      "meaning": "目的",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801203,
+      "text": "example",
+      "meaning": "例",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801204,
+      "text": "opinion",
+      "meaning": "意見",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801205,
+      "text": "fact",
+      "meaning": "事実",
+      "tags": [
+        "受験"
+      ]
+    }
+  ]
+}

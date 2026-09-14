@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "deckId": "gallery-en-exam-3",
+  "deckName": "社会と自然・英語",
+  "description": "社会と自然に使う6つの言葉を、英語から日本語で練習するサンプルです。",
+  "cards": [
+    {
+      "id": 801220,
+      "text": "society",
+      "meaning": "社会",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801221,
+      "text": "culture",
+      "meaning": "文化",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801222,
+      "text": "environment",
+      "meaning": "環境",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801223,
+      "text": "science",
+      "meaning": "科学",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801224,
+      "text": "energy",
+      "meaning": "エネルギー",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801225,
+      "text": "nature",
+      "meaning": "自然",
+      "tags": [
+        "受験"
+      ]
+    }
+  ]
+}

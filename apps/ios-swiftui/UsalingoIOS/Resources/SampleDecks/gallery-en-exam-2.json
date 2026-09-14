@@ -1,0 +1,56 @@
+{
+  "formatVersion": 1,
+  "deckId": "gallery-en-exam-2",
+  "deckName": "考えを伝える・英語",
+  "description": "考えを伝えるに使う6つの言葉を、英語から日本語で練習するサンプルです。",
+  "cards": [
+    {
+      "id": 801210,
+      "text": "compare",
+      "meaning": "比較する",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801211,
+      "text": "explain",
+      "meaning": "説明する",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801212,
+      "text": "consider",
+      "meaning": "考慮する",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801213,
+      "text": "suggest",
+      "meaning": "提案する",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801214,
+      "text": "develop",
+      "meaning": "発展する",
+      "tags": [
+        "受験"
+      ]
+    },
+    {
+      "id": 801215,
+      "text": "require",
+      "meaning": "必要とする",
+      "tags": [
+        "受験"
+      ]
+    }
+  ]
+}
