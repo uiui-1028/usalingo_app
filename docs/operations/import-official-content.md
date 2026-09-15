@@ -2,6 +2,11 @@
 
 対象: USL-286 / TARGET-1900の原本番号1〜50
 
+> [!IMPORTANT]
+> **2026-09-15から、教材は Google Spreadsheet から同期します。** 手順は
+> [`sync-sheet-to-supabase.md`](sync-sheet-to-supabase.md) です。この文書は、Anki と正本JSONで
+> 50語を入れていたときの記録として残しています。
+
 ## 結論
 
 Anki原本は直接変更せず、読取用コピーから中間JSONを作り、検査に合格した場合だけ
