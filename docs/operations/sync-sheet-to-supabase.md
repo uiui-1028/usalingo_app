@@ -2,6 +2,8 @@
 
 対象: USL-308。教材の正本 Google Spreadsheet（`usgs_master_v5`）→ Supabase。片方向。
 
+> 手順だけ知りたいときは [かんたんマニュアル](sheet-sync-quick-manual.md) を見てください。
+
 ## 結論
 
 ```sh
