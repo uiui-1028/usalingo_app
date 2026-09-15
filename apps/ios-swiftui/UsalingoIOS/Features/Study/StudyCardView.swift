@@ -64,6 +64,10 @@ private struct StudyCardFront: View {
 
             illustration
 
+            if let sentence = card.sentenceEnglish, !sentence.isEmpty {
+                WireRecessedText(sentence)
+            }
+
             if showAnswer {
                 Text(card.meaning)
                     .wireFont(.titleS)
@@ -71,9 +75,6 @@ private struct StudyCardFront: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
 
-                if let sentence = card.sentenceEnglish, !sentence.isEmpty {
-                    WireRecessedText(sentence)
-                }
                 if let sentence = card.sentenceJapanese, !sentence.isEmpty {
                     WireRecessedText(sentence)
                 }
@@ -367,4 +368,3 @@ private extension View {
         )
     }
 }
-
