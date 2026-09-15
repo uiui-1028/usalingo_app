@@ -1,4 +1,4 @@
--- 20260915090000_drop_extra_word_tables_and_rename_media_paths.sql のパスの置き換えを元に戻す。
+-- 20260915090758_drop_extra_word_tables_and_rename_media_paths.sql のパスの置き換えを元に戻す。
 -- 古い名前のファイルを Storage に戻してから実行する。
 -- 消した word_forms・word_relations は、各50行すべて空のオブジェクトだった。戻すときは
 -- 20260831121553_align_source_database_v5.sql の定義で作り直し、word_id 1〜50 に '{}' を入れる。
