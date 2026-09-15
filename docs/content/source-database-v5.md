@@ -55,7 +55,7 @@ deck（デッキ）
 | `01_core_words` | `word_id` | `word_text` | 見出し語 |
 | `01_core_senses` | `sense_id` | `word_id`, `priority`, `part_of_speech_en`, `definition_jp` | 意味、品詞、活用、関連語 |
 | `02_content_concepts` | `concept_id` | `concept_code`, `concept_name`, `is_active` | 教材コンセプト |
-| `02_content_examples` | `example_id` | `sense_id`, `concept_id`, `sentence_en`, `sentence_jp`, `image_state`, `display_order` | 例文と画像 |
+| `02_content_examples` | `example_id` | `sense_id`, `concept_id`, `sentence_en`, `sentence_jp` | 例文と画像 |
 | `03_audio_pronunciations` | `pronunciation_id` | `word_id`, `voice_label` | 発音と単語音声 |
 | `03_audio_example_audio` | `example_audio_id` | `example_id`, `voice_label` | 例文音声 |
 | `04_decks` | `deck_id` | `deck_name`, `concept_id` | デッキ |
@@ -73,7 +73,8 @@ deck（デッキ）
 ### IDの形
 
 シートのIDは整数にし、頭文字は付けません。シートの数字が、そのままSupabaseの整数IDとStorageパスの数字になります。
-番号は**シートごとに1から**数え、ゼロ埋めはしません。
+番号は**シートごとに1から**数えます。シートでは `0001` のようにゼロ埋めしても、`1` と書いてもかまいません。
+取りこみが整数に直すので、DBとStorageパスでは `1` になります。
 IDが重複してはいけないのは、同じシートの中だけです。別のシートで同じ数字を使ってもかまいません。
 
 千の位でシートを見分ける付け方（単語 `1001`、意味 `2001`、例文 `3001`、発音 `4001`）は使いません。
@@ -91,9 +92,9 @@ IDが重複してはいけないのは、同じシートの中だけです。別
 | `source_note_guid` | 任意 | 原本側の安定ID。Ankiの退役により、いまは使いません |
 | `source_deck_code` | 任意 | 原本デッキの固定コード |
 | `source_position` | 任意 | 原本内の1始まりの順番 |
-| `created_at`, `updated_at` | 必須 | 管理時刻 |
 
 `source_deck_code + source_position` と `source_note_guid` は、それぞれ重複させません。
+管理時刻（`created_at`、`updated_at`）はシートに書きません。DBが自動で入れます。
 
 ### `01_core_senses`
 
@@ -106,6 +107,8 @@ IDが重複してはいけないのは、同じシートの中だけです。別
 | `part_of_speech_jp` | 任意 | 日本語表示 |
 | `definition_jp` | 必須 | 日本語の意味 |
 | `cefr_level` | 任意 | Usalingoで採用したCEFR |
+| `pronunciation_ipa` | 任意 | IPA（米国発音）。品詞で発音が変わる単語（`increase` など）は意味ごとに書く |
+| `pronunciation_kana` | 任意 | カタカナの読み |
 | `etymology` | 任意 | 語源 |
 | `inflections` | 任意 | 活用。JSONオブジェクトをそのまま書く |
 | `synonyms` | 任意 | 類義語。` /&/ ` 区切り |
@@ -150,8 +153,15 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 | `concept_id` | 必須 | コンセプト |
 | `sentence_en`, `sentence_jp` | 必須 | 例文と訳 |
 | `image_asset_path` | 任意 | Storage相対パス |
-| `image_state` | 必須 | 画像の状態 |
-| `display_order` | 必須 | 同一sense・concept内の順番 |
+
+### `02_content_examples` で取りこみが決める値
+
+例文シートは、画像の状態と順番の列を持ちません。取りこみがDBの列を次のように決めます。
+
+| DBの列 | 決め方 |
+|---|---|
+| `image_state` | `image_asset_path` があれば `present`、なければ `blank` |
+| `display_order` | 同じ意味・同じコンセプトの行のうち、シートで上から何番目か（1始まり） |
 
 ### `03_audio_pronunciations`
 
@@ -159,7 +169,6 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 |---|---:|---|
 | `pronunciation_id` | 必須 | 固定ID |
 | `word_id` | 必須 | 見出し語 |
-| `ipa` | 任意 | IPA |
 | `audio_asset_path` | 任意 | 単語音声のStorage相対パス |
 | `voice_label` | 必須 | `default`, `male` など |
 
@@ -173,7 +182,7 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 
 | DBの列 | 決め方 |
 |---|---|
-| `ipa_state` | `ipa` があれば `present`、なければ `blank` |
+| `ipa`、`ipa_state`（`word_pronunciations`） | いつも `NULL` と `blank`。IPAは `01_core_senses.pronunciation_ipa` に置く |
 | `audio_state` | `audio_asset_path` があれば `present`、なければ `blank` |
 | `display_order` | 同じ単語（例文音声は同じ例文）の行のうち、シートで上から何番目か（1始まり） |
 | `is_primary` | 同じ単語（例文）の行のうち、シートで一番上の行だけ `true`。標準音声は1単語・1例文につき最大1件 |
@@ -241,6 +250,7 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 
 | シートの列 | `word_meanings` の列 | 型 |
 |---|---|---|
+| `pronunciation_ipa`, `pronunciation_kana` | 同名 | `text` |
 | `inflections` | `inflections` | `jsonb`（オブジェクト） |
 | `synonyms`, `antonyms` | 同名 | `text[]` |
 | `derivatives`, `collocations` | 同名 | `jsonb`（配列） |
