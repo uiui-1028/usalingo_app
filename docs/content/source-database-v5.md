@@ -106,6 +106,8 @@ IDが重複してはいけないのは、同じシートの中だけです。別
 | `part_of_speech_jp` | 任意 | 日本語表示 |
 | `definition_jp` | 必須 | 日本語の意味 |
 | `cefr_level` | 任意 | Usalingoで採用したCEFR |
+| `pronunciation_ipa` | 任意 | IPA（米国発音）。品詞で発音が変わる単語（`increase` など）は意味ごとに書く |
+| `pronunciation_kana` | 任意 | カタカナの読み |
 | `etymology` | 任意 | 語源 |
 | `inflections` | 任意 | 活用。JSONオブジェクトをそのまま書く |
 | `synonyms` | 任意 | 類義語。` /&/ ` 区切り |
@@ -166,7 +168,6 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 |---|---:|---|
 | `pronunciation_id` | 必須 | 固定ID |
 | `word_id` | 必須 | 見出し語 |
-| `ipa` | 任意 | IPA |
 | `audio_asset_path` | 任意 | 単語音声のStorage相対パス |
 | `voice_label` | 必須 | `default`, `male` など |
 
@@ -180,7 +181,7 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 
 | DBの列 | 決め方 |
 |---|---|
-| `ipa_state` | `ipa` があれば `present`、なければ `blank` |
+| `ipa`、`ipa_state`（`word_pronunciations`） | いつも `NULL` と `blank`。IPAは `01_core_senses.pronunciation_ipa` に置く |
 | `audio_state` | `audio_asset_path` があれば `present`、なければ `blank` |
 | `display_order` | 同じ単語（例文音声は同じ例文）の行のうち、シートで上から何番目か（1始まり） |
 | `is_primary` | 同じ単語（例文）の行のうち、シートで一番上の行だけ `true`。標準音声は1単語・1例文につき最大1件 |
@@ -248,6 +249,7 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 
 | シートの列 | `word_meanings` の列 | 型 |
 |---|---|---|
+| `pronunciation_ipa`, `pronunciation_kana` | 同名 | `text` |
 | `inflections` | `inflections` | `jsonb`（オブジェクト） |
 | `synonyms`, `antonyms` | 同名 | `text[]` |
 | `derivatives`, `collocations` | 同名 | `jsonb`（配列） |
