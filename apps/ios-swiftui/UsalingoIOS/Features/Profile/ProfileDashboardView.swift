@@ -30,7 +30,7 @@ struct ProfileDashboardView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel("プロフィール、\(displayName)、\(accountDetail)")
-                    .accessibilityHint("アカウントの操作、利用規約、画像キャッシュの設定を開きます")
+                    .accessibilityHint("アカウントの操作、利用規約、画像と音声のキャッシュの設定を開きます")
                     .padding(.horizontal, WireMetrics.screenPadding)
                     .padding(.top, WireMetrics.screenPadding)
                     .padding(.bottom, WireMetrics.spacingM)
@@ -85,14 +85,15 @@ struct ProfileDashboardView: View {
                 isShowingAuth = false
             }
         }
-        .alert("画像キャッシュを削除しますか？", isPresented: $isConfirmingCacheRemoval) {
+        .alert("画像と音声のキャッシュを削除しますか？", isPresented: $isConfirmingCacheRemoval) {
             Button("削除", role: .destructive) {
                 CardImageCache.removeAll()
-                message = "画像キャッシュを削除しました。必要な画像は、次に開いたときにもう一度読み込みます。"
+                Task { await CardAudioCache.shared.removeAll() }
+                message = "画像と音声のキャッシュを削除しました。必要な画像と音声は、次に使うときにもう一度読み込みます。"
             }
             Button("やめる", role: .cancel) {}
         } message: {
-            Text("この端末に保存したカード画像だけを片付けます。カードや学習記録は消えません。")
+            Text("この端末に保存したカード画像と音声だけを片付けます。カードや学習記録は消えません。")
         }
     }
 
@@ -385,10 +386,10 @@ private struct ExpandedProfileCard: View {
                     .accessibilityHint("正式公開済みの文書とクレジットを開きます")
 
                     Button(action: removeImageCache) {
-                        Label("画像キャッシュを削除", systemImage: "trash")
+                        Label("画像と音声のキャッシュを削除", systemImage: "trash")
                     }
                     .buttonStyle(.wireDestructive)
-                    .accessibilityHint("一度見たカード画像だけを端末から削除します")
+                    .accessibilityHint("一度使ったカード画像と音声だけを端末から削除します")
                 }
             }
             .padding(WireMetrics.spacingL)
