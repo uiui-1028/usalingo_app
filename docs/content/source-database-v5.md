@@ -169,12 +169,15 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 |---|---:|---|
 | `pronunciation_id` | 必須 | 固定ID |
 | `word_id` | 必須 | 見出し語 |
-| `audio_asset_path` | 任意 | 単語音声のStorage相対パス |
 | `voice_label` | 必須 | `default`, `male` など |
 
 ### `03_audio_example_audio`
 
-`example_audio_id`, `example_id`, `audio_asset_path`, `voice_label` を持ちます。
+`example_audio_id`, `example_id`, `voice_label` を持ちます。
+
+音声の2シートに `audio_asset_path` の列が残っていても、取りこみは使いません。
+`voice_label` が空の行は、まだ音声を用意していない行として取りこみで飛ばします。行は消さずに残し、
+音声ができたら `voice_label` を書きます。
 
 ### 音声シートで取りこみが決める値
 
@@ -183,6 +186,7 @@ make :: 作る :: 最も一般的で「無から有を生み出す」広い意�
 | DBの列 | 決め方 |
 |---|---|
 | `ipa`、`ipa_state`（`word_pronunciations`） | いつも `NULL` と `blank`。IPAは `01_core_senses.pronunciation_ipa` に置く |
+| `audio_asset_path` | IDから [コンテンツ契約](../architecture/official-content-contract.md) の形で作る。Storageにそのファイルがなければ `NULL` |
 | `audio_state` | `audio_asset_path` があれば `present`、なければ `blank` |
 | `display_order` | 同じ単語（例文音声は同じ例文）の行のうち、シートで上から何番目か（1始まり） |
 | `is_primary` | 同じ単語（例文）の行のうち、シートで一番上の行だけ `true`。標準音声は1単語・1例文につき最大1件 |
