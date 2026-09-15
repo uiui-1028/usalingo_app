@@ -15,6 +15,7 @@ struct StudySessionView: View {
     @State private var saveErrorMessage: String?
     @State private var dragOffset = CGSize.zero
     @State private var hasCrossedSwipeThreshold = false
+    @State private var revealedAnswerDuringDrag = false
     @State private var showAnswer = false
     @State private var isFlipped = false
     /// ドラッグを横（カード送り）と縦（裏面のスクロール）のどちらに割り当てたか。
@@ -171,16 +172,34 @@ struct StudySessionView: View {
                             let crossed = abs(value.translation.width) > threshold
                             if crossed && !hasCrossedSwipeThreshold {
                                 HapticFeedbackService.swipeThresholdCrossed()
+                                if !showAnswer {
+                                    revealedAnswerDuringDrag = true
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        showAnswer = true
+                                    }
+                                }
                             }
                             hasCrossedSwipeThreshold = crossed
                         }
                         .onEnded { value in
                             let axis = dragAxis
+                            let revealedAnswer = revealedAnswerDuringDrag
                             dragAxis = nil
                             hasCrossedSwipeThreshold = false
+                            revealedAnswerDuringDrag = false
                             guard axis == .horizontal else { return }
                             let threshold: CGFloat = 110
-                            if value.translation.width > threshold {
+                            if abs(value.translation.width) > threshold, revealedAnswer || !showAnswer {
+                                if !showAnswer {
+                                    HapticFeedbackService.swipeThresholdCrossed()
+                                    withAnimation(.easeInOut(duration: 0.2)) {
+                                        showAnswer = true
+                                    }
+                                }
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.78)) {
+                                    dragOffset = .zero
+                                }
+                            } else if value.translation.width > threshold {
                                 swipe(isCorrect: true)
                             } else if value.translation.width < -threshold {
                                 swipe(isCorrect: false)
@@ -211,9 +230,11 @@ struct StudySessionView: View {
     private var actionBar: some View {
         if !isLoading, index < cards.count {
             StudyAnswerActionBar(
+                incorrectLabel: showAnswer ? "不正解" : "答えを表示。もう一度押すと不正解",
+                correctLabel: showAnswer ? "正解" : "答えを表示。もう一度押すと正解",
                 isDisabled: isUndoingAnswer,
-                onIncorrect: { submitAnswer(isCorrect: false) },
-                onCorrect: { submitAnswer(isCorrect: true) }
+                onIncorrect: { revealOrSubmitAnswer(isCorrect: false) },
+                onCorrect: { revealOrSubmitAnswer(isCorrect: true) }
             ) {
                 toolbar
                     .frame(maxWidth: .infinity)
@@ -401,6 +422,18 @@ struct StudySessionView: View {
     private func retryAnswer() {
         saveErrorMessage = nil
         drainAnswerQueue()
+    }
+
+    /// 答えを見ないまま正誤を保存しない。1回目は表示だけ、表示後の2回目で保存する。
+    private func revealOrSubmitAnswer(isCorrect: Bool) {
+        if showAnswer {
+            submitAnswer(isCorrect: isCorrect)
+        } else {
+            HapticFeedbackService.tap()
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showAnswer = true
+            }
+        }
     }
 
     private func swipe(isCorrect: Bool) {

@@ -21,11 +21,10 @@ struct DeckDocument: FileDocument {
     }
 }
 
-/// 言語 → ジャンル → 詳細から同梱デッキを選ぶギャラリー。
+/// ジャンル → 詳細から同梱デッキを選ぶギャラリー。
 struct DeckLibraryView: View {
     @EnvironmentObject private var appState: AppState
     let onChanged: () -> Void
-    @State private var language = "日本語"
     @State private var bundledDecks: [DeckFile] = []
     @State private var isImporting = false
     @State private var message: String?
@@ -34,28 +33,15 @@ struct DeckLibraryView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("次の「わかる」を、見つけよう。")
-                        .font(.title2.bold())
-                    Text("好きな言語とジャンルから、小さくはじめる。")
-                        .font(.subheadline).foregroundStyle(.secondary)
-                }
-                Picker("学ぶ言語", selection: $language) {
-                    Text("日本語").tag("日本語")
-                    Text("英語").tag("英語")
-                }
-                .pickerStyle(.segmented)
-
                 ForEach(GalleryDeck.genres, id: \.self) { genre in
                     VStack(alignment: .leading, spacing: 14) {
                         HStack {
                             Text(genre).font(.title2.bold())
                             Spacer()
-                            Text("3デッキ").font(.caption).foregroundStyle(.secondary)
+                            Text("\(decks(for: genre).count)デッキ")
+                                .font(.caption).foregroundStyle(.secondary)
                         }
-                        ForEach(bundledDecks.filter {
-                            GalleryDeck.language($0) == language && GalleryDeck.genre($0) == genre
-                        }, id: \.deckId) { file in
+                        ForEach(decks(for: genre), id: \.deckId) { file in
                             NavigationLink {
                                 GalleryDeckDetail(file: file, onChanged: onChanged)
                             } label: {
@@ -101,6 +87,10 @@ struct DeckLibraryView: View {
 
     private func reload() {
         bundledDecks = appState.localStudy.allBundledDecks().filter { $0.deckId.hasPrefix("gallery-") }
+    }
+
+    private func decks(for genre: String) -> [DeckFile] {
+        bundledDecks.filter { GalleryDeck.genre($0) == genre }
     }
 
     /// 読み込み失敗は黙って捨てず、理由をそのまま画面へ出す。
