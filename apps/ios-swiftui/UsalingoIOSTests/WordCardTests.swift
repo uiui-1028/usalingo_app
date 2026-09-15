@@ -92,6 +92,54 @@ final class WordCardTests: XCTestCase {
         XCTAssertEqual(card.wordId, 42)
         XCTAssertNil(card.cardId)
         XCTAssertEqual(card.audioAssetPath, "content-audio/example/simple/0000-0499/100.mp3")
+        XCTAssertNil(card.wordAudioURL)
+    }
+
+    func testWordRecordUsesPrimaryPronunciationAudio() throws {
+        let json = """
+        {
+          "id": 42,
+          "word_text": "apple",
+          "word_meanings": [
+            { "id": 10, "priority": 1, "definition_jp": "りんご", "example_contents": [] }
+          ],
+          "word_pronunciations": [
+            { "audio_asset_path": "content-audio/word/000002.mp3", "is_primary": false },
+            { "audio_asset_path": "content-audio/word/000001.mp3", "is_primary": true }
+          ]
+        }
+        """
+
+        let record = try JSONDecoder().decode(WordRecord.self, from: Data(json.utf8))
+        let card = try XCTUnwrap(record.toCard())
+
+        XCTAssertEqual(card.wordAudioAssetPath, "content-audio/word/000001.mp3")
+        let url = try XCTUnwrap(card.wordAudioURL)
+        XCTAssertTrue(url.absoluteString.hasSuffix(
+            "/storage/v1/object/public/content-audio/word/000001.mp3"
+        ))
+        // 利用者の上書きやタグ付けで、単語音声が消えない。
+        XCTAssertEqual(card.withTags(["fruit"]).wordAudioAssetPath, card.wordAudioAssetPath)
+    }
+
+    func testPrimaryPronunciationWithoutAudioDisablesWordAudio() throws {
+        let json = """
+        {
+          "id": 43,
+          "word_text": "a",
+          "word_meanings": [
+            { "id": 11, "priority": 1, "definition_jp": "ひとつの", "example_contents": [] }
+          ],
+          "word_pronunciations": [
+            { "audio_asset_path": null, "is_primary": true }
+          ]
+        }
+        """
+
+        let record = try JSONDecoder().decode(WordRecord.self, from: Data(json.utf8))
+        let card = try XCTUnwrap(record.toCard())
+
+        XCTAssertNil(card.wordAudioURL)
     }
 
     func testStudyCardRecordMapsCardAndWordIdentifiersSeparately() throws {

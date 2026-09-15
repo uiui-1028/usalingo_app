@@ -26,7 +26,10 @@ struct WordCard: Identifiable, Hashable {
     let sentenceEnglish: String?
     let sentenceJapanese: String?
     let imageAssetPath: String?
+    /// 例文の音声。
     let audioAssetPath: String?
+    /// 単語の音声。`word_pronunciations` の標準の声（`is_primary`）を使う。
+    let wordAudioAssetPath: String?
     let tags: [String]
     let learningStatus: String?
     let learning: WordLearningSnapshot?
@@ -64,6 +67,7 @@ struct WordCard: Identifiable, Hashable {
         sentenceJapanese: String?,
         imageAssetPath: String?,
         audioAssetPath: String?,
+        wordAudioAssetPath: String? = nil,
         tags: [String],
         learningStatus: String?,
         learning: WordLearningSnapshot?,
@@ -78,6 +82,7 @@ struct WordCard: Identifiable, Hashable {
         self.sentenceJapanese = sentenceJapanese
         self.imageAssetPath = imageAssetPath
         self.audioAssetPath = audioAssetPath
+        self.wordAudioAssetPath = wordAudioAssetPath
         self.tags = tags
         self.learningStatus = learningStatus
         self.learning = learning
@@ -96,6 +101,7 @@ struct WordCard: Identifiable, Hashable {
         sentenceJapanese: String?,
         imageAssetPath: String?,
         audioAssetPath: String?,
+        wordAudioAssetPath: String? = nil,
         tags: [String],
         learningStatus: String?,
         learning: WordLearningSnapshot?,
@@ -111,6 +117,7 @@ struct WordCard: Identifiable, Hashable {
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
             audioAssetPath: audioAssetPath,
+            wordAudioAssetPath: wordAudioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
             learning: learning,
@@ -120,13 +127,19 @@ struct WordCard: Identifiable, Hashable {
     }
 
     var illustrationURL: URL? {
-        guard let path = imageAssetPath, !path.isEmpty else { return nil }
-        if let url = URL(string: path), url.scheme != nil { return url }
-        return SupabaseConfig.publicStorageURL(for: path)
+        Self.assetURL(for: imageAssetPath)
     }
 
     var audioURL: URL? {
-        guard let path = audioAssetPath, !path.isEmpty else { return nil }
+        Self.assetURL(for: audioAssetPath)
+    }
+
+    var wordAudioURL: URL? {
+        Self.assetURL(for: wordAudioAssetPath)
+    }
+
+    private static func assetURL(for path: String?) -> URL? {
+        guard let path, !path.isEmpty else { return nil }
         if let url = URL(string: path), url.scheme != nil { return url }
         return SupabaseConfig.publicStorageURL(for: path)
     }
@@ -141,6 +154,7 @@ struct WordCard: Identifiable, Hashable {
             sentenceJapanese: override.sentenceJapanese.optionalOverride(fallback: sentenceJapanese),
             imageAssetPath: override.imageAssetPath.optionalOverride(fallback: imageAssetPath),
             audioAssetPath: audioAssetPath,
+            wordAudioAssetPath: wordAudioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
             learning: learning,
@@ -171,6 +185,7 @@ struct WordCard: Identifiable, Hashable {
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
             audioAssetPath: audioAssetPath,
+            wordAudioAssetPath: wordAudioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
             learning: learning,
@@ -189,6 +204,7 @@ struct WordCard: Identifiable, Hashable {
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
             audioAssetPath: audioAssetPath,
+            wordAudioAssetPath: wordAudioAssetPath,
             tags: tags,
             learningStatus: status,
             learning: learning,
@@ -207,6 +223,7 @@ struct WordCard: Identifiable, Hashable {
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
             audioAssetPath: audioAssetPath,
+            wordAudioAssetPath: wordAudioAssetPath,
             tags: tags,
             learningStatus: progress?.status,
             learning: progress.map(WordLearningSnapshot.init(progress:)),
@@ -225,6 +242,7 @@ struct WordCard: Identifiable, Hashable {
             sentenceJapanese: sentenceJapanese,
             imageAssetPath: imageAssetPath,
             audioAssetPath: audioAssetPath,
+            wordAudioAssetPath: wordAudioAssetPath,
             tags: tags,
             learningStatus: learningStatus,
             learning: learning,
@@ -275,11 +293,13 @@ struct WordRecord: Decodable {
     let id: Int
     let wordText: String
     let wordMeanings: [WordMeaning]?
+    let wordPronunciations: [WordPronunciation]?
 
     enum CodingKeys: String, CodingKey {
         case id
         case wordText = "word_text"
         case wordMeanings = "word_meanings"
+        case wordPronunciations = "word_pronunciations"
     }
 
     func toCard(cardId: Int? = nil) -> WordCard? {
@@ -308,6 +328,7 @@ struct WordRecord: Decodable {
             sentenceJapanese: example?.sentenceJapanese,
             imageAssetPath: example?.imageAssetPath,
             audioAssetPath: example?.audioAssetPath,
+            wordAudioAssetPath: wordPronunciations?.first(where: \.isPrimary)?.audioAssetPath,
             tags: [],
             learningStatus: nil,
             learning: nil,
@@ -382,6 +403,17 @@ struct ExampleContent: Decodable {
         case sentenceJapanese = "sentence_jp"
         case imageAssetPath = "image_asset_path"
         case audioAssetPath = "audio_asset_path"
+    }
+}
+
+/// 単語の発音1件。音声が無い発音は `audio_asset_path` が NULL になる。
+struct WordPronunciation: Decodable {
+    let audioAssetPath: String?
+    let isPrimary: Bool
+
+    enum CodingKeys: String, CodingKey {
+        case audioAssetPath = "audio_asset_path"
+        case isPrimary = "is_primary"
     }
 }
 

@@ -88,6 +88,7 @@ struct StudySessionView: View {
         .onDisappear {
             audioPlaybackService.stop()
             CardImageCache.stopPrefetching()
+            Task { await CardAudioCache.shared.stopPrefetching() }
             appState.isShellChromeHidden = false
         }
         .sheet(item: $editingWord) { word in
@@ -245,11 +246,15 @@ struct StudySessionView: View {
     private var toolbar: some View {
         HStack(spacing: WireMetrics.spacingS) {
             toolbarButton("tag", label: "タグ", action: tagCurrentCard)
-            toolbarButton(
-                audioPlaybackService.isPlaying ? "speaker.slash" : "speaker.wave.2",
-                label: "音声を再生",
-                isDisabled: currentAudioURL == nil,
-                action: playCurrentCardAudio
+            audioButton(
+                url: currentCard?.wordAudioURL,
+                symbol: "speaker.wave.2",
+                label: "単語の音声を再生"
+            )
+            audioButton(
+                url: currentCard?.audioURL,
+                symbol: "text.bubble",
+                label: "例文の音声を再生"
             )
             toolbarButton(
                 "arrow.uturn.backward",
@@ -319,7 +324,7 @@ struct StudySessionView: View {
             answerQueue.reset()
             flyawayCards = []
             saveErrorMessage = nil
-            prefetchUpcomingImages()
+            prefetchUpcomingMedia()
         } catch {
             cards = []
             loadErrorMessage = UserFacingError.message(for: error)
@@ -401,7 +406,7 @@ struct StudySessionView: View {
         showAnswer = false
         isFlipped = false
         dragOffset = .zero
-        prefetchUpcomingImages()
+        prefetchUpcomingMedia()
 
         drainAnswerQueue()
     }
@@ -474,24 +479,33 @@ struct StudySessionView: View {
         }
     }
 
-    private var currentAudioURL: URL? {
-        guard index < cards.count else { return nil }
-        return cards[index].audioURL
+    private var currentCard: WordCard? {
+        index < cards.count ? cards[index] : nil
     }
 
-    private func playCurrentCardAudio() {
-        guard let currentAudioURL else { return }
-        audioPlaybackService.togglePlayback(url: currentAudioURL)
+    /// 鳴っている音声のボタンだけを停止の見た目にする。音声が無いカードでは押せない。
+    private func audioButton(url: URL?, symbol: String, label: String) -> some View {
+        let isPlayingThis = url != nil && audioPlaybackService.playingURL == url
+        return toolbarButton(
+            isPlayingThis ? "speaker.slash" : symbol,
+            label: label,
+            isDisabled: url == nil
+        ) {
+            guard let url else { return }
+            audioPlaybackService.togglePlayback(url: url)
+        }
     }
 
     /// 現在のカードから数枚先までを温める。1枚消費するたびに窓が1つ先へずれるので、
-    /// 常に読み込み済みの控えが残る。取得済みのものは `CardImageCache` 側で弾かれる。
-    private func prefetchUpcomingImages() {
-        let urls = cards
+    /// 常に読み込み済みの控えが残る。取得済みのものは各キャッシュ側で弾かれる。
+    /// 音声も同じ窓で先に取っておき、電波が切れても学習を続けられるようにする。
+    private func prefetchUpcomingMedia() {
+        let upcoming = cards
             .dropFirst(index)
             .prefix(CardImageCache.prefetchWindow)
-            .compactMap(\.illustrationURL)
-        CardImageCache.prefetch(urls: urls)
+        CardImageCache.prefetch(urls: upcoming.compactMap(\.illustrationURL))
+        let audioURLs = upcoming.flatMap { [$0.wordAudioURL, $0.audioURL].compactMap { $0 } }
+        Task { await CardAudioCache.shared.prefetch(urls: audioURLs) }
     }
 
     private func editCurrentCard() {
