@@ -37,6 +37,7 @@ DBには完全URLではなく、`bucket/object-key` を保存します。`theme-
 |---|---|---|---|
 | 例文画像 | `image_asset_path` | `content-images/<theme-slug>/<range>/<example-id>.webp` | `content-images/simple/0000-0499/100.webp` |
 | 例文音声 | `audio_asset_path` | `content-audio/example/<theme-slug>/<range>/<example-id>.mp3` | `content-audio/example/simple/0000-0499/100.mp3` |
+| 単語音声 | `word_pronunciations.audio_asset_path` | `content-audio/word/<range>/<pronunciation-id>.mp3` | `content-audio/word/0000-0499/100.mp3` |
 
 `range` はIDを500件ごとに分けます。
 
@@ -44,7 +45,8 @@ DBには完全URLではなく、`bucket/object-key` を保存します。`theme-
 - ID 500〜999: `0500-0999`
 - ID 1000〜1499: `1000-1499`
 
-ファイル名の数字は `example_contents.id` と一致させます。原本シートの `example_id` も同じ整数です。画像はWebP、音声はMP3だけをこの契約の対象にします。SwiftUIは相対パスを `SupabaseConfig.publicStorageURL(for:)` で公開URLへ変換します。
+ファイル名の数字は `example_contents.id`（単語音声は `word_pronunciations.id`）と一致させます。原本シートの `example_id`・`pronunciation_id` も同じ整数です。
+音声のパスは原本シートに書かず、取りこみがIDから作ります。Storageにファイルがあるときだけ値を入れます。画像はWebP、音声はMP3だけをこの契約の対象にします。SwiftUIは相対パスを `SupabaseConfig.publicStorageURL(for:)` で公開URLへ変換します。
 
 ## 4. 読み取りと書き込み
 
