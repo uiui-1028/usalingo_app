@@ -3,8 +3,10 @@ import WebKit
 
 struct ProfileDashboardView: View {
     @EnvironmentObject private var appState: AppState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var stats = StudyStats.empty
     @State private var profile = UserProfile(userId: "", nickname: nil, plan: "free")
+    @State private var isAccountCardExpanded = false
     @State private var isEditingProfile = false
     @State private var isShowingAuth = false
     @State private var isShowingLegalInformation = false
@@ -14,65 +16,52 @@ struct ProfileDashboardView: View {
     private let studyService = StudyService()
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: WireMetrics.spacingL) {
-                // まとまり1: アカウント。設定や手続きの入口だけを置く。
-                BentoGroup(title: "アカウント", tone: .l1) {
-                    tileGrid {
-                        Button {
-                            if appState.isGuest {
-                                isShowingAuth = true
-                            } else {
-                                isEditingProfile = true
-                            }
-                        } label: {
-                            ProfileTile(title: displayName, symbol: "person.crop.circle", tone: .l1)
-                        }
-                        .buttonStyle(.plain)
-                        Button {
-                            isShowingLegalInformation = true
-                        } label: {
-                            ProfileTile(title: "法務・ライセンス", symbol: "doc.text.magnifyingglass", tone: .l1)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityHint("利用規約、プライバシー、ライセンス、クレジットの公開状況を開きます")
-                        Button {
-                            isConfirmingCacheRemoval = true
-                        } label: {
-                            ProfileTile(title: "画像キャッシュを削除", symbol: "trash", tone: .l1)
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityHint("一度見たカードの画像をこの端末から削除します。必要になれば再び読み込みます。")
-                    }
-                }
-
-                // まとまり2: 学習の記録。数字と履歴だけを置く。
-                // 面は下のまとまりほど濃くする（BentoTone の決まり）。
-                BentoGroup(title: "学習の記録", tone: .l2) {
-                    tileGrid {
-                        ProfileTile(title: "\(stats.currentStreak)", symbol: "flame", caption: "連続日数", tone: .l2)
-                        HeatmapTile(reviewedDays: stats.reviewedDays, tone: .l2)
-                        ProfileTile(title: "実績サマリー", symbol: "trophy", tone: .l2)
-                        ProfileTile(title: "\(stats.studiedCount)", symbol: "sparkles", caption: "単語数", tone: .l2)
-                        ProfileTile(title: "\(stats.totalReviews)", symbol: "checkmark.circle", caption: "復習回数", tone: .l2)
-                    }
-                }
-
-                if !message.isEmpty {
-                    // 色相を使わずに異常を示す（破線 + 文言）。
-                    Text(message)
-                        .wireFont(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(WireMetrics.spacingM)
-                        .outlineSurface(
-                            radius: WireMetrics.radiusControl,
-                            shadow: nil,
-                            dashed: true
+        GeometryReader { proxy in
+            ZStack {
+                VStack(spacing: 0) {
+                    Button {
+                        setAccountCardExpanded(true)
+                    } label: {
+                        ProfileSummaryCard(
+                            displayName: displayName,
+                            accountDetail: accountDetail,
+                            plan: planLabel
                         )
-                }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("プロフィール、\(displayName)、\(accountDetail)")
+                    .accessibilityHint("アカウントの操作、利用規約、画像キャッシュの設定を開きます")
+                    .padding(.horizontal, WireMetrics.screenPadding)
+                    .padding(.top, WireMetrics.screenPadding)
+                    .padding(.bottom, WireMetrics.spacingM)
 
+                    learningRecordSheet
+                }
+                .background(WireColor.background)
+
+                if isAccountCardExpanded {
+                    Color.black.opacity(0.22)
+                        .ignoresSafeArea()
+                        .onTapGesture { setAccountCardExpanded(false) }
+                        .accessibilityHidden(true)
+
+                    ExpandedProfileCard(
+                        displayName: displayName,
+                        accountDetail: accountDetail,
+                        plan: planLabel,
+                        isGuest: appState.isGuest,
+                        close: { setAccountCardExpanded(false) },
+                        openAccount: openAccount,
+                        openLegalInformation: openLegalInformation,
+                        removeImageCache: confirmCacheRemoval
+                    )
+                    .frame(maxWidth: 520, maxHeight: max(320, proxy.size.height - (WireMetrics.spacingXL * 2)))
+                    .padding(WireMetrics.screenPadding)
+                    .transition(.scale(scale: 0.86, anchor: .top).combined(with: .opacity))
+                    .zIndex(1)
+                }
             }
-            .padding(WireMetrics.screenPadding)
+            .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.84), value: isAccountCardExpanded)
         }
         .task(id: appState.session?.user.id ?? "guest") { await load() }
         .task(id: appState.studyDataVersion) { await refreshStats() }
@@ -107,12 +96,64 @@ struct ProfileDashboardView: View {
         }
     }
 
-    /// まとまりの中に並べる2列のタイル。
-    private func tileGrid<Content: View>(@ViewBuilder content: () -> Content) -> some View {
-        LazyVGrid(
-            columns: [GridItem(.flexible()), GridItem(.flexible())],
-            spacing: WireMetrics.spacingL,
-            content: content
+    private var learningRecordSheet: some View {
+        ScrollView {
+            VStack(spacing: WireMetrics.spacingL) {
+                if !message.isEmpty {
+                    // 色相を使わずに異常を示す（破線 + 文言）。
+                    Text(message)
+                        .wireFont(.caption)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(WireMetrics.spacingM)
+                        .outlineSurface(
+                            radius: WireMetrics.radiusControl,
+                            shadow: nil,
+                            dashed: true,
+                            fill: WireColor.groupL2
+                        )
+                }
+
+                HeatmapTile(reviewedDays: stats.reviewedDays, tone: .l2)
+
+                HStack(spacing: WireMetrics.spacingL) {
+                    ProfileTile(
+                        title: "\(stats.currentStreak)",
+                        symbol: "flame",
+                        caption: "連続日数",
+                        tone: .l2
+                    )
+                    ProfileTile(
+                        title: "\(stats.studiedCount)",
+                        symbol: "sparkles",
+                        caption: "学習した単語",
+                        tone: .l2
+                    )
+                }
+
+                LearningSummaryTile(stats: stats, tone: .l2)
+            }
+            .padding(.horizontal, WireMetrics.screenPadding)
+            .padding(.top, WireMetrics.spacingL)
+            .padding(.bottom, WireMetrics.screenPadding)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(
+            UnevenRoundedRectangle(
+                topLeadingRadius: WireMetrics.radiusLarge,
+                bottomLeadingRadius: 0,
+                bottomTrailingRadius: 0,
+                topTrailingRadius: WireMetrics.radiusLarge,
+                style: .continuous
+            )
+                .fill(WireColor.groupL2)
+        )
+        .overlay(
+            ProfileBottomSheetBorder(
+                radius: WireMetrics.radiusLarge,
+                lineWidth: WireMetrics.strokeHeavy
+            )
+            .stroke(WireColor.ink, lineWidth: WireMetrics.strokeHeavy)
         )
     }
 
@@ -125,6 +166,45 @@ struct ProfileDashboardView: View {
             return nickname
         }
         return appState.session?.user.email ?? "ユーザー名"
+    }
+
+    private var accountDetail: String {
+        if appState.isGuest {
+            return "ゲストアカウント"
+        }
+        return appState.session?.user.email ?? "ログイン済み"
+    }
+
+    private var planLabel: String {
+        guard let plan = profile.plan?.trimmingCharacters(in: .whitespacesAndNewlines), !plan.isEmpty else {
+            return "Free"
+        }
+        return plan.localizedCapitalized
+    }
+
+    private func setAccountCardExpanded(_ isExpanded: Bool) {
+        withAnimation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.84)) {
+            isAccountCardExpanded = isExpanded
+        }
+    }
+
+    private func openAccount() {
+        setAccountCardExpanded(false)
+        if appState.isGuest {
+            isShowingAuth = true
+        } else {
+            isEditingProfile = true
+        }
+    }
+
+    private func openLegalInformation() {
+        setAccountCardExpanded(false)
+        isShowingLegalInformation = true
+    }
+
+    private func confirmCacheRemoval() {
+        setAccountCardExpanded(false)
+        isConfirmingCacheRemoval = true
     }
 
     private func load() async {
@@ -159,6 +239,170 @@ struct ProfileDashboardView: View {
         } catch {
             message = "ユーザー名を保存できませんでした。"
         }
+    }
+}
+
+private struct ProfileSummaryCard: View {
+    let displayName: String
+    let accountDetail: String
+    let plan: String
+
+    var body: some View {
+        HStack(spacing: WireMetrics.spacingL) {
+            Image(systemName: "person.crop.circle")
+                .resizable()
+                .scaledToFit()
+                .padding(WireMetrics.spacingL)
+                .frame(width: 92, height: 92)
+                .outlineSurface(
+                    radius: WireMetrics.radiusCard,
+                    stroke: WireMetrics.strokeHeavy,
+                    shadow: nil,
+                    fill: WireColor.groupL2
+                )
+
+            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
+                Text(displayName)
+                    .wireFont(.titleL)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+
+                Text(accountDetail)
+                    .wireFont(.caption)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.72)
+
+                WirePill(title: plan, font: .caption)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            Image(systemName: "arrow.up.left.and.arrow.down.right")
+                .wireFont(.label)
+                .accessibilityHidden(true)
+        }
+        .padding(WireMetrics.spacingM)
+        // 変更前は 92pt のアバター + 上下12ptで116pt。カードだけを正確に2倍へ広げる。
+        .frame(maxWidth: .infinity, minHeight: 232, alignment: .leading)
+        .outlineSurface(
+            radius: WireMetrics.radiusLarge,
+            stroke: WireMetrics.strokeHeavy,
+            shadow: .card
+        )
+    }
+}
+
+/// 上と左右だけを描く固定シートの枠。下端は画面外へ続く面として線を置かない。
+private struct ProfileBottomSheetBorder: Shape {
+    let radius: CGFloat
+    let lineWidth: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        let inset = lineWidth / 2
+        let left = rect.minX + inset
+        let right = rect.maxX - inset
+        let top = rect.minY + inset
+        let corner = min(radius, (right - left) / 2, rect.height)
+        var path = Path()
+
+        path.move(to: CGPoint(x: left, y: rect.maxY))
+        path.addLine(to: CGPoint(x: left, y: top + corner))
+        path.addQuadCurve(
+            to: CGPoint(x: left + corner, y: top),
+            control: CGPoint(x: left, y: top)
+        )
+        path.addLine(to: CGPoint(x: right - corner, y: top))
+        path.addQuadCurve(
+            to: CGPoint(x: right, y: top + corner),
+            control: CGPoint(x: right, y: top)
+        )
+        path.addLine(to: CGPoint(x: right, y: rect.maxY))
+
+        return path
+    }
+}
+
+private struct ExpandedProfileCard: View {
+    let displayName: String
+    let accountDetail: String
+    let plan: String
+    let isGuest: Bool
+    let close: () -> Void
+    let openAccount: () -> Void
+    let openLegalInformation: () -> Void
+    let removeImageCache: () -> Void
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: WireMetrics.spacingXL) {
+                HStack {
+                    Spacer()
+                    Button(action: close) {
+                        Image(systemName: "xmark")
+                            .frame(width: 44, height: 44)
+                            .outlineCircleSurface(stroke: WireMetrics.strokeBase)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("プロフィールカードを閉じる")
+                }
+
+                Image(systemName: "person.crop.circle")
+                    .resizable()
+                    .scaledToFit()
+                    .padding(WireMetrics.spacingXL)
+                    .frame(width: 132, height: 132)
+                    .outlineSurface(
+                        radius: WireMetrics.radiusLarge,
+                        stroke: WireMetrics.strokeHeavy,
+                        shadow: nil,
+                        fill: WireColor.groupL2
+                    )
+
+                VStack(spacing: WireMetrics.spacingS) {
+                    Text(displayName)
+                        .wireFont(.titleL)
+                        .multilineTextAlignment(.center)
+                    Text(accountDetail)
+                        .wireFont(.caption)
+                        .multilineTextAlignment(.center)
+                    WirePill(title: plan, font: .caption)
+                }
+
+                VStack(spacing: WireMetrics.spacingM) {
+                    Button {
+                        openAccount()
+                    } label: {
+                        Label(
+                            isGuest ? "ログイン・アカウント作成" : "プロフィール・アカウント設定",
+                            systemImage: isGuest ? "person.badge.plus" : "person.crop.circle.badge.checkmark"
+                        )
+                    }
+                    .buttonStyle(.wirePrimary)
+
+                    Button(action: openLegalInformation) {
+                        Label("利用規約・プライバシー・ライセンス", systemImage: "doc.text.magnifyingglass")
+                    }
+                    .buttonStyle(.wireSecondary)
+                    .accessibilityHint("正式公開済みの文書とクレジットを開きます")
+
+                    Button(action: removeImageCache) {
+                        Label("画像キャッシュを削除", systemImage: "trash")
+                    }
+                    .buttonStyle(.wireDestructive)
+                    .accessibilityHint("一度見たカード画像だけを端末から削除します")
+                }
+            }
+            .padding(WireMetrics.spacingL)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .background(WireColor.surface)
+        .clipShape(RoundedRectangle(cornerRadius: WireMetrics.radiusLarge, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: WireMetrics.radiusLarge, style: .continuous)
+                .strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHeavy)
+        )
+        .offsetShadow(.container, radius: WireMetrics.radiusLarge)
+        .accessibilityAddTraits(.isModal)
+        .accessibilityAction(.escape, close)
     }
 }
 
@@ -514,20 +758,29 @@ private struct HeatmapTile: View {
     var tone: BentoTone = .l1
 
     var body: some View {
-        VStack(spacing: WireMetrics.spacingS) {
-            Image(systemName: "calendar")
-                .wireFont(.titleL)
-            Text("学習ヒートマップ")
-                .wireFont(.titleS)
-                .multilineTextAlignment(.center)
-            LazyVGrid(columns: Array(repeating: GridItem(.fixed(9), spacing: 3), count: 7), spacing: 3) {
+        HStack(spacing: WireMetrics.spacingL) {
+            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
+                Image(systemName: "calendar")
+                    .wireFont(.titleL)
+                Text("最近の学習")
+                    .wireFont(.titleS)
+                Text("過去14日")
+                    .wireFont(.caption)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            LazyVGrid(columns: Array(repeating: GridItem(.fixed(12), spacing: 5), count: 7), spacing: 5) {
                 ForEach(recentDays, id: \.self) { day in
                     // 学習した日は塗り、していない日は線だけ。色相は使わない。
                     heatmapCell(isReviewed: reviewedDaySet.contains(day))
                 }
             }
         }
-        .wireTile(tone: tone)
+        .padding(WireMetrics.spacingL)
+        .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
+        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card, fill: tone.fill)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("最近14日間の学習日数 \(reviewedDaySet.count)日")
     }
 
     @ViewBuilder
@@ -535,11 +788,11 @@ private struct HeatmapTile: View {
         if isReviewed {
             Rectangle()
                 .fill(WireColor.ink)
-                .frame(width: 9, height: 9)
+                .frame(width: 12, height: 12)
         } else {
             Rectangle()
                 .strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair)
-                .frame(width: 9, height: 9)
+                .frame(width: 12, height: 12)
         }
     }
 
@@ -553,6 +806,47 @@ private struct HeatmapTile: View {
         return (0..<14).compactMap { offset in
             calendar.date(byAdding: .day, value: offset - 13, to: today)
         }
+    }
+}
+
+private struct LearningSummaryTile: View {
+    let stats: StudyStats
+    var tone: BentoTone = .l1
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: WireMetrics.spacingM) {
+            Label("実績サマリー", systemImage: "trophy")
+                .wireFont(.titleS)
+
+            HStack(spacing: WireMetrics.spacingS) {
+                summaryMetric(value: stats.totalReviews, label: "復習")
+                WireDivider()
+                    .frame(width: WireMetrics.strokeHair, height: 48)
+                summaryMetric(value: stats.masteredCount, label: "定着")
+                WireDivider()
+                    .frame(width: WireMetrics.strokeHair, height: 48)
+                summaryMetric(value: stats.dueCount, label: "今日の復習")
+            }
+        }
+        .padding(WireMetrics.spacingL)
+        .frame(maxWidth: .infinity, minHeight: 132, alignment: .leading)
+        .outlineSurface(radius: WireMetrics.radiusCard, shadow: .card, fill: tone.fill)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("実績サマリー、復習 \(stats.totalReviews)回、定着 \(stats.masteredCount)語、今日の復習 \(stats.dueCount)語")
+    }
+
+    private func summaryMetric(value: Int, label: String) -> some View {
+        VStack(spacing: WireMetrics.spacingXS) {
+            Text("\(value)")
+                .wireFont(.titleL)
+                .minimumScaleFactor(0.72)
+            Text(label)
+                .wireFont(.caption)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.72)
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 
