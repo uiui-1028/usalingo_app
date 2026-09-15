@@ -137,6 +137,21 @@ final class RedSheetCheckModel: ObservableObject {
         if errorMessage == nil { retry() }
     }
 
+    /// 1回目は答えを見せ、表示後の2回目でそのボタンの判定を保存する。
+    func revealOrSubmit(isCorrect: Bool) {
+        guard current != nil, !isUndoing else { return }
+        if isAnswerVisible {
+            submit(isCorrect: isCorrect)
+        } else {
+            isAnswerVisible = true
+        }
+    }
+
+    func replaceWord(_ word: WordCard) {
+        guard let index = words.firstIndex(where: { $0.id == word.id }) else { return }
+        words[index] = word
+    }
+
     func retry() {
         guard let source, !isUndoing, queue.beginDraining() else { return }
         errorMessage = nil

@@ -12,12 +12,12 @@ struct WordListView: View {
     @State private var rowFrames: [Int: CGRect] = [:]
     @State private var lastRowHeight: CGFloat = 80
     @StateObject private var check = RedSheetCheckModel()
-    @State private var showsRedSheetChoice = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @EnvironmentObject private var appState: AppState
     @StateObject private var viewModel: WordListViewModel
     @State private var selectedWord: WordCard?
+    @State private var taggingWord: WordCard?
     /// バナーで選んでいるデッキ。いまは見た目だけで、一覧の中身は変えない。
     @State private var selectedDeckID: Int?
 
@@ -66,6 +66,7 @@ struct WordListView: View {
                         .padding(.horizontal, WireMetrics.screenPadding)
                         .padding(.top, WireMetrics.spacingS)
                         .frame(height: bannerHeight + WireMetrics.spacingS, alignment: .top)
+                        .transition(.opacity)
                     }
 
                     VStack(spacing: 0) {
@@ -75,6 +76,7 @@ struct WordListView: View {
                     }
                     .ignoresSafeArea(edges: .bottom)
                 }
+                .animation(reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.88), value: isRedSheetEnabled)
             }
         }
         // 操作はすべてシートの中の浮動バーに集めたので、上のヘッダーごと消す。
@@ -82,23 +84,27 @@ struct WordListView: View {
         .toolbar(sheetOnly && !isRedSheetEnabled ? .visible : .hidden, for: .navigationBar)
         .background {
             if !sheetOnly || isRedSheetEnabled { BackSwipeEnabler() }
-            // 未保存の判定を置いたまま画面を離れない。赤シート専用の終了ボタンを使う。
+            // 未保存の判定を置いたまま画面を離れない。再タップできる赤シートボタンを使う。
             if isRedSheetEnabled { BackSwipeProtectedRegionMarker() }
         }
-        .confirmationDialog("赤シートの使い方", isPresented: $showsRedSheetChoice, titleVisibility: .visible) {
-            Button("通常利用") {}
-            Button("チェック開始", action: startCheck)
-                .disabled(!canStartCheck)
-        } message: {
-            Text(canStartCheck ? "自由に隠して使うか、1行ずつ判定して学習記録に保存できます。" : "この一覧は通常利用のみです。チェックには保存できる学習カードが必要です。")
-        }
         .onChange(of: isRedSheetEnabled) { _, enabled in
-            if enabled { showsRedSheetChoice = true }
+            if enabled {
+                startCheck()
+            } else {
+                check.reset()
+            }
         }
         .fullScreenCover(item: $selectedWord) { word in
             WordDetailSheet(word: word, words: viewModel.filteredWords) { savedWord in
                 _ = viewModel.replaceWord(savedWord)
             }
+        }
+        .sheet(item: $taggingWord) { word in
+            TagSheet(word: word) { savedWord in
+                _ = viewModel.replaceWord(savedWord)
+                check.replaceWord(savedWord)
+            }
+            .presentationDetents([.medium])
         }
         .task(id: appState.session?.user.id ?? "guest") { await viewModel.load(dataSource: appState.studyDataSource) }
         // 浮いているタブバーが一覧の末尾に重なるので、この画面にいる間は
@@ -272,10 +278,6 @@ struct WordListView: View {
     }
 
     private var displayedWords: [WordCard] { check.isStarted ? check.words : viewModel.filteredWords }
-    private var canStartCheck: Bool {
-        !viewModel.isLoading && !viewModel.filteredWords.isEmpty
-            && viewModel.filteredWords.allSatisfy { $0.cardId != nil }
-    }
     private var currentRowFrame: CGRect? { check.current.flatMap { rowFrames[$0.id] } }
     private var checkStops: [CGFloat] {
         guard let frame = currentRowFrame else { return [0] }
@@ -301,84 +303,67 @@ struct WordListView: View {
 
     private var redSheetControls: some View {
         VStack(spacing: 10) {
-            if let error = check.errorMessage {
+            redSheetSaveStatus
+            StudyAnswerActionBar(
+                correctSymbol: "circle",
+                incorrectLabel: check.isAnswerVisible ? "不正解" : "答えを表示。もう一度押すと不正解",
+                correctLabel: check.isAnswerVisible ? "正解" : "答えを表示。もう一度押すと正解",
+                isDisabled: check.current == nil || check.isUndoing,
+                onIncorrect: { check.revealOrSubmit(isCorrect: false) },
+                onCorrect: { check.revealOrSubmit(isCorrect: true) }
+            ) {
+                redSheetToolbar
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var redSheetSaveStatus: some View {
+        if let error = check.errorMessage {
+            VStack(spacing: WireMetrics.spacingS) {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
-                if check.pendingCount > 0 {
-                    Button("もう一度保存", action: check.retry)
-                        .disabled(check.isSaving || check.isUndoing)
-                }
+                Button("もう一度保存", action: check.retry)
+                    .buttonStyle(.wireSecondary)
+                    .disabled(check.pendingCount == 0 || check.isSaving || check.isUndoing)
             }
-            if check.pendingCount > 0 {
-                Text("未保存 \(check.pendingCount)件\(check.isSaving ? "・保存中" : "")")
-                    .font(.caption.monospacedDigit())
-            }
-            if check.isStarted {
-                HStack {
-                    Button {
-                        Task { await check.undo() }
-                    } label: {
-                        Image(systemName: "arrow.uturn.backward")
-                            .frame(width: 44, height: 44)
-                    }
-                    .accessibilityLabel("戻る：直前の判定を取り消す")
-                    .disabled(!check.canUndo || check.isUndoing)
-                    Spacer()
-                    Text(check.isComplete ? "チェック完了 \(check.words.count)語" : "\(check.index + 1) / \(check.words.count)")
-                        .font(.subheadline.monospacedDigit())
-                    Spacer()
-                    endRedSheetButton
-                }
-                if check.isComplete {
-                    Text("○ \(check.answers.values.filter { $0 }.count)　× \(check.answers.values.filter { !$0 }.count)")
-                        .font(.headline)
-                } else {
-                    HStack(spacing: 16) {
-                        Button { check.submit(isCorrect: false) } label: {
-                            Image(systemName: "xmark").font(.title2.weight(.bold))
-                        }
-                        .buttonStyle(.wireIcon(diameter: 56))
-                        .accessibilityLabel("わからない")
-                        .disabled(!check.isAnswerVisible || check.isUndoing)
-                        Button(check.isAnswerVisible ? "答えを隠す" : "答えを見る") {
-                            check.isAnswerVisible.toggle()
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 48)
-                        .disabled(check.isUndoing)
-                        Button { check.submit(isCorrect: true) } label: {
-                            Image(systemName: "circle").font(.title2.weight(.bold))
-                        }
-                        .buttonStyle(.wireIcon(diameter: 56, isSelected: true, invertsWhenSelected: true))
-                        .accessibilityLabel("わかる")
-                        .disabled(!check.isAnswerVisible || check.isUndoing)
-                    }
-                }
-            } else {
-                HStack {
-                    endRedSheetButton
-                    Spacer()
-                    Button("チェック開始", action: startCheck)
-                        .disabled(!canStartCheck)
-                }
-                .frame(minHeight: 48)
-            }
+            .padding(.horizontal, WireMetrics.screenPadding)
         }
-        .buttonStyle(.plain)
-        .foregroundStyle(WireColor.ink)
-        .padding(16)
-        .background(WireColor.surface)
-        .overlay(alignment: .top) { Divider() }
     }
 
-    private var endRedSheetButton: some View {
-        Button("終了") {
-            check.reset()
+    private var redSheetToolbar: some View {
+        HStack(spacing: WireMetrics.spacingS) {
+            Button(action: endRedSheet) {
+                Image(systemName: "rectangle.fill")
+                    .foregroundStyle(.white)
+            }
+            .buttonStyle(.wireIcon(diameter: 40, isSelected: true, invertsWhenSelected: true))
+            .disabled(!check.canLeave)
+            .accessibilityLabel("赤シート")
+            .accessibilityValue("オン")
+            .accessibilityHint("赤シートを終了します")
+
+            Button {
+                taggingWord = check.current
+            } label: {
+                Image(systemName: "tag")
+            }
+            .buttonStyle(.wireIcon(diameter: 40))
+            .disabled(check.current == nil)
+            .accessibilityLabel("タグ")
+        }
+        .padding(.horizontal, WireMetrics.spacingM)
+        .padding(.vertical, WireMetrics.spacingM)
+        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+    }
+
+    private func endRedSheet() {
+        guard check.canLeave else { return }
+        withAnimation(reduceMotion ? nil : .spring(response: 0.36, dampingFraction: 0.88)) {
             isRedSheetEnabled = false
         }
-        .frame(minWidth: 44, minHeight: 44)
-        .disabled(!check.canLeave)
-        .accessibilityLabel("赤シートを終了")
     }
 
     private var cardColumns: [GridItem] {
