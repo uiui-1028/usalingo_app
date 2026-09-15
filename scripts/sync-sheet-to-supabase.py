@@ -684,9 +684,13 @@ def command_sync(args: argparse.Namespace) -> int:
             )
     output = (result.stdout + result.stderr).strip()
     if args.dry_run and "SHEET_SYNC_DRY_RUN" in output:
-        summary = re.search(r"SHEET_SYNC_DRY_RUN rolled back: (\{.*?\})", output)
+        # psql prints the summary as plain JSON; the Management API returns it inside an escaped JSON string.
+        summary = re.search(r"SHEET_SYNC_DRY_RUN rolled back: (\{.*?\})", re.sub(r'\\+"', '"', output))
         print("dry run ok (nothing was written):")
-        print(json.dumps(json.loads(summary.group(1)), indent=2) if summary else output)
+        try:
+            print(json.dumps(json.loads(summary.group(1)), indent=2))
+        except (AttributeError, json.JSONDecodeError):
+            print(output)
         return 0
     print(output)
     return result.returncode
