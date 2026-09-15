@@ -210,32 +210,14 @@ struct StudySessionView: View {
     @ViewBuilder
     private var actionBar: some View {
         if !isLoading, index < cards.count {
-            HStack(spacing: WireMetrics.spacingS) {
-                Button {
-                    submitAnswer(isCorrect: false)
-                } label: {
-                    Image(systemName: "xmark")
-                }
-                .buttonStyle(.wireIcon(diameter: 52))
-                .disabled(isUndoingAnswer)
-                .accessibilityLabel("不正解")
-
+            StudyAnswerActionBar(
+                isDisabled: isUndoingAnswer,
+                onIncorrect: { submitAnswer(isCorrect: false) },
+                onCorrect: { submitAnswer(isCorrect: true) }
+            ) {
                 toolbar
                     .frame(maxWidth: .infinity)
-
-                Button {
-                    submitAnswer(isCorrect: true)
-                } label: {
-                    Image(systemName: "checkmark")
-                }
-                .buttonStyle(.wireIcon(diameter: 52, isSelected: true, invertsWhenSelected: true))
-                .disabled(isUndoingAnswer)
-                .accessibilityLabel("正解")
             }
-            .padding(.horizontal, WireMetrics.screenPadding)
-            .padding(.top, WireMetrics.spacingXS)
-            .padding(.bottom, WireMetrics.screenPadding)
-            .backSwipeProtectedRegion()
         }
     }
 
@@ -500,6 +482,59 @@ struct StudySessionView: View {
         sessionProgresses.filter(\.isWeak).count
     }
 
+}
+
+/// 学習中の「不正解・補助操作・正解」を同じ見た目と配置で並べる共通バー。
+struct StudyAnswerActionBar<Toolbar: View>: View {
+    let correctSymbol: String
+    let incorrectLabel: String
+    let correctLabel: String
+    let isDisabled: Bool
+    let onIncorrect: () -> Void
+    let onCorrect: () -> Void
+    @ViewBuilder let toolbar: Toolbar
+
+    init(
+        correctSymbol: String = "checkmark",
+        incorrectLabel: String = "不正解",
+        correctLabel: String = "正解",
+        isDisabled: Bool = false,
+        onIncorrect: @escaping () -> Void,
+        onCorrect: @escaping () -> Void,
+        @ViewBuilder toolbar: () -> Toolbar
+    ) {
+        self.correctSymbol = correctSymbol
+        self.incorrectLabel = incorrectLabel
+        self.correctLabel = correctLabel
+        self.isDisabled = isDisabled
+        self.onIncorrect = onIncorrect
+        self.onCorrect = onCorrect
+        self.toolbar = toolbar()
+    }
+
+    var body: some View {
+        HStack(spacing: WireMetrics.spacingS) {
+            Button(action: onIncorrect) {
+                Image(systemName: "xmark")
+            }
+            .buttonStyle(.wireIcon(diameter: 52))
+            .disabled(isDisabled)
+            .accessibilityLabel(incorrectLabel)
+
+            toolbar
+
+            Button(action: onCorrect) {
+                Image(systemName: correctSymbol)
+            }
+            .buttonStyle(.wireIcon(diameter: 52, isSelected: true, invertsWhenSelected: true))
+            .disabled(isDisabled)
+            .accessibilityLabel(correctLabel)
+        }
+        .padding(.horizontal, WireMetrics.screenPadding)
+        .padding(.top, WireMetrics.spacingXS)
+        .padding(.bottom, WireMetrics.screenPadding)
+        .backSwipeProtectedRegion()
+    }
 }
 
 /// 保存待ちの回答を投入順に並べる行列。
