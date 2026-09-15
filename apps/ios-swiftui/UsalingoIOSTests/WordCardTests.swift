@@ -794,6 +794,103 @@ final class WordCardTests: XCTestCase {
         XCTAssertEqual(card.partOfSpeech, "noun")
     }
 
+    /// USL-309: 品詞が2つある `increase` で、デッキが名詞を主にしたとき、
+    /// 名詞が先頭に来て例文もその意味から出し、動詞は副に回る。
+    func testStudyCardRecordPutsDeckPrimaryMeaningFirst() throws {
+        let card = try XCTUnwrap(increaseCard(primaryMeaningId: 1001))
+
+        XCTAssertEqual(card.senses.map(\.meaning), ["増加", "増加する"])
+        XCTAssertEqual(card.primaryMeaning, "増加")
+        XCTAssertEqual(card.secondaryMeaning, "増加する")
+        XCTAssertEqual(card.partOfSpeech, "noun")
+        XCTAssertEqual(card.sentenceEnglish, "There was an increase in sales.")
+        XCTAssertEqual(card.imageAssetPath, "content-images/simple/1001.webp")
+    }
+
+    /// USL-309: `primary_meaning_id` が NULL や別の単語の意味なら、`priority` 順のまま。
+    func testStudyCardRecordFallsBackToPriorityWithoutPrimaryMeaning() throws {
+        for primaryMeaningId in [nil, 9999] as [Int?] {
+            let card = try XCTUnwrap(increaseCard(primaryMeaningId: primaryMeaningId))
+
+            XCTAssertEqual(card.senses.map(\.meaning), ["増加する", "増加"])
+            XCTAssertEqual(card.primaryMeaning, "増加する")
+            XCTAssertEqual(card.sentenceEnglish, "Prices increase every year.")
+        }
+    }
+
+    /// USL-309: 主の意味に例文が無くても、副の意味の例文・絵・音を出す。
+    func testPrimaryMeaningWithoutExampleKeepsSecondaryExample() throws {
+        let card = try XCTUnwrap(increaseCard(primaryMeaningId: 1001, nounHasExample: false))
+
+        XCTAssertEqual(card.primaryMeaning, "増加")
+        XCTAssertEqual(card.sentenceEnglish, "Prices increase every year.")
+        XCTAssertEqual(card.audioAssetPath, "content-audio/example/simple/2.mp3")
+    }
+
+    /// USL-309: 主の意味を大きく、副の意味を小さく出したカードを画像で残す。
+    @MainActor
+    func testStudyCardShowsPrimaryMeaningLargeAndSecondarySmall() throws {
+        let cards = [
+            ("verb primary", try XCTUnwrap(increaseCard(primaryMeaningId: 2))),
+            ("noun primary", try XCTUnwrap(increaseCard(primaryMeaningId: 1001)))
+        ]
+        for (name, card) in cards {
+            let appState = AppState(restoresSession: false)
+            let rootView = StudyCardView(card: card, showAnswer: true)
+                .padding()
+                .environmentObject(appState)
+                .environmentObject(appState.designSettings)
+            let controller = UIHostingController(rootView: rootView)
+            let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 620))
+            window.rootViewController = controller
+            window.makeKeyAndVisible()
+            controller.view.frame = window.bounds
+            controller.view.layoutIfNeeded()
+            RunLoop.main.run(until: Date().addingTimeInterval(0.4))
+            controller.view.layoutIfNeeded()
+
+            let image = renderedImage(of: controller.view)
+            window.isHidden = true
+            XCTAssertGreaterThan(image.size.width, 0)
+
+            let attachment = XCTAttachment(image: image)
+            attachment.name = "USL-309 increase \(name)"
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
+
+    /// 本番の `increase`（word_id 2）と同じ形。動詞（priority 1）と名詞（priority 2）を持つ。
+    private func increaseCard(primaryMeaningId: Int?, nounHasExample: Bool = true) throws -> WordCard? {
+        let nounExamples = nounHasExample ? """
+        [{ "id": 1001, "sentence_en": "There was an increase in sales.", "sentence_jp": "売上が増加した。",
+           "image_asset_path": "content-images/simple/1001.webp",
+           "audio_asset_path": "content-audio/example/simple/1001.mp3" }]
+        """ : "[]"
+        let primary = primaryMeaningId.map(String.init) ?? "null"
+        let json = """
+        {
+          "id": 5055,
+          "word_id": 2,
+          "sort_order": 2,
+          "primary_meaning_id": \(primary),
+          "word": {
+            "id": 2,
+            "word_text": "increase",
+            "word_meanings": [
+              { "id": 1001, "priority": 2, "part_of_speech_en": "noun", "definition_jp": "増加",
+                "example_contents": \(nounExamples) },
+              { "id": 2, "priority": 1, "part_of_speech_en": "verb", "definition_jp": "増加する",
+                "example_contents": [{ "id": 2, "sentence_en": "Prices increase every year.",
+                  "sentence_jp": "物価は毎年上がる。", "image_asset_path": "content-images/simple/2.webp",
+                  "audio_asset_path": "content-audio/example/simple/2.mp3" }] }
+            ]
+          }
+        }
+        """
+        return try JSONDecoder().decode(StudyCardRecord.self, from: Data(json.utf8)).toCard()
+    }
+
     func testSingleMeaningCardKeepsItsMeaningUnchanged() throws {
         let json = """
         {
