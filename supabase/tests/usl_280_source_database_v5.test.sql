@@ -9,8 +9,9 @@ select plan(19);
 select ok(to_regclass('public.content_concepts') is not null, 'content_concepts exists');
 select ok(to_regclass('public.word_pronunciations') is not null, 'word_pronunciations exists');
 select ok(to_regclass('public.example_audio') is not null, 'example_audio exists');
-select ok(to_regclass('public.word_forms') is not null, 'word_forms exists');
-select ok(to_regclass('public.word_relations') is not null, 'word_relations exists');
+-- 活用と関連語は word_meanings の列に収める（senses-hold-forms-and-relations-20260914）。
+select ok(to_regclass('public.word_forms') is null, 'word_forms was dropped');
+select ok(to_regclass('public.word_relations') is null, 'word_relations was dropped');
 
 select results_eq(
   $$select count(*) from information_schema.columns
@@ -39,47 +40,37 @@ select results_eq(
     where oid in (
       'public.content_concepts'::regclass,
       'public.word_pronunciations'::regclass,
-      'public.example_audio'::regclass,
-      'public.word_forms'::regclass,
-      'public.word_relations'::regclass
+      'public.example_audio'::regclass
     ) and relrowsecurity$$,
-  array[5::bigint],
+  array[3::bigint],
   'RLS is enabled on every new official-content table'
 );
 
 select ok(
   not has_table_privilege('anon', 'public.content_concepts', 'select')
     and not has_table_privilege('anon', 'public.word_pronunciations', 'select')
-    and not has_table_privilege('anon', 'public.example_audio', 'select')
-    and not has_table_privilege('anon', 'public.word_forms', 'select')
-    and not has_table_privilege('anon', 'public.word_relations', 'select'),
+    and not has_table_privilege('anon', 'public.example_audio', 'select'),
   'anon cannot read V5 official content'
 );
 
 select ok(
   has_table_privilege('authenticated', 'public.content_concepts', 'select')
     and has_table_privilege('authenticated', 'public.word_pronunciations', 'select')
-    and has_table_privilege('authenticated', 'public.example_audio', 'select')
-    and has_table_privilege('authenticated', 'public.word_forms', 'select')
-    and has_table_privilege('authenticated', 'public.word_relations', 'select'),
+    and has_table_privilege('authenticated', 'public.example_audio', 'select'),
   'authenticated can read V5 official content'
 );
 
 select ok(
   not has_table_privilege('authenticated', 'public.content_concepts', 'insert')
     and not has_table_privilege('authenticated', 'public.word_pronunciations', 'update')
-    and not has_table_privilege('authenticated', 'public.example_audio', 'delete')
-    and not has_table_privilege('authenticated', 'public.word_forms', 'insert')
-    and not has_table_privilege('authenticated', 'public.word_relations', 'update'),
+    and not has_table_privilege('authenticated', 'public.example_audio', 'delete'),
   'authenticated cannot write V5 official content'
 );
 
 select ok(
   has_table_privilege('service_role', 'public.content_concepts', 'insert')
     and has_table_privilege('service_role', 'public.word_pronunciations', 'update')
-    and has_table_privilege('service_role', 'public.example_audio', 'delete')
-    and has_table_privilege('service_role', 'public.word_forms', 'insert')
-    and has_table_privilege('service_role', 'public.word_relations', 'update'),
+    and has_table_privilege('service_role', 'public.example_audio', 'delete'),
   'service_role keeps operator write access'
 );
 
@@ -124,14 +115,22 @@ select results_eq(
   'legacy example inserts receive safe V5 defaults'
 );
 
+-- 番号だけの古い名前は、パスの決まりで拒む（content-file-naming-padded-with-kind-20260915）。
+select throws_ok(
+  $$update public.example_contents
+    set image_asset_path = 'content-images/simple/0000-0499/' || id::text || '.webp'
+    where sentence_en = 'Compatibility remains.'$$,
+  '23514',
+  null,
+  'number-only image paths are rejected'
+);
+
 update public.example_contents
 set image_asset_path = (
   'content-images/simple/'
-  || lpad(((id / 500) * 500)::text, 4, '0')
-  || '-'
-  || lpad((((id / 500) * 500) + 499)::text, 4, '0')
-  || '/'
-  || id::text
+  || lpad((id / 1000)::text, 3, '0')
+  || '/example-'
+  || lpad(id::text, 6, '0')
   || '.webp'
 )
 where sentence_en = 'Compatibility remains.';
@@ -159,14 +158,6 @@ select throws_ok(
   '23505',
   null,
   'source deck position is unique'
-);
-
-select throws_ok(
-  $$insert into public.word_forms (word_id, forms_json)
-    select id, '[]'::jsonb from public.words where source_note_guid = 'usl-280-guid'$$,
-  '23514',
-  null,
-  'word forms require a JSON object'
 );
 
 select * from finish();
