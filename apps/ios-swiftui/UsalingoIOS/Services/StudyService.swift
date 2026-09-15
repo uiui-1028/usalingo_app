@@ -186,7 +186,7 @@ final class StudyService {
     private enum SelectColumns {
         static let progress = "user_id,card_id,status,last_reviewed_at,next_review_date,srs_level,easiness_factor,repetitions,incorrect_count,interval_days,created_at,updated_at"
         static let word = "id,word_text,word_meanings(id,priority,part_of_speech_en,definition_jp,etymology,synonyms,example_contents(id,sentence_en,sentence_jp,image_asset_path,audio_asset_path)),word_pronunciations(audio_asset_path,is_primary)"
-        static let studyCard = "id,word_id,sort_order,word:words!inner(\(word))"
+        static let studyCard = "id,word_id,sort_order,primary_meaning_id,word:words!inner(\(word))"
     }
 
     func fetchDecks(session: AuthSession) async throws -> [Deck] {

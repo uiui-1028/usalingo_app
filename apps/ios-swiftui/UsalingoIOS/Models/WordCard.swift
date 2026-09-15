@@ -21,7 +21,7 @@ struct WordCard: Identifiable, Hashable {
     let wordId: Int
     let cardId: Int?
     let text: String
-    /// その単語の意味。`priority` の昇順で並んでいる。
+    /// その単語の意味。先頭がデッキの主の意味で、残りは `priority` の昇順で並んでいる。
     let senses: [WordSense]
     let sentenceEnglish: String?
     let sentenceJapanese: String?
@@ -45,6 +45,17 @@ struct WordCard: Identifiable, Hashable {
     /// 並んだ意味を1本の文字列にしたもの。表示と検索はこれを使う。
     var meaning: String {
         senses.map(\.meaning).joined(separator: Self.meaningSeparator)
+    }
+
+    /// 主の意味。カードで大きく出す。
+    var primaryMeaning: String {
+        senses.first?.meaning ?? ""
+    }
+
+    /// 副の意味をつないだもの。副が無ければ nil。
+    var secondaryMeaning: String? {
+        let rest = senses.dropFirst().map(\.meaning)
+        return rest.isEmpty ? nil : rest.joined(separator: Self.meaningSeparator)
     }
 
     /// 代表の品詞。1つしか置けない場所（詳細画面の見出しなど）で使う。
@@ -302,14 +313,19 @@ struct WordRecord: Decodable {
         case wordPronunciations = "word_pronunciations"
     }
 
-    func toCard(cardId: Int? = nil) -> WordCard? {
-        let meanings = (wordMeanings ?? [])
+    /// `primaryMeaningId` はデッキが決めた主の意味（`cards.primary_meaning_id`）。
+    /// その意味を先頭に置き、残りを `priority` 順に並べる。見つからなければ `priority` 順のまま。
+    func toCard(cardId: Int? = nil, primaryMeaningId: Int? = nil) -> WordCard? {
+        var meanings = (wordMeanings ?? [])
             .sorted { ($0.priority ?? 9999) < ($1.priority ?? 9999) }
         guard !meanings.isEmpty else { return nil }
-        // 例文は優先度順にすべての意味から探す。優先度1の意味に例文が無いだけで
+        if let primaryIndex = meanings.firstIndex(where: { $0.id == primaryMeaningId }) {
+            meanings.insert(meanings.remove(at: primaryIndex), at: 0)
+        }
+        // 例文は主の意味から探し、無ければ残りを優先度順に探す。主の意味に例文が無いだけで
         // 例文・訳・イラスト・音声が4つとも消えることを防ぐ。
         let example = meanings.lazy.compactMap { $0.exampleContents?.first }.first
-        // 類義語と語源も例文と同じく優先度順に探す。優先度1の意味に無いだけで
+        // 類義語と語源も例文と同じ順（主の意味、残りは優先度順）に探す。主の意味に無いだけで
         // 補足が丸ごと消えることを防ぐ。
         let etymology = meanings.lazy
             .compactMap { $0.etymology?.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -342,18 +358,21 @@ struct StudyCardRecord: Decodable {
     let id: Int
     let wordId: Int
     let sortOrder: Int
+    /// デッキが決めた主の意味。NULL なら `priority` が最も小さい意味を主にする。
+    let primaryMeaningId: Int?
     let word: WordRecord
 
     enum CodingKeys: String, CodingKey {
         case id
         case wordId = "word_id"
         case sortOrder = "sort_order"
+        case primaryMeaningId = "primary_meaning_id"
         case word
     }
 
     func toCard() -> WordCard? {
         guard word.id == wordId else { return nil }
-        return word.toCard(cardId: id)
+        return word.toCard(cardId: id, primaryMeaningId: primaryMeaningId)
     }
 }
 

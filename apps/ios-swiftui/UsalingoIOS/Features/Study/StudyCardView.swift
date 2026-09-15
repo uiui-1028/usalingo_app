@@ -69,11 +69,19 @@ private struct StudyCardFront: View {
             }
 
             if showAnswer {
-                Text(card.meaning)
+                Text(card.primaryMeaning)
                     .wireFont(.titleS)
                     .minimumScaleFactor(0.7)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
+
+                if let secondary = card.secondaryMeaning {
+                    Text(secondary)
+                        .wireFont(.caption)
+                        .minimumScaleFactor(0.7)
+                        .lineLimit(1)
+                        .multilineTextAlignment(.center)
+                }
 
                 if let sentence = card.sentenceJapanese, !sentence.isEmpty {
                     WireRecessedText(sentence)
