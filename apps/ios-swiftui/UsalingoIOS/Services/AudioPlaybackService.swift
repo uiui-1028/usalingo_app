@@ -87,6 +87,7 @@ final class AudioPlaybackService: NSObject, ObservableObject {
     private let cache: CardAudioCache
     private var player: AVAudioPlayer?
     private var loadTask: Task<Void, Never>?
+    private var queuedURLs: [URL] = []
 
     init(cache: CardAudioCache = .shared) {
         self.cache = cache
@@ -98,23 +99,44 @@ final class AudioPlaybackService: NSObject, ObservableObject {
         stop()
         guard !wasPlayingSameURL else { return }
 
+        playSequence(urls: [url])
+    }
+
+    /// カード表面の音声を指定順に1回ずつ鳴らす。取得や再生に失敗した音声は飛ばす。
+    func playSequence(urls: [URL]) {
+        stop()
+        queuedURLs = urls
+        playNext()
+    }
+
+    private func playNext() {
+        guard player == nil, loadTask == nil else { return }
+        guard !queuedURLs.isEmpty else {
+            playingURL = nil
+            return
+        }
+
+        let url = queuedURLs.removeFirst()
         playingURL = url
         loadTask = Task { [cache] in
             let data = try? await cache.data(for: url)
             guard !Task.isCancelled else { return }
-            guard let data, let player = try? AVAudioPlayer(data: data) else {
-                stop()
+            loadTask = nil
+            guard playingURL == url else { return }
+            guard let data, let audioPlayer = try? AVAudioPlayer(data: data) else {
+                finishCurrentPlayback()
                 return
             }
-            player.delegate = self
-            self.player = player
-            if !player.play() {
-                stop()
+            audioPlayer.delegate = self
+            player = audioPlayer
+            if !audioPlayer.play() {
+                finishCurrentPlayback()
             }
         }
     }
 
     func stop() {
+        queuedURLs.removeAll()
         loadTask?.cancel()
         loadTask = nil
         player?.stop()
@@ -135,6 +157,13 @@ extension AudioPlaybackService: AVAudioPlayerDelegate {
     /// 止めたあとに届いた古い終了通知で、次に鳴らした音声を止めない。
     private func finish(_ finished: AVAudioPlayer) {
         guard finished === player else { return }
-        stop()
+        finishCurrentPlayback()
+    }
+
+    private func finishCurrentPlayback() {
+        player?.stop()
+        player = nil
+        playingURL = nil
+        playNext()
     }
 }

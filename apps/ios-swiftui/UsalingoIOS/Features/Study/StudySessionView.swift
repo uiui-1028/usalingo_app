@@ -82,6 +82,14 @@ struct StudySessionView: View {
         }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
+        .task(id: currentCard?.id) {
+            playCurrentCardAudioSequence()
+        }
+        .onChange(of: isFlipped) { _, isFlipped in
+            if isFlipped {
+                audioPlaybackService.stop()
+            }
+        }
         .onAppear {
             appState.isShellChromeHidden = true
         }
@@ -481,6 +489,14 @@ struct StudySessionView: View {
 
     private var currentCard: WordCard? {
         index < cards.count ? cards[index] : nil
+    }
+
+    /// 新しいカードが表面で現れたときだけ、単語から例文の順に各音声を1回鳴らす。
+    private func playCurrentCardAudioSequence() {
+        guard let currentCard, !isFlipped else { return }
+        audioPlaybackService.playSequence(
+            urls: [currentCard.wordAudioURL, currentCard.audioURL].compactMap { $0 }
+        )
     }
 
     /// 鳴っている音声のボタンだけを停止の見た目にする。音声が無いカードでは押せない。
