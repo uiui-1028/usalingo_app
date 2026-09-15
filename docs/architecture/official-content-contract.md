@@ -35,17 +35,19 @@ DBには完全URLではなく、`bucket/object-key` を保存します。`theme-
 
 | 種類 | DB列 | 規則 | 例 |
 |---|---|---|---|
-| 例文画像 | `image_asset_path` | `content-images/<theme-slug>/<range>/<example-id>.webp` | `content-images/simple/0000-0499/100.webp` |
-| 例文音声 | `audio_asset_path` | `content-audio/example/<theme-slug>/<range>/<example-id>.mp3` | `content-audio/example/simple/0000-0499/100.mp3` |
-| 単語音声 | `word_pronunciations.audio_asset_path` | `content-audio/word/<range>/<pronunciation-id>.mp3` | `content-audio/word/0000-0499/100.mp3` |
+| 例文画像 | `image_asset_path` | `content-images/<theme-slug>/<shelf>/example-<id6>.webp` | `content-images/simple/000/example-000100.webp` |
+| 例文音声 | `audio_asset_path` | `content-audio/example/<theme-slug>/<shelf>/example-<id6>.mp3` | `content-audio/example/simple/000/example-000100.mp3` |
+| 単語音声 | `word_pronunciations.audio_asset_path` | `content-audio/word/<shelf>/pron-<id6>.mp3` | `content-audio/word/000/pron-000100.mp3` |
 
-`range` はIDを500件ごとに分けます。
+`id6` はIDを6けたにそろえた数字です（`100` → `000100`）。`shelf` は `id6` の頭3けたです。
 
-- ID 1〜499: `0000-0499`
-- ID 500〜999: `0500-0999`
-- ID 1000〜1499: `1000-1499`
+- ID 1〜999: `000`
+- ID 1000〜1999: `001`
+- ID 2000〜2999: `002`
 
-ファイル名の数字は `example_contents.id`（単語音声は `word_pronunciations.id`）と一致させます。原本シートの `example_id`・`pronunciation_id` も同じ整数です。
+`id6` は `example_contents.id`（単語音声は `word_pronunciations.id`）と一致させます。原本シートの `example_id`・`pronunciation_id` も同じ整数です。
+同じパスへ別の中身を上書きしません。公開ファイルは `max-age=3600` で配り、アプリも画像をURLごとに端末へ保存するため、上書きすると古い中身が出続けます。
+経緯は [画像と音声のファイル名に種類と6けたの番号を付ける](../decisions/content-file-naming-padded-with-kind-20260915.md) にあります。
 音声のパスは原本シートに書かず、取りこみがIDから作ります。Storageにファイルがあるときだけ値を入れます。画像はWebP、音声はMP3だけをこの契約の対象にします。SwiftUIは相対パスを `SupabaseConfig.publicStorageURL(for:)` で公開URLへ変換します。
 
 ## 4. 読み取りと書き込み
