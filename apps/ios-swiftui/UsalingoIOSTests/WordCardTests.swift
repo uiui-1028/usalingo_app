@@ -802,6 +802,13 @@ final class WordCardTests: XCTestCase {
         XCTAssertEqual(card.senses.map(\.meaning), ["増加", "増加する"])
         XCTAssertEqual(card.primaryMeaning, "増加")
         XCTAssertEqual(card.secondaryMeaning, "増加する")
+        let threeSenses = WordCard(
+            id: 1, text: "run",
+            senses: ["走る", "経営する", "流れる"].map { WordSense(meaning: $0) },
+            sentenceEnglish: nil, sentenceJapanese: nil, imageAssetPath: nil, audioAssetPath: nil,
+            tags: [], learningStatus: nil, learning: nil
+        )
+        XCTAssertEqual(threeSenses.secondaryMeaning, "経営する, 流れる")
         XCTAssertEqual(card.partOfSpeech, "noun")
         XCTAssertEqual(card.sentenceEnglish, "There was an increase in sales.")
         XCTAssertEqual(card.imageAssetPath, "content-images/simple/1001.webp")

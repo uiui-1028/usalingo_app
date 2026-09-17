@@ -69,19 +69,12 @@ private struct StudyCardFront: View {
             }
 
             if showAnswer {
-                Text(card.primaryMeaning)
-                    .wireFont(.titleS)
+                meaningLine
+                    .font(WireFont.titleS.font)
+                    .foregroundStyle(WireColor.ink)
                     .minimumScaleFactor(0.7)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
-
-                if let secondary = card.secondaryMeaning {
-                    Text(secondary)
-                        .wireFont(.caption)
-                        .minimumScaleFactor(0.7)
-                        .lineLimit(1)
-                        .multilineTextAlignment(.center)
-                }
 
                 if let sentence = card.sentenceJapanese, !sentence.isEmpty {
                     WireRecessedText(sentence)
@@ -90,6 +83,13 @@ private struct StudyCardFront: View {
 
             Spacer(minLength: 0)
         }
+    }
+
+    /// 主の意味を太字、副の意味を細字にして、`, ` で区切って1行に並べる。
+    private var meaningLine: Text {
+        let primary = Text(card.primaryMeaning).fontWeight(.bold)
+        guard let secondary = card.secondaryMeaning else { return primary }
+        return Text("\(primary)\(Text(", \(secondary)").fontWeight(.regular))")
     }
 
     /// 該当する品詞だけを凹ませ、残りは線を持たない平らな文字にする。
