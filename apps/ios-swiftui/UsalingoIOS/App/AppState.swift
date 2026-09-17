@@ -8,7 +8,8 @@ final class AppState: ObservableObject {
 
     @Published var session: AuthSession? {
         didSet {
-            guard session?.user.id != oldValue?.user.id else { return }
+            guard session?.user.id != oldValue?.user.id
+                || session?.user.isAnonymousAccount != oldValue?.user.isAnonymousAccount else { return }
             handleSessionChange()
         }
     }
@@ -26,27 +27,25 @@ final class AppState: ObservableObject {
     let designSettings: DesignSettings
 
     /// ローカル同梱データ層（D-1）。デッキ一覧・入出力はこの実体を直接使う。
-    let localStudy: LocalStudyDataSource
+    @Published private(set) var localStudy: LocalStudyDataSource
 
-    /// 学習画面が使うデータ層。匿名アカウントも会員も、同じSupabaseへ接続する。
-    /// セッションが無いのは匿名サインインに失敗したときだけで、そのときは
-    /// 学習画面そのものを出さない（`StartupFailureView`）。
+    /// 学習画面が使うデータ層。通信状態や認証状態にかかわらず、回答を端末へ先に保存する。
+    /// Supabase は認証や、既存の復元用バックアップにだけ使う。
     var studyDataSource: any StudyDataSource {
-        guard let session else { return localStudy }
-        return makeRemoteStudy(session)
+        localStudy
     }
 
     /// 学習記録のバックアップを裏側で行う係（G-3）。画面からは触らない。
     private lazy var backupSyncer = makeBackupSyncer(localStudy)
 
     private let authService: AuthService
+    private let remoteStudy: any RemoteStudyImporting
     private let accountDeletionService: any AccountDeletionServicing
     private let defaults: UserDefaults
-    private let makeRemoteStudy: (AuthSession) -> any StudyDataSource
     private let makeBackupSyncer: @MainActor (LocalStudyDataSource) -> StudyBackupSyncer
 
-    /// 「まだ登録していない人」。未ログインではなく、匿名アカウントを指す。
-    /// 匿名でも会員と同じデッキを読み、同じ場所へ学習記録を書く。
+    /// 「まだ登録していない人」。未接続中、または匿名アカウントを指す。
+    /// 学習記録はどちらの場合も端末へ保存する。
     var isGuest: Bool {
         session?.user.isAnonymousAccount ?? true
     }
@@ -55,16 +54,16 @@ final class AppState: ObservableObject {
         restoresSession: Bool = true,
         defaults: UserDefaults = .standard,
         authService: AuthService = AuthService(),
+        remoteStudy: any RemoteStudyImporting = StudyService(),
         accountDeletionService: any AccountDeletionServicing = AccountDeletionService(),
         localStudy: LocalStudyDataSource = LocalStudyDataSource(),
-        makeRemoteStudy: @escaping (AuthSession) -> any StudyDataSource = { RemoteStudyDataSource(session: $0) },
         makeBackupSyncer: @escaping @MainActor (LocalStudyDataSource) -> StudyBackupSyncer = { StudyBackupSyncer(localStudy: $0) }
     ) {
-        self.localStudy = localStudy
+        self.localStudy = localStudy.forAccount(id: authService.cachedUserId())
         self.defaults = defaults
         self.authService = authService
+        self.remoteStudy = remoteStudy
         self.accountDeletionService = accountDeletionService
-        self.makeRemoteStudy = makeRemoteStudy
         self.makeBackupSyncer = makeBackupSyncer
         designSettings = DesignSettings(defaults: defaults)
         isSwipeTutorialPresented = !defaults.bool(forKey: TutorialKey.hasCompletedSwipeTutorial)
@@ -83,10 +82,7 @@ final class AppState: ObservableObject {
         try? authService.signOut()
         session = nil
         isResettingPassword = false
-        // サインアウトしたら、そのまま**新しい**匿名アカウントで続ける。
-        // セッションが無いまま放置すると学習画面ごと出せなくなり、デッキが
-        // 消えたように見える。またここで作り直さないと、前のゲストが
-        // そのまま残っているようにも見えてしまう。
+        // サインアウト後も端末の学習は止めず、裏側で新しい匿名アカウントを作る。
         Task { await startAnonymousSession() }
     }
 
@@ -118,8 +114,7 @@ final class AppState: ObservableObject {
         try await authService.updatePassword(password, currentPassword: currentPassword, nonce: nonce, accessToken: session.accessToken)
     }
 
-    /// いまの匿名アカウントを会員登録へ育てる。新しいアカウントを作らないので、
-    /// それまでの学習記録は移送せずにそのまま残る。
+    /// いまの匿名アカウントを会員登録へ育てる。端末の学習記録はそのまま残る。
     func linkAnonymousAccount(email: String, password: String) async throws {
         guard let session else { throw AuthError.sessionRestoreFailed }
         guard session.user.isAnonymousAccount else { throw AuthError.alreadyRegistered }
@@ -148,7 +143,13 @@ final class AppState: ObservableObject {
             accessToken: session.accessToken
         )
 
+        backupSyncer.stop()
         var resetError: Error?
+        do {
+            try localStudy.reset()
+        } catch {
+            resetError = error
+        }
         do {
             try authService.signOut()
         } catch {
@@ -161,11 +162,11 @@ final class AppState: ObservableObject {
         isResettingPassword = false
         isShellChromeHidden = false
         studyDataVersion = 0
-        accountDeletionNotice = "アカウントと学習記録を削除しました。この操作は取り消せません。"
-
         if resetError != nil {
+            accountDeletionNotice = "アカウントは削除しましたが、端末の初期化を完了できませんでした。"
             throw AccountDeletionClientError.localResetFailed
         }
+        accountDeletionNotice = "アカウントと学習記録を削除しました。この操作は取り消せません。"
     }
 
     func clearAccountDeletionNotice() {
@@ -195,17 +196,43 @@ final class AppState: ObservableObject {
 
     /// ログイン・セッション復元で利用者が変わったときだけ、バックアップの同期をやり直す。
     private func handleSessionChange() {
-        // 端末の学習記録を預かる仕組みは、匿名アカウントには要らない。
-        // 記録は最初からサーバーにあり、会員登録しても user_id は変わらない。
-        // 匿名の分まで預かると、中身の無い控えが利用者数ぶん増えるだけになる。
-        guard let session, !session.user.isAnonymousAccount else {
-            backupSyncer.stop()
-            return
-        }
+        backupSyncer.stop()
+        localStudy = localStudy.forAccount(id: session?.user.id)
+        backupSyncer = makeBackupSyncer(localStudy)
+        studyDataVersion += 1
+        // 匿名アカウントへの端末スナップショット送信は、外部保存の範囲を
+        // 広げないため従来どおり行わない。登録済みアカウントだけ既存の控えを使う。
+        guard let session else { return }
         Task { [weak self] in
-            await self?.backupSyncer.start(session: session) { [weak self] in
-                self?.studyDataVersion += 1
+            guard let self, self.session?.user.id == session.user.id else { return }
+            if !session.user.isAnonymousAccount {
+                await self.backupSyncer.start(session: session) { [weak self] in
+                    self?.studyDataVersion += 1
+                }
             }
+            await self.refreshOfficialContent(session: session)
+        }
+    }
+
+    func refreshOfficialContentIfConnected() async {
+        guard let session else { return }
+        await refreshOfficialContent(session: session)
+    }
+
+    private func refreshOfficialContent(session: AuthSession) async {
+        let accountStudy = localStudy
+        do {
+            let decks = try await remoteStudy.fetchDecks(session: session)
+            var cardsByDeck: [Int: [WordCard]] = [:]
+            for deck in decks {
+                cardsByDeck[deck.id] = try await remoteStudy.fetchCards(deckId: deck.id, session: session)
+            }
+            let progress = try await remoteStudy.fetchAllLearningProgress(session: session)
+            guard self.session?.user.id == session.user.id, localStudy === accountStudy else { return }
+            try accountStudy.cacheRemoteDecks(decks, cardsByDeck: cardsByDeck, progress: progress, userId: session.user.id)
+            studyDataVersion += 1
+        } catch {
+            // 最後に成功した端末版を使い続ける。学習と回答保存は止めない。
         }
     }
 
@@ -223,6 +250,7 @@ final class AppState: ObservableObject {
     }
 
     private func restoreSession() async {
+        startupMessage = nil
         do {
             if let restored = try await authService.restoreSession() {
                 session = restored
@@ -230,7 +258,14 @@ final class AppState: ObservableObject {
                 return
             }
         } catch {
-            // 復元に失敗しても、下の匿名サインインでやり直す。
+            // サーバーに拒否されて保存セッションが消えた場合、前の利用者の
+            // 教材・回答を匿名画面へ見せない。通信障害なら保存IDを維持する。
+            if authService.cachedUserId() == nil {
+                backupSyncer.stop()
+                localStudy = localStudy.forAccount(id: nil)
+                backupSyncer = makeBackupSyncer(localStudy)
+                studyDataVersion += 1
+            }
         }
 
         // 保存済みのセッションが無ければ、匿名アカウントで始める。
@@ -258,7 +293,8 @@ final class AppState: ObservableObject {
 
     /// 匿名サインインをやり直す。
     func retryStartup() async {
-        await startAnonymousSession()
+        guard !isRestoringSession, session == nil else { return }
+        await restoreSession()
     }
 
 }

@@ -16,8 +16,14 @@ struct UsalingoIOSApp: App {
                     appState.handleIncomingURL(url)
                 }
                 .onChange(of: scenePhase) { _, phase in
+                    if phase == .active {
+                        Task {
+                            await appState.retryStartup()
+                            await appState.refreshOfficialContentIfConnected()
+                        }
+                        return
+                    }
                     // 背面へ回る前に、待機中の学習記録バックアップを出しきる。
-                    guard phase != .active else { return }
                     Task { await appState.flushStudyBackup() }
                 }
         }
@@ -29,20 +35,17 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
-            if appState.isRestoringSession {
-                ProgressView()
-                    .tint(WireColor.ink)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(WireColor.background)
-            } else if appState.isResettingPassword {
+            if appState.isResettingPassword {
                 PasswordResetView()
-            } else if appState.session == nil {
-                // 匿名サインインに失敗した状態。端末の同梱デッキへ黙って
-                // 落とすと、あとで記録の引き継ぎ先が分からなくなる。
-                // 始められない理由を出して、やり直してもらう。
-                StartupFailureView(message: appState.startupMessage)
             } else {
                 AppShellView()
+                    .safeAreaInset(edge: .top, spacing: 0) {
+                        if appState.session == nil, !appState.isRestoringSession {
+                            OfflineStudyBanner {
+                                Task { await appState.retryStartup() }
+                            }
+                        }
+                    }
             }
 
             if appState.isSwipeTutorialPresented, !appState.isRestoringSession {
@@ -64,26 +67,29 @@ struct RootView: View {
     }
 }
 
-/// 学習を始められないときの画面。原因を隠さず、やり直す手だけを出す。
-private struct StartupFailureView: View {
-    @EnvironmentObject private var appState: AppState
-    let message: String?
+/// 通信できなくても学習は止めず、同期だけ待っていることを短く知らせる。
+private struct OfflineStudyBanner: View {
+    let retry: () -> Void
 
     var body: some View {
-        VStack(spacing: WireMetrics.spacingL) {
-            Text("いまは学習を始められません")
-                .wireFont(.titleL)
-            Text(message ?? "通信を確かめて、もう一度お試しください。")
+        HStack(spacing: WireMetrics.spacingM) {
+            Image(systemName: "wifi.slash")
+                .accessibilityHidden(true)
+            Text("オフラインで学習中")
                 .wireFont(.caption)
-                .multilineTextAlignment(.center)
-            Button("もう一度試す") {
-                Task { await appState.retryStartup() }
-            }
-            .buttonStyle(.wirePrimary)
+            Spacer(minLength: 0)
+            Button("接続を試す", action: retry)
+                .wireFont(.caption)
         }
-        .padding(WireMetrics.screenPadding)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(WireColor.background)
+        .foregroundStyle(WireColor.ink)
+        .padding(.horizontal, WireMetrics.screenPadding)
+        .padding(.vertical, WireMetrics.spacingS)
+        .background(WireColor.groupL3)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(WireColor.ink).frame(height: WireMetrics.strokeHair)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("オフラインで学習中。学習記録は端末に保存されます。")
     }
 }
 

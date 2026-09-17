@@ -5,23 +5,17 @@ import UIKit
 
 final class WordCardTests: XCTestCase {
     @MainActor
-    func testAppStateSwitchesBetweenGuestAndAuthenticatedStudySources() {
+    func testAppStateKeepsLocalStudySourceAfterAuthentication() {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("usalingo-source-selection-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directory) }
         let local = LocalStudyDataSource(directoryURL: directory)
-        let remote = SelectionStudyDataSource()
-        var receivedSession: AuthSession?
         let state = AppState(
             restoresSession: false,
-            localStudy: local,
-            makeRemoteStudy: { session in
-                receivedSession = session
-                return remote
-            }
+            localStudy: local
         )
 
-        XCTAssertTrue((state.studyDataSource as AnyObject) === local)
+        XCTAssertTrue(state.studyDataSource is LocalStudyDataSource)
 
         let session = AuthSession(
             accessToken: "test-access",
@@ -31,11 +25,11 @@ final class WordCardTests: XCTestCase {
         )
         state.setSession(session)
 
-        XCTAssertTrue((state.studyDataSource as AnyObject) === remote)
-        XCTAssertEqual(receivedSession?.user.id, "user-293")
+        XCTAssertTrue(state.studyDataSource is LocalStudyDataSource)
+        XCTAssertFalse((state.studyDataSource as AnyObject) === local)
 
         state.signOut()
-        XCTAssertTrue((state.studyDataSource as AnyObject) === local)
+        XCTAssertTrue(state.studyDataSource is LocalStudyDataSource)
     }
 
     @MainActor
@@ -965,24 +959,4 @@ final class WordCardTests: XCTestCase {
         XCTAssertEqual(card.applying(empty).meaning, "明かり／軽い")
     }
 
-}
-
-private final class SelectionStudyDataSource: StudyDataSource {
-    func fetchDecks() async throws -> [Deck] { [] }
-    func fetchDeckCounts(deckId: Int) async throws -> StudyDeckCounts { StudyDeckCounts(newCount: 0, dueCount: 0) }
-    func fetchCards(deckId: Int) async throws -> [WordCard] { [] }
-    func fetchWordList() async throws -> [WordCard] { [] }
-    func fetchStudyQueue(deckId: Int, mode: StudyMode) async throws -> [WordCard] { [] }
-    func fetchStudyStats() async throws -> StudyStats { .empty }
-    func saveAnswer(card: WordCard, isCorrect: Bool) async throws -> LearningProgress { throw LocalStudyError.missingCardId }
-    func saveAnswerWithUndo(card: WordCard, isCorrect: Bool) async throws -> SavedAnswer { throw LocalStudyError.missingCardId }
-    func restoreLearningProgress(cardId: Int, previousProgress: LearningProgress?) async throws {}
-    func fetchTags(wordId: Int) async throws -> [String]? { nil }
-    func saveTags(_ tags: Set<String>, wordId: Int) async throws {}
-    func saveWordOverride(_ payload: WordOverridePayload) async throws -> WordCard { throw LocalStudyError.deckNotFound }
-    func canManage(_ deck: Deck) -> Bool { false }
-    var supportsDeckReordering: Bool { false }
-    var supportsDeckFileTransfer: Bool { false }
-    func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome { throw LocalStudyError.deckNotFound }
-    func deleteDeck(id: Int) async throws { throw LocalStudyError.deckNotFound }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-struct Deck: Identifiable, Decodable, Hashable {
+struct Deck: Identifiable, Codable, Hashable {
     let id: Int
     let deckName: String
     let description: String?

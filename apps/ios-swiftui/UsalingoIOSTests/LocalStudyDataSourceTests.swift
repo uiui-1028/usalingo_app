@@ -175,6 +175,195 @@ final class LocalStudyDataSourceTests: XCTestCase {
         XCTAssertEqual(reloaded.first?.meaning, "編集済み")
     }
 
+    func testResetRemovesLocalStudyDataAndRestoresBundledDefault() async throws {
+        let source = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
+        let imported = try source.importDeck(from: sampleDeckData(cardCount: 1))
+        let cards = try await source.fetchCards(deckId: imported.id)
+        let card = try XCTUnwrap(cards.first)
+        _ = try await source.saveAnswer(card: card, isCorrect: true)
+        try await source.saveTags(["重要"], wordId: card.wordId)
+        _ = try await source.saveWordOverride(
+            WordOverridePayload(
+                wordId: card.wordId,
+                wordText: "edited",
+                definitionJapanese: "編集済み",
+                sentenceEnglish: nil,
+                sentenceJapanese: nil,
+                imageAssetPath: nil
+            )
+        )
+        let unrelatedFile = directoryURL.appendingPathComponent("unrelated.txt")
+        try Data("keep".utf8).write(to: unrelatedFile)
+
+        try source.reset()
+
+        let reopened = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
+        XCTAssertFalse(reopened.hasStudyRecord)
+        let tags = try await reopened.fetchTags(wordId: card.wordId)
+        XCTAssertNil(tags)
+        XCTAssertFalse(reopened.decks().contains { $0.key == imported.key })
+        XCTAssertEqual(reopened.decks().map(\.key), ["toeic-basic"])
+        let remainingCards = try await reopened.fetchWordList()
+        XCTAssertFalse(remainingCards.contains { $0.text == "edited" })
+        let snapshot = try reopened.snapshot()
+        XCTAssertTrue(snapshot.progress.isEmpty)
+        XCTAssertTrue(snapshot.tags.isEmpty)
+        XCTAssertTrue(snapshot.overrides.isEmpty)
+        XCTAssertTrue(snapshot.importedDecks.isEmpty)
+        XCTAssertEqual(try String(contentsOf: unrelatedFile, encoding: .utf8), "keep")
+    }
+
+    func testRemoteContentKeepsFullCardAndSeparatesAccounts() async throws {
+        let source = makeDataSource()
+        let deck = Deck(id: 42, deckName: "公式教材", description: "配信版")
+        let card = remoteCard()
+        let progress = LearningProgress.initial(userId: "account-a", cardId: 50).marking(isCorrect: true)
+        source.selectAccount(id: "account-a")
+        try source.cacheRemoteDecks([deck], cardsByDeck: [42: [card]], progress: [progress], userId: "account-a")
+
+        let fetchedDecks = try await source.fetchDecks()
+        let cachedDeck = try XCTUnwrap(fetchedDecks.first { $0.id == -43 })
+        XCTAssertFalse(source.canManage(cachedDeck))
+        let fetchedCards = try await source.fetchCards(deckId: cachedDeck.id)
+        let cachedCard = try XCTUnwrap(fetchedCards.first)
+        XCTAssertEqual(cachedCard.cardId, -50)
+        XCTAssertEqual(cachedCard.wordId, -10)
+        XCTAssertEqual(cachedCard.senses, card.senses)
+        XCTAssertEqual(cachedCard.synonyms, card.synonyms)
+        XCTAssertEqual(cachedCard.etymology, card.etymology)
+        XCTAssertEqual(cachedCard.wordAudioAssetPath, card.wordAudioAssetPath)
+        XCTAssertEqual(cachedCard.learning?.repetitions, 1)
+
+        let reopened = makeDataSource()
+        reopened.selectAccount(id: "account-a")
+        let persisted = try await reopened.fetchCards(deckId: -43)
+        XCTAssertEqual(persisted.first?.senses, card.senses)
+        XCTAssertEqual(persisted.first?.learning?.repetitions, 1)
+        reopened.selectAccount(id: "account-b")
+        let otherAccountDecks = try await reopened.fetchDecks()
+        XCTAssertFalse(otherAccountDecks.contains { $0.id == -43 })
+        reopened.selectAccount(id: "account-a")
+        let restoredCards = try await reopened.fetchCards(deckId: -43)
+        XCTAssertEqual(restoredCards.first?.learning?.repetitions, 1)
+    }
+
+    func testRemoteRefreshKeepsLocalAnswerAndLastGoodContent() async throws {
+        let source = makeDataSource()
+        source.selectAccount(id: "account-a")
+        let deck = Deck(id: 42, deckName: "公式教材", description: nil)
+        let card = remoteCard()
+        let serverProgress = LearningProgress.initial(userId: "account-a", cardId: 50).marking(isCorrect: true)
+        try source.cacheRemoteDecks([deck], cardsByDeck: [42: [card]], progress: [serverProgress], userId: "account-a")
+        let fetchedCards = try await source.fetchCards(deckId: -43)
+        let localCard = try XCTUnwrap(fetchedCards.first)
+        _ = try await source.saveAnswer(card: localCard, isCorrect: true)
+
+        let newerServerProgress = serverProgress.marking(isCorrect: true).marking(isCorrect: true)
+        try source.cacheRemoteDecks([deck], cardsByDeck: [42: [card]], progress: [newerServerProgress], userId: "account-a")
+        let retained = try await source.fetchCards(deckId: -43)
+        XCTAssertEqual(retained.first?.learning?.repetitions, 2)
+        XCTAssertThrowsError(try source.cacheRemoteDecks([deck], cardsByDeck: [:], progress: [], userId: "account-a"))
+        let afterFailure = try await source.fetchCards(deckId: -43)
+        XCTAssertEqual(afterFailure.first?.senses, card.senses)
+        XCTAssertEqual(afterFailure.first?.learning?.repetitions, 2)
+    }
+
+    @MainActor
+    func testAppStateImportsExistingRemoteProgressAndKeepsOfflineAnswerAfterRefresh() async throws {
+        let source = makeDataSource()
+        let card = remoteCard()
+        let remote = TestRemoteStudyImporter(
+            deck: Deck(id: 42, deckName: "公式教材", description: nil),
+            card: card,
+            progress: LearningProgress.initial(userId: "account-a", cardId: 50).marking(isCorrect: true)
+        )
+        let state = AppState(
+            restoresSession: false,
+            authService: AuthService(sessionStore: TestStudySessionStore()),
+            remoteStudy: remote,
+            localStudy: source
+        )
+        state.setSession(AuthSession(
+            accessToken: "test", refreshToken: nil, expiresAt: nil,
+            user: AuthUser(id: "account-a", email: nil)
+        ))
+        await state.refreshOfficialContentIfConnected()
+
+        let cachedCards = try await state.studyDataSource.fetchCards(deckId: -43)
+        let cachedCard = try XCTUnwrap(cachedCards.first)
+        XCTAssertEqual(cachedCard.learning?.repetitions, 1)
+        _ = try await state.studyDataSource.saveAnswer(card: cachedCard, isCorrect: true)
+        remote.progress = remote.progress.marking(isCorrect: true).marking(isCorrect: true)
+        await state.refreshOfficialContentIfConnected()
+
+        let refreshedCards = try await state.studyDataSource.fetchCards(deckId: -43)
+        XCTAssertEqual(refreshedCards.first?.learning?.repetitions, 2)
+        remote.shouldFail = true
+        await state.refreshOfficialContentIfConnected()
+        let offlineCards = try await state.studyDataSource.fetchCards(deckId: -43)
+        XCTAssertEqual(offlineCards.first?.learning?.repetitions, 2)
+    }
+
+    @MainActor
+    func testAccountSwitchDoesNotExposeOrOverwriteAnotherAccountsOfflineAnswer() async throws {
+        let remote = TestRemoteStudyImporter(
+            deck: Deck(id: 42, deckName: "公式教材", description: nil),
+            card: remoteCard(),
+            progress: LearningProgress.initial(userId: "account-a", cardId: 50)
+        )
+        let state = AppState(
+            restoresSession: false,
+            authService: AuthService(sessionStore: TestStudySessionStore()),
+            remoteStudy: remote,
+            localStudy: makeDataSource()
+        )
+        state.setSession(testSession(userId: "account-a"))
+        await state.refreshOfficialContentIfConnected()
+        let accountASource = state.studyDataSource
+        let initialCards = try await accountASource.fetchCards(deckId: -43)
+        let card = try XCTUnwrap(initialCards.first)
+        _ = try await accountASource.saveAnswer(card: card, isCorrect: true)
+
+        remote.shouldFail = true // B はオフラインで開く。A の教材を借りてはいけない。
+        state.setSession(testSession(userId: "account-b"))
+        let accountBDecks = try await state.studyDataSource.fetchDecks()
+        XCTAssertFalse(accountBDecks.contains { $0.id == -43 })
+        XCTAssertFalse(state.localStudy.hasStudyRecord)
+        _ = try await accountASource.saveAnswer(card: card, isCorrect: true) // 古い画面からの遅い保存
+        XCTAssertFalse(state.localStudy.hasStudyRecord)
+
+        state.setSession(testSession(userId: "account-a"))
+        let restored = try await state.studyDataSource.fetchCards(deckId: -43)
+        XCTAssertEqual(restored.first?.learning?.repetitions, 2)
+        let reopened = makeDataSource().forAccount(id: "account-a")
+        let reopenedCards = try await reopened.fetchCards(deckId: -43)
+        XCTAssertEqual(reopenedCards.first?.learning?.repetitions, 2)
+    }
+
+    private func testSession(userId: String) -> AuthSession {
+        AuthSession(accessToken: "test", refreshToken: nil, expiresAt: nil,
+                    user: AuthUser(id: userId, email: nil))
+    }
+
+    private func remoteCard() -> WordCard {
+        WordCard(
+            id: 10,
+            cardId: 50,
+            text: "acquire",
+            senses: [WordSense(meaning: "得る", partOfSpeech: "動詞"), WordSense(meaning: "習得する")],
+            sentenceEnglish: "Acquire a skill.",
+            sentenceJapanese: "技術を習得する。",
+            imageAssetPath: "image.png",
+            audioAssetPath: "sentence.mp3",
+            wordAudioAssetPath: "word.mp3",
+            tags: ["重要"],
+            learningStatus: nil,
+            learning: nil,
+            synonyms: [WordSynonym(word: "obtain", meaning: "得る")],
+            etymology: "語源"
+        )
+    }
+
     func testCardIdsStayStableWhenDeckShrinks() async throws {
         let dataSource = makeDataSource()
         let deck = try dataSource.importDeck(from: sampleDeckData(cardCount: 3))
@@ -265,6 +454,33 @@ final class LocalStudyDataSourceTests: XCTestCase {
         }
         """.utf8)
     }
+}
+
+private final class TestStudySessionStore: SessionStoring {
+    func save(_ session: AuthSession) throws {}
+    func load() throws -> AuthSession? { nil }
+    func clear() throws {}
+}
+
+private final class TestRemoteStudyImporter: RemoteStudyImporting {
+    let deck: Deck
+    let card: WordCard
+    var progress: LearningProgress
+    var shouldFail = false
+
+    init(deck: Deck, card: WordCard, progress: LearningProgress) {
+        self.deck = deck
+        self.card = card
+        self.progress = progress
+    }
+
+    func fetchDecks(session: AuthSession) async throws -> [Deck] {
+        if shouldFail { throw URLError(.notConnectedToInternet) }
+        return [deck]
+    }
+
+    func fetchCards(deckId: Int, session: AuthSession) async throws -> [WordCard] { [card] }
+    func fetchAllLearningProgress(session: AuthSession) async throws -> [LearningProgress] { [progress] }
 }
 
 // MARK: - バックアップ（G-1）

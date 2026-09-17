@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 /// 端末に保存しているデッキ。同梱JSONと読み込みJSONの両方をこの形で登録する。
 struct LocalDeck: Identifiable, Codable, Equatable {
@@ -45,6 +46,12 @@ struct LocalStudySnapshot: Codable {
     let createdAt: String
 }
 
+/// サーバーから最後に正常取得できた教材。表示情報を落とさず端末に保存する。
+private struct CachedRemoteDeck: Codable {
+    let deck: Deck
+    let cards: [WordCard]
+}
+
 enum LocalStudyError: LocalizedError, Equatable {
     case deckNotFound
     case deckFileMissing(String)
@@ -86,6 +93,7 @@ final class LocalStudyDataSource: StudyDataSource {
         static let progress = "progress.json"
         static let tags = "tags.json"
         static let overrides = "overrides.json"
+        static let remoteDecks = "remote-decks.json"
         static let importedDirectory = "imported"
     }
 
@@ -99,23 +107,81 @@ final class LocalStudyDataSource: StudyDataSource {
     }
 
     private let fileManager: FileManager
-    private let directoryURL: URL
+    private let rootDirectoryURL: URL
+    private var directoryURL: URL
     private let bundle: Bundle
 
     private var library: LocalStudyLibrary
     private var progressByCardId: [String: LearningProgress]
     private var tagsByWordId: [String: [String]]
     private var overridesByWordId: [String: UserWordOverride]
+    private var cachedRemoteDecks: [CachedRemoteDeck]
 
-    init(directoryURL: URL? = nil, bundle: Bundle = .main, fileManager: FileManager = .default) {
+    init(directoryURL: URL? = nil, accountId: String? = nil, bundle: Bundle = .main, fileManager: FileManager = .default) {
         self.fileManager = fileManager
         self.bundle = bundle
-        self.directoryURL = directoryURL ?? Self.defaultDirectoryURL(fileManager: fileManager)
+        self.rootDirectoryURL = directoryURL ?? Self.defaultDirectoryURL(fileManager: fileManager)
+        self.directoryURL = Self.accountDirectory(root: rootDirectoryURL, id: accountId)
         library = Self.loadJSON(LocalStudyLibrary.self, from: self.directoryURL.appendingPathComponent(FileName.library)) ?? LocalStudyLibrary()
         progressByCardId = Self.loadJSON([String: LearningProgress].self, from: self.directoryURL.appendingPathComponent(FileName.progress)) ?? [:]
         tagsByWordId = Self.loadJSON([String: [String]].self, from: self.directoryURL.appendingPathComponent(FileName.tags)) ?? [:]
         overridesByWordId = Self.loadJSON([String: UserWordOverride].self, from: self.directoryURL.appendingPathComponent(FileName.overrides)) ?? [:]
+        cachedRemoteDecks = Self.loadJSON([CachedRemoteDeck].self, from: self.directoryURL.appendingPathComponent(FileName.remoteDecks)) ?? []
         syncBundledDecks()
+    }
+
+    /// 古い画面が持つデータ層を変えず、新しいアカウント用の実体を作る。
+    func forAccount(id: String?) -> LocalStudyDataSource {
+        LocalStudyDataSource(directoryURL: rootDirectoryURL, accountId: id, bundle: bundle, fileManager: fileManager)
+    }
+
+    /// アカウントの教材・記録を端末上でも分ける。未接続時は保存済みセッションのIDを選ぶ。
+    func selectAccount(id: String?) {
+        directoryURL = Self.accountDirectory(root: rootDirectoryURL, id: id)
+        library = Self.loadJSON(LocalStudyLibrary.self, from: directoryURL.appendingPathComponent(FileName.library)) ?? LocalStudyLibrary()
+        progressByCardId = Self.loadJSON([String: LearningProgress].self, from: directoryURL.appendingPathComponent(FileName.progress)) ?? [:]
+        tagsByWordId = Self.loadJSON([String: [String]].self, from: directoryURL.appendingPathComponent(FileName.tags)) ?? [:]
+        overridesByWordId = Self.loadJSON([String: UserWordOverride].self, from: directoryURL.appendingPathComponent(FileName.overrides)) ?? [:]
+        cachedRemoteDecks = Self.loadJSON([CachedRemoteDeck].self, from: directoryURL.appendingPathComponent(FileName.remoteDecks)) ?? []
+        syncBundledDecks()
+    }
+
+    /// 全件取得が成功してから更新。通信失敗時は前回の端末版を残す。
+    func cacheRemoteDecks(_ decks: [Deck], cardsByDeck: [Int: [WordCard]], progress: [LearningProgress], userId: String) throws {
+        guard decks.allSatisfy({ $0.id > 0 && cardsByDeck[$0.id] != nil }) else {
+            throw LocalStudyError.deckNotFound
+        }
+        let updated = try decks.map { deck -> CachedRemoteDeck in
+            let cards = cardsByDeck[deck.id] ?? []
+            guard cards.allSatisfy({ ($0.cardId ?? 0) > 0 && $0.wordId > 0 }) else {
+                throw LocalStudyError.missingCardId
+            }
+            return CachedRemoteDeck(deck: deck, cards: cards)
+        }
+        var mergedProgress = progressByCardId
+        for row in progress where row.userId == userId && row.cardId > 0 {
+            let localCardId = -row.cardId
+            let key = String(localCardId)
+            guard mergedProgress[key] == nil else { continue } // 端末で回答済みなら端末を優先する。
+            mergedProgress[key] = LearningProgress(
+                userId: Self.guestUserId,
+                cardId: localCardId,
+                status: row.status,
+                lastReviewedAt: row.lastReviewedAt,
+                nextReviewDate: row.nextReviewDate,
+                srsLevel: row.srsLevel,
+                easinessFactor: row.easinessFactor,
+                repetitions: row.repetitions,
+                incorrectCount: row.incorrectCount,
+                intervalDays: row.intervalDays,
+                createdAt: row.createdAt,
+                updatedAt: row.updatedAt
+            )
+        }
+        try persist(mergedProgress, to: FileName.progress)
+        try persist(updated, to: FileName.remoteDecks)
+        progressByCardId = mergedProgress
+        cachedRemoteDecks = updated
     }
 
     // MARK: - デッキ一覧（学習タブ用）
@@ -205,7 +271,10 @@ final class LocalStudyDataSource: StudyDataSource {
     // MARK: - StudyDataSource
 
     func fetchDecks() async throws -> [Deck] {
-        decks().map(\.deck)
+        cachedRemoteDecks.map { cached in
+            Deck(id: -cached.deck.id - 1, deckName: cached.deck.deckName,
+                 description: cached.deck.description, ownerId: cached.deck.ownerId)
+        } + decks().map(\.deck)
     }
 
     func fetchDeckCounts(deckId: Int) async throws -> StudyDeckCounts {
@@ -341,10 +410,10 @@ final class LocalStudyDataSource: StudyDataSource {
 
     // MARK: - デッキの管理
 
-    /// 端末のデッキはすべて本人のものなので、常に編集できる。
-    func canManage(_ deck: Deck) -> Bool { true }
+    /// サーバーから読んだ教材はキャッシュであり、オフラインでは編集・削除しない。
+    func canManage(_ deck: Deck) -> Bool { deck.id > 0 }
 
-    var supportsDeckReordering: Bool { true }
+    var supportsDeckReordering: Bool { cachedRemoteDecks.isEmpty }
 
     var supportsDeckFileTransfer: Bool { true }
 
@@ -431,9 +500,31 @@ final class LocalStudyDataSource: StudyDataSource {
         }
     }
 
+    /// 退会完了後、このアプリが作った学習ファイルだけを消す。
+    func reset() throws {
+        let targets = [FileName.library, FileName.progress, FileName.tags, FileName.overrides, FileName.remoteDecks]
+            .map { directoryURL.appendingPathComponent($0) } + [importedDirectoryURL()]
+        for target in targets where fileManager.fileExists(atPath: target.path) {
+            try fileManager.removeItem(at: target)
+        }
+        library = LocalStudyLibrary()
+        progressByCardId = [:]
+        tagsByWordId = [:]
+        overridesByWordId = [:]
+        cachedRemoteDecks = []
+        syncBundledDecks()
+        try persistLibrary()
+    }
+
     // MARK: - カードの読み込み
 
     private func loadCards(deckId: Int) throws -> [WordCard] {
+        if deckId < Self.allDecksId {
+            guard let cached = cachedRemoteDecks.first(where: { -$0.deck.id - 1 == deckId }) else {
+                throw LocalStudyError.deckNotFound
+            }
+            return try cached.cards.map(makeCachedCard)
+        }
         let targets: [LocalDeck]
         if deckId == Self.allDecksId {
             targets = library.decks
@@ -455,7 +546,29 @@ final class LocalStudyDataSource: StudyDataSource {
         if identityChanged {
             try persistLibrary()
         }
+        if deckId == Self.allDecksId {
+            cards += try cachedRemoteDecks.flatMap { try $0.cards.map(makeCachedCard) }
+        }
         return cards
+    }
+
+    private func makeCachedCard(_ card: WordCard) throws -> WordCard {
+        guard let remoteCardId = card.cardId, remoteCardId > 0, card.wordId > 0 else {
+            throw LocalStudyError.missingCardId
+        }
+        let cardId = -remoteCardId
+        let wordId = -card.wordId
+        var result = card.withCardId(cardId).withWordId(wordId)
+        if let tags = tagsByWordId[String(wordId)] {
+            result = result.withTags(tags)
+        }
+        if let override = overridesByWordId[String(wordId)] {
+            result = result.applying(override)
+        }
+        if let progress = progressByCardId[String(cardId)] {
+            result = result.withLearningProgress(progress)
+        }
+        return result
     }
 
     private func makeCard(globalId: Int, fileCard: DeckFileCard) -> WordCard {
@@ -634,6 +747,13 @@ final class LocalStudyDataSource: StudyDataSource {
         let base = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
             ?? fileManager.temporaryDirectory
         return base.appendingPathComponent("GuestStudy", isDirectory: true)
+    }
+
+    private static func accountDirectory(root: URL, id: String?) -> URL {
+        guard let id else { return root }
+        let digest = SHA256.hash(data: Data(id.utf8)).map { String(format: "%02x", $0) }.joined()
+        return root.appendingPathComponent("accounts", isDirectory: true)
+            .appendingPathComponent(digest, isDirectory: true)
     }
 
     private func importedDirectoryURL() -> URL {

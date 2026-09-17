@@ -45,6 +45,13 @@ struct LearningDashboardView: View {
                 }
         }
         .task(id: reloadKey) { await reload() }
+        .onChange(of: appState.session?.user.id) { _, _ in
+            // 利用者が変わったら、前の人の教材を開いている画面を閉じる。
+            studyLaunch = nil
+            isShowingLibrary = false
+            isShowingWordList = false
+            decks = []
+        }
         // 詳細へのpushでも表示状態は変わらないため、画面ごとの出入りで競合させない。
         .onChange(of: isShowingLibrary) { _, isPresented in
             appState.isShellChromeHidden = isPresented
@@ -337,11 +344,14 @@ struct LearningDashboardView: View {
     }
 
     private func reload() async {
-        let dataSource = appState.studyDataSource
+        let dataSource = appState.localStudy
         do {
-            decks = try await dataSource.fetchDecks()
+            let fetched = try await dataSource.fetchDecks()
+            guard appState.localStudy === dataSource else { return }
+            decks = fetched
             errorMessage = nil
         } catch {
+            guard appState.localStudy === dataSource else { return }
             decks = []
             errorMessage = UserFacingError.message(for: error)
             editMode = .inactive

@@ -16,6 +16,7 @@ final class StudyBackupSyncer {
     private let uploadDelay: Duration
 
     private var pendingUpload: Task<Void, Never>?
+    private var generation = 0
     /// 復元の書き戻しで起きた変化を、そのまま預け直さないための目印。
     private var isRestoring = false
 
@@ -36,8 +37,10 @@ final class StudyBackupSyncer {
     /// それ以外は端末の内容を正として預け直す。
     func start(session: AuthSession, markStudyDataChanged: @escaping () -> Void) async {
         cancelPendingUpload()
+        let startedGeneration = generation
         do {
             let backup = try await service.fetch(session: session)
+            guard startedGeneration == generation else { return }
             if let backup, !localStudy.hasStudyRecord {
                 isRestoring = true
                 defer { isRestoring = false }
@@ -71,6 +74,7 @@ final class StudyBackupSyncer {
 
     /// ログアウトしたときに呼ぶ。待機中の保存を取り消すだけで、預けた控えは消さない。
     func stop() {
+        generation += 1
         cancelPendingUpload()
     }
 

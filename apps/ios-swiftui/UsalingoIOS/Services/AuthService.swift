@@ -188,9 +188,18 @@ final class AuthService {
             try sessionStore.save(session)
             return session
         } catch {
-            try? sessionStore.clear()
+            // 通信できないだけで復元用トークンを捨てると、回線復帰後に元の
+            // アカウントへ戻れない。サーバーが拒否したときだけ無効と判断する。
+            if error is SupabaseError {
+                try? sessionStore.clear()
+            }
             throw error
         }
+    }
+
+    /// 通信せず、端末に保存済みの利用者だけを確認する。
+    func cachedUserId() -> String? {
+        try? sessionStore.load()?.user.id
     }
 
     func signOut() throws {
