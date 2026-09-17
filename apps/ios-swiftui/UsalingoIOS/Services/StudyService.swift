@@ -171,10 +171,11 @@ final class StudyService {
     }
 
     private enum QueueLimit {
-        static let review = 20
-        static let new = 10
-        static let futureReview = 20
-        static let weak = 20
+        // ponytail: 一時的に実質無制限。元は review 20 / new 10 / futureReview 20 / weak 20。
+        static let review = 9999
+        static let new = 9999
+        static let futureReview = 9999
+        static let weak = 9999
     }
 
     private enum FetchLimit {
