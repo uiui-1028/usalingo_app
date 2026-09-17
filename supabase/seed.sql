@@ -41,13 +41,6 @@ inserted_deck as (
     'test-only'
   )
   returning id
-),
-inserted_deck_word as (
-  insert into public.deck_words (deck_id, word_id)
-  select inserted_deck.id, inserted_meaning.word_id
-  from inserted_deck
-  cross join inserted_meaning
-  returning deck_id, word_id
 )
 insert into public.cards (
   word_id,
@@ -57,12 +50,13 @@ insert into public.cards (
   is_active
 )
 select
-  inserted_deck_word.word_id,
+  inserted_meaning.word_id,
   card_templates.id,
-  inserted_deck_word.deck_id,
+  inserted_deck.id,
   0,
   true
-from inserted_deck_word
+from inserted_deck
+cross join inserted_meaning
 join public.card_templates
   on card_templates.template_code = 'basic_en_to_ja'
 on conflict (word_id, card_template_id, deck_id)

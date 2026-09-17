@@ -2,7 +2,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(35);
+select plan(32);
 
 select ok(to_regclass('auth.users') is not null, 'Auth schema is available');
 select ok(to_regclass('public.users') is not null, 'users exists');
@@ -11,13 +11,11 @@ select ok(to_regclass('public.words') is not null, 'words exists');
 select ok(to_regclass('public.word_meanings') is not null, 'word_meanings exists');
 select ok(to_regclass('public.example_contents') is not null, 'example_contents exists');
 select ok(to_regclass('public.decks') is not null, 'decks exists');
-select ok(to_regclass('public.deck_words') is not null, 'deck_words exists');
 select ok(to_regclass('public.card_templates') is not null, 'card_templates exists');
 select ok(to_regclass('public.cards') is not null, 'cards exists');
 select ok(to_regclass('public.user_card_progress') is not null, 'user_card_progress exists');
 select ok(to_regclass('public.user_word_tags') is not null, 'user_word_tags exists');
 select ok(to_regclass('public.user_word_overrides') is not null, 'user_word_overrides exists');
-select ok(to_regclass('public.user_learning_progress') is not null, 'legacy progress exists for migration verification');
 
 select results_eq(
   $$select count(*)
@@ -29,16 +27,14 @@ select results_eq(
       'public.word_meanings'::regclass,
       'public.example_contents'::regclass,
       'public.decks'::regclass,
-      'public.deck_words'::regclass,
       'public.card_templates'::regclass,
       'public.cards'::regclass,
       'public.user_card_progress'::regclass,
       'public.user_word_tags'::regclass,
-      'public.user_word_overrides'::regclass,
-      'public.user_learning_progress'::regclass
+      'public.user_word_overrides'::regclass
     )
       and relrowsecurity$$,
-  array[13::bigint],
+  array[11::bigint],
   'RLS is enabled on all app tables'
 );
 
@@ -47,7 +43,6 @@ select ok(
   and not has_table_privilege('anon', 'public.word_meanings', 'select')
   and not has_table_privilege('anon', 'public.example_contents', 'select')
   and not has_table_privilege('anon', 'public.decks', 'select')
-  and not has_table_privilege('anon', 'public.deck_words', 'select')
   and not has_table_privilege('anon', 'public.card_templates', 'select')
   and not has_table_privilege('anon', 'public.cards', 'select'),
   'anon cannot read official content'
@@ -168,11 +163,6 @@ select results_eq(
   'local deck seed exists'
 );
 select results_eq(
-  $$select count(*) from public.deck_words$$,
-  array[1::bigint],
-  'local deck membership seed exists'
-);
-select results_eq(
   $$select count(*) from public.cards where is_active$$,
   array[1::bigint],
   'local active card seed exists'
@@ -180,9 +170,8 @@ select results_eq(
 select results_eq(
   $$select count(*)
     from public.cards c
-    join public.deck_words dw
-      on dw.word_id = c.word_id
-     and dw.deck_id = c.deck_id
+    join public.words w on w.id = c.word_id
+    join public.decks d on d.id = c.deck_id
     join public.card_templates ct
       on ct.id = c.card_template_id
     where ct.template_code = 'basic_en_to_ja'$$,

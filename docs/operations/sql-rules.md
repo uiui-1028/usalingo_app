@@ -32,4 +32,4 @@
 - Card単位の進捗: `user_card_progress`
 - 詳細: `docs/architecture/anki-data-model.md`
 
-古い `user_learning_progress.word_id` は移行元です。旧表を削除する時期は、本番移行と切り戻し条件を確認してから別途決めます。
+古い `user_learning_progress` と `deck_words` は `20260915120000_drop_legacy_objects.sql` で削除しました。

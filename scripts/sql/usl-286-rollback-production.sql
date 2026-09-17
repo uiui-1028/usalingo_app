@@ -4,7 +4,7 @@
 --   decks             id = 286
 --   words             id 1001-1050  (word_meanings / example_contents / example_audio /
 --                                    word_pronunciations / word_forms / word_relations は CASCADE で消える)
---   deck_words/cards  deck_id = 286
+--   cards             deck_id = 286
 --
 -- 実行前に、投入手順書 docs/operations/import-official-content-production.md の
 -- 「切り戻し」節を読むこと。1トランザクションで、途中で止まれば何も消えない。
@@ -52,7 +52,6 @@ $$;
 
 -- cards は decks/words に対して RESTRICT なので先に消す。
 delete from public.cards where deck_id = 286;
-delete from public.deck_words where deck_id = 286;
 
 -- words を消すと、意味・例文・例文音声・発音・活用・関連が CASCADE で消える。
 delete from public.words where id between 1001 and 1050;
@@ -71,7 +70,6 @@ begin
   + (select count(*) from public.example_contents where id between 3001 and 3050)
   + (select count(*) from public.word_pronunciations where id between 4001 and 4050)
   + (select count(*) from public.example_audio where id between 5001 and 5050)
-  + (select count(*) from public.deck_words where deck_id = 286)
   + (select count(*) from public.cards where deck_id = 286)
   into leftover;
 

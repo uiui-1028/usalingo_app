@@ -726,10 +726,6 @@ on conflict (id) do update set
   source_list_name = excluded.source_list_name, license = excluded.license,
   updated_at = now();
 
-insert into public.deck_words (deck_id, word_id)
-select {DECK_DB_ID}, id from import_words
-on conflict (deck_id, word_id) do nothing;
-
 insert into public.cards (word_id, card_template_id, deck_id, sort_order, is_active)
 select words.id, templates.id, {DECK_DB_ID}, words.source_position - 1, true
 from import_words words
@@ -742,9 +738,6 @@ begin
   if (select count(*) from public.words where source_deck_code = {sql_text(DECK_CODE)}
       and source_position between 1 and 50) <> 50 then
     raise exception 'USL-286 verification failed: words count is not 50.';
-  end if;
-  if (select count(*) from public.deck_words where deck_id = {DECK_DB_ID}) <> 50 then
-    raise exception 'USL-286 verification failed: deck_words count is not 50.';
   end if;
   if (select count(*) from public.cards where deck_id = {DECK_DB_ID} and is_active) <> 50 then
     raise exception 'USL-286 verification failed: active cards count is not 50.';

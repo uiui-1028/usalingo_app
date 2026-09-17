@@ -1,158 +1,47 @@
--- USL-224 本番だけに存在したオブジェクトの公開が閉じたままであることを固定する。
--- 20260830150000_close_production_only_exposure.sql が回帰した場合に落ちる。
+-- 本番だけに存在した古いオブジェクトが消えたままであることを固定する。
+-- USL-224 で公開を閉じ、20260915120000_drop_legacy_objects.sql で削除した。
 
 begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(28);
+select plan(14);
 
--- ---------------------------------------------------------------------------
--- 1. Storage policy を作り直せる SECURITY DEFINER 関数
--- ---------------------------------------------------------------------------
+select ok(to_regprocedure('public.sync_existing_images()') is null, 'sync_existing_images stays dropped');
+select ok(to_regprocedure('public.setup_content_images_policies()') is null, 'setup_content_images_policies stays dropped');
+select ok(to_regprocedure('public.optimize_content_audio_policies()') is null, 'optimize_content_audio_policies stays dropped');
+select ok(to_regprocedure('public.get_index_recommendations()') is null, 'get_index_recommendations stays dropped');
+select ok(to_regprocedure('public.get_performance_summary()') is null, 'get_performance_summary stays dropped');
+select ok(to_regprocedure('public.handle_storage_upload()') is null, 'handle_storage_upload stays dropped');
 
-select ok(
-  not has_function_privilege('anon', 'public.setup_content_images_policies()', 'execute'),
-  'anon cannot execute setup_content_images_policies'
-);
-select ok(
-  not has_function_privilege('authenticated', 'public.setup_content_images_policies()', 'execute'),
-  'authenticated cannot execute setup_content_images_policies'
-);
-select ok(
-  not has_function_privilege('anon', 'public.optimize_content_audio_policies()', 'execute'),
-  'anon cannot execute optimize_content_audio_policies'
-);
-select ok(
-  not has_function_privilege('authenticated', 'public.optimize_content_audio_policies()', 'execute'),
-  'authenticated cannot execute optimize_content_audio_policies'
-);
-select ok(
-  not has_function_privilege('anon', 'public.get_index_recommendations()', 'execute'),
-  'anon cannot execute get_index_recommendations'
-);
-select ok(
-  not has_function_privilege('authenticated', 'public.get_performance_summary()', 'execute'),
-  'authenticated cannot execute get_performance_summary'
-);
-
--- 壊れた関数は USL-276 で削除済み。復活していないことを確かめる。
-select ok(
-  to_regprocedure('public.sync_existing_images()') is null,
-  'sync_existing_images stays dropped'
-);
-
--- ---------------------------------------------------------------------------
--- 2. asset_processing_queue
--- ---------------------------------------------------------------------------
-
-select ok(
-  (select relrowsecurity from pg_class where oid = 'public.asset_processing_queue'::regclass),
-  'asset_processing_queue has RLS enabled'
-);
+select ok(to_regclass('public.asset_processing_queue') is null, 'asset_processing_queue stays dropped');
+select ok(to_regclass('public.user_learning_progress') is null, 'user_learning_progress stays dropped');
+select ok(to_regclass('public.deck_words') is null, 'deck_words stays dropped');
 
 select is(
-  (select count(*)::int from pg_policies
-    where schemaname = 'public' and tablename = 'asset_processing_queue'),
+  (select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
+    where n.nspname = 'public' and c.relkind = 'v' and c.relname like 'v\_%'),
   0,
-  'asset_processing_queue has no policy, so client roles see no rows'
+  'no production-only v_* views remain'
 );
-
-select ok(
-  not has_table_privilege('anon', 'public.asset_processing_queue', 'select'),
-  'anon cannot read asset_processing_queue'
-);
-select ok(
-  not has_table_privilege('anon', 'public.asset_processing_queue', 'insert'),
-  'anon cannot insert into asset_processing_queue'
-);
-select ok(
-  not has_table_privilege('anon', 'public.asset_processing_queue', 'update'),
-  'anon cannot update asset_processing_queue'
-);
-select ok(
-  not has_table_privilege('anon', 'public.asset_processing_queue', 'delete'),
-  'anon cannot delete from asset_processing_queue'
-);
-select ok(
-  not has_table_privilege('authenticated', 'public.asset_processing_queue', 'select'),
-  'authenticated cannot read asset_processing_queue'
-);
-select ok(
-  not has_table_privilege('authenticated', 'public.asset_processing_queue', 'insert'),
-  'authenticated cannot insert into asset_processing_queue'
-);
-select ok(
-  has_table_privilege('service_role', 'public.asset_processing_queue', 'select'),
-  'service_role keeps access to asset_processing_queue'
-);
-
--- ---------------------------------------------------------------------------
--- 3. view
--- ---------------------------------------------------------------------------
 
 select is(
-  (select count(*)::int
-     from pg_class c
-    where c.oid in (
-      'public.v_word_meanings_with_paths'::regclass,
-      'public.v_example_contents_with_paths'::regclass,
-      'public.v_index_usage_stats'::regclass,
-      'public.v_index_monitoring'::regclass,
-      'public.v_database_size_monitoring'::regclass,
-      'public.v_table_stats_monitoring'::regclass
-    )
-      and 'security_invoker=true' = any(coalesce(c.reloptions, array[]::text[]))),
-  6,
-  'all six production-only views run as the invoker'
+  (select count(*)::int from storage.buckets
+    where id in ('asset-inbox', 'illustrations', 'public', 'user-uploads')),
+  0,
+  'legacy buckets stay dropped'
 );
 
--- 公式コンテンツはサインイン後だけ読める。20260812055432 の契約に view も従う。
-select ok(
-  not has_table_privilege('anon', 'public.v_word_meanings_with_paths', 'select'),
-  'anon cannot read v_word_meanings_with_paths'
-);
-select ok(
-  not has_table_privilege('anon', 'public.v_example_contents_with_paths', 'select'),
-  'anon cannot read v_example_contents_with_paths'
-);
-select ok(
-  has_table_privilege('authenticated', 'public.v_word_meanings_with_paths', 'select'),
-  'authenticated keeps read access to v_word_meanings_with_paths'
-);
-select ok(
-  has_table_privilege('authenticated', 'public.v_example_contents_with_paths', 'select'),
-  'authenticated keeps read access to v_example_contents_with_paths'
-);
-select ok(
-  not has_table_privilege('anon', 'public.v_word_meanings_with_paths', 'insert'),
-  'anon cannot write through v_word_meanings_with_paths'
-);
-select ok(
-  not has_table_privilege('anon', 'public.v_example_contents_with_paths', 'update'),
-  'anon cannot write through v_example_contents_with_paths'
-);
-select ok(
-  not has_table_privilege('authenticated', 'public.v_word_meanings_with_paths', 'delete'),
-  'authenticated cannot write through v_word_meanings_with_paths'
+select is(
+  (select count(*)::int from pg_trigger
+    where tgrelid = 'storage.objects'::regclass and tgname = 'storage_upload_trigger'),
+  0,
+  'no trigger rewrites content paths on upload'
 );
 
-select ok(
-  not has_table_privilege('anon', 'public.v_index_usage_stats', 'select'),
-  'anon cannot read v_index_usage_stats'
-);
-select ok(
-  not has_table_privilege('anon', 'public.v_table_stats_monitoring', 'select'),
-  'anon cannot read v_table_stats_monitoring'
-);
-select ok(
-  not has_table_privilege('authenticated', 'public.v_database_size_monitoring', 'select'),
-  'authenticated cannot read v_database_size_monitoring'
-);
-select ok(
-  not has_table_privilege('authenticated', 'public.v_index_monitoring', 'select'),
-  'authenticated cannot read v_index_monitoring'
-);
+-- 残すべきトリガー関数は消していない。
+select ok(to_regprocedure('public.update_updated_at_column()') is not null, 'update_updated_at_column is kept');
+select ok(to_regprocedure('public.set_example_content_v5_defaults()') is not null, 'set_example_content_v5_defaults is kept');
 
 select * from finish();
 
