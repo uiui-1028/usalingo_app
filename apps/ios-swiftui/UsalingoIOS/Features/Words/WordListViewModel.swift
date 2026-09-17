@@ -11,8 +11,13 @@ final class WordListViewModel: ObservableObject {
     @Published var selectedDisplayMode: WordListDisplayMode
     @Published var message = ""
     @Published var isLoading = false
+    /// バナーに並べる所持デッキ。
+    @Published private(set) var decks: [Deck] = []
+    /// デッキ一覧の取得失敗。単語側の `message` とは混ぜない。
+    @Published private(set) var deckMessage = ""
 
-    let deck: Deck?
+    /// いま単語を表示しているデッキ。nil なら全デッキの単語リスト。
+    @Published private(set) var deck: Deck?
     private let previewWords: [WordCard]?
 
     init(
@@ -55,20 +60,60 @@ final class WordListViewModel: ObservableObject {
 
     func load(dataSource: any StudyDataSource) async {
         guard previewWords == nil else { return }
+        let requestedDeckID = deck?.id
         isLoading = true
-        defer { isLoading = false }
+        // 後から始めた取得がまだ走っているなら、スピナーはそちらに任せる。
+        defer { if deck?.id == requestedDeckID { isLoading = false } }
 
         do {
-            if let deck {
-                words = try await dataSource.fetchCards(deckId: deck.id)
+            let loaded: [WordCard]
+            if let requestedDeckID {
+                loaded = try await dataSource.fetchCards(deckId: requestedDeckID)
             } else {
-                words = try await dataSource.fetchWordList()
+                loaded = try await dataSource.fetchWordList()
             }
+            // 取得中に別のデッキへ送られていたら、古い結果で上書きしない。
+            guard deck?.id == requestedDeckID else { return }
+            words = loaded
             clearMissingTagFilter()
             message = ""
         } catch {
+            guard deck?.id == requestedDeckID else { return }
             message = UserFacingError.message(for: error)
         }
+    }
+
+    /// 所持デッキを取り、前に選んでいたデッキ（無ければ先頭）の単語を読む。
+    func loadDecks(dataSource: any StudyDataSource, preferredDeckID: Int?) async {
+        guard previewWords == nil else { return }
+        do {
+            decks = try await dataSource.fetchDecks()
+            deckMessage = ""
+        } catch {
+            decks = []
+            words = []
+            deckMessage = "デッキを読み込めませんでした。"
+            return
+        }
+        guard let selected = decks.first(where: { $0.id == preferredDeckID }) ?? decks.first else {
+            deck = nil
+            words = []
+            message = ""
+            return
+        }
+        deck = selected
+        await load(dataSource: dataSource)
+    }
+
+    /// バナーで選んだデッキへ単語を差し替える。
+    /// タグはデッキごとに違うので解除し、並べ替えと表示モードは好みとして残す。
+    func selectDeck(_ newDeck: Deck, dataSource: any StudyDataSource) async {
+        guard previewWords == nil, newDeck.id != deck?.id else { return }
+        deck = newDeck
+        // 前のデッキの単語を残すと、取得に失敗したときに別デッキの中身に見える。
+        words = []
+        selectedTagFilter = nil
+        await load(dataSource: dataSource)
     }
 
     @discardableResult

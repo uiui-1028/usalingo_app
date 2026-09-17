@@ -12,6 +12,8 @@ import SwiftUI
 ///   （点の行）と、シートの上から始めたスワイプでは今までどおり戻れる。
 struct WordListDeckBanner: View {
     let decks: [Deck]
+    /// 表示中のデッキ。札の位置をこれに合わせる。
+    let selectedDeckID: Int?
     let onSelect: (Deck) -> Void
 
     /// 送りの通し番号。デッキ数を超えても戻さず、割った余りで札を決める。
@@ -42,8 +44,14 @@ struct WordListDeckBanner: View {
             }
         }
         .onChange(of: index) { _, _ in
-            guard let deck = currentDeck else { return }
+            guard let deck = currentDeck, deck.id != selectedDeckID else { return }
             onSelect(deck)
+        }
+        // 保存していた選択や、読み込み後の先頭デッキへ札を合わせる。
+        .onChange(of: selectedDeckID, initial: true) { _, id in
+            guard let position = decks.firstIndex(where: { $0.id == id }),
+                  position != currentDeckIndex else { return }
+            index = position
         }
     }
 
