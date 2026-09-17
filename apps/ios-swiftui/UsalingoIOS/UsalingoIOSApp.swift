@@ -39,9 +39,9 @@ struct RootView: View {
                 PasswordResetView()
             } else {
                 AppShellView()
-                    .safeAreaInset(edge: .top, spacing: 0) {
+                    .overlay(alignment: .top) {
                         if appState.session == nil, !appState.isRestoringSession {
-                            OfflineStudyBanner {
+                            OfflineStatusPill {
                                 Task { await appState.retryStartup() }
                             }
                         }
@@ -67,29 +67,24 @@ struct RootView: View {
     }
 }
 
-/// 通信できなくても学習は止めず、同期だけ待っていることを短く知らせる。
-private struct OfflineStudyBanner: View {
+/// 通信できなくても学習は止めず、ノッチの下に小さく状態だけ出す。タップで再接続する。
+private struct OfflineStatusPill: View {
     let retry: () -> Void
 
     var body: some View {
-        HStack(spacing: WireMetrics.spacingM) {
-            Image(systemName: "wifi.slash")
-                .accessibilityHidden(true)
-            Text("オフラインで学習中")
+        Button(action: retry) {
+            Text("offline-MODE")
                 .wireFont(.caption)
-            Spacer(minLength: 0)
-            Button("接続を試す", action: retry)
-                .wireFont(.caption)
+                .foregroundStyle(WireColor.ink)
+                .padding(.horizontal, WireMetrics.spacingL)
+                .padding(.vertical, WireMetrics.spacingXS)
+                .background(WireColor.groupL3, in: Capsule())
+                .overlay(Capsule().stroke(WireColor.ink, lineWidth: WireMetrics.strokeHair))
         }
-        .foregroundStyle(WireColor.ink)
-        .padding(.horizontal, WireMetrics.screenPadding)
-        .padding(.vertical, WireMetrics.spacingS)
-        .background(WireColor.groupL3)
-        .overlay(alignment: .bottom) {
-            Rectangle().fill(WireColor.ink).frame(height: WireMetrics.strokeHair)
-        }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("オフラインで学習中。学習記録は端末に保存されます。")
+        .buttonStyle(.plain)
+        .padding(.top, WireMetrics.spacingXS)
+        .accessibilityLabel("オフライン。学習記録は端末に保存されます。")
+        .accessibilityHint("ダブルタップで接続を試します。")
     }
 }
 

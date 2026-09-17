@@ -1,7 +1,26 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// 学習タブ。デッキをタップすると、既定の学習モードですぐに学習を始める。
+/// デッキを開くときの遊び方。タブバー上の切り替えバーで選び、端末に覚えておく。
+enum DeckPlayStyle: String, CaseIterable, Identifiable {
+    case card
+    case choice
+    case list
+
+    static let storageKey = "learning.deckPlayStyle"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .card: return "カード"
+        case .choice: return "5択"
+        case .list: return "リスト"
+        }
+    }
+}
+
+/// 学習タブ。デッキをタップすると、選んだ遊び方でそのデッキを開く。
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
@@ -15,7 +34,8 @@ struct LearningDashboardView: View {
     /// 書き戻せる状態として持つ。
     @State private var editMode: EditMode = .inactive
     @State private var isShowingLibrary = false
-    @State private var isShowingWordList = false
+    @State private var wordListDeck: Deck?
+    @AppStorage(DeckPlayStyle.storageKey) private var playStyle: DeckPlayStyle = .card
     @State private var errorMessage: String?
     @State private var exportDocument: DeckDocument?
     @State private var exportFileName = "deck"
@@ -40,8 +60,8 @@ struct LearningDashboardView: View {
                 .navigationDestination(isPresented: $isShowingLibrary) {
                     DeckLibraryView { Task { await reload() } }
                 }
-                .navigationDestination(isPresented: $isShowingWordList) {
-                    WordListView()
+                .navigationDestination(item: $wordListDeck) { deck in
+                    WordListView(deck: deck)
                 }
         }
         .task(id: reloadKey) { await reload() }
@@ -49,7 +69,7 @@ struct LearningDashboardView: View {
             // 利用者が変わったら、前の人の教材を開いている画面を閉じる。
             studyLaunch = nil
             isShowingLibrary = false
-            isShowingWordList = false
+            wordListDeck = nil
             decks = []
         }
         // 詳細へのpushでも表示状態は変わらないため、画面ごとの出入りで競合させない。
@@ -58,65 +78,17 @@ struct LearningDashboardView: View {
         }
     }
 
-    /// 画面は上から「デッキ一覧」「単語」「操作」「通知」へ分ける。
-    /// 下へ行くほど面を1段濃くする（計画書 6）。
+    /// デッキだけを縦に並べ、エラーがあるときだけ末尾に通知を出す。
     private var list: some View {
         List {
-            // まとまり1: デッキ一覧。List のまま行背景で1つの枠を描くので、
-            // swipeActions / onMove / onDelete はそのまま使える。
             Section {
-                // 見出しと行の左端を揃えるため、余白は行の中身側で持つ。
-                VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                    HStack(alignment: .firstTextBaseline, spacing: WireMetrics.spacingS) {
-                        Text("デッキ一覧")
-                            .wireFont(.titleS)
-                        Spacer(minLength: WireMetrics.spacingS)
-                        // 並べ替え中は、必ず見えるところに出口を置く。
-                        // 下のほうのボタンだけだと画面外になって戻れなくなる。
-                        if isEditing {
-                            Button {
-                                endEditing()
-                            } label: {
-                                WirePill(title: "並べ替えを終える", font: .caption)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(WireMetrics.spacingL)
-                    .bentoListRow(
-                        position: isEditing ? .single : .top,
-                        tone: deckGroupTone,
-                        showsDivider: !isEditing
-                    )
-
                 if decks.isEmpty {
                     emptyState
-                        .bentoListRow(
-                            position: showsAddDeckRow ? .middle : .bottom,
-                            tone: deckGroupTone,
-                            showsDivider: showsAddDeckRow
-                        )
+                        .wireListRow()
                 } else {
                     ForEach(decks) { deck in
-                        let isLast = deck.id == decks.last?.id && !showsAddDeckRow
                         deckRow(deck)
-                            // 並べ替え中は行が動くので、行をまたいで1つの枠を描く
-                            // 「はみ出させて切り取る」描き方をやめ、行ごとに閉じた枠にする。
-                            // そうしないと切り取られた枠だけが残って見た目が壊れる。
-                            // 1件ずつ枠で囲うので、行と行のあいだは区切り線ではなく
-                            // すき間で離す。線とカード枠が二重にならないようにする。
-                            .bentoListRow(
-                                position: isEditing
-                                    ? .single
-                                    : (isLast ? .bottom : .middle),
-                                tone: deckGroupTone,
-                                showsDivider: false,
-                                // 外枠とカードの線が近すぎて窮屈だったので、左右を少し広げる。
-                                horizontal: WireMetrics.spacingS,
-                                vertical: WireMetrics.spacingXS
-                            )
+                            .wireListRow(vertical: WireMetrics.spacingXS)
                             .swipeActions(edge: .leading, allowsFullSwipe: false) {
                                 if canExport(deck) {
                                     Button("書き出す") { prepareExport(deck) }
@@ -126,48 +98,9 @@ struct LearningDashboardView: View {
                     .onMove(perform: moveHandler)
                     .onDelete(perform: deleteHandler)
                 }
-
-                // デッキ追加はデッキ一覧の最後の行に置く。画面下の操作グループだけだと
-                // 下のまとまりに押し出されて見つからなくなる。
-                if showsAddDeckRow {
-                    addDeckRow
-                        .bentoListRow(position: .bottom, tone: deckGroupTone)
-                }
             }
 
-            // まとまり2: 単語リスト（D-1 / D-2）。作ってあった単語画面への入口。
-            // 見出しと行で同じことを言わないよう、グループ見出しは置かず1行にまとめる。
-            Section {
-                BentoGroup(tone: .l2) {
-                    Button {
-                        isShowingWordList = true
-                    } label: {
-                        wordEntryRow(
-                            title: "単語リスト",
-                            detail: "タグ・品詞・状態でしぼれます"
-                        )
-                    }
-                    .buttonStyle(.bentoRow(tone: .l2))
-                }
-                .endsDeckEditingOnTap(isEditing) { endEditing() }
-                .wireListRow()
-            }
-
-            // まとまり3: 操作。並べ替え中の出口だけを置く（追加はデッキ一覧の中）。
-            if isEditing {
-                Section {
-                    BentoGroup(tone: .l3) {
-                        Button("編集を終える") {
-                            endEditing()
-                        }
-                        .buttonStyle(.wireSecondary)
-                    }
-                    .endsDeckEditingOnTap(isEditing) { endEditing() }
-                    .wireListRow()
-                }
-            }
-
-            // まとまり4: 通知。エラーがなければグループごと出さない。
+            // 通知。エラーがなければグループごと出さない。
             if let errorMessage {
                 Section {
                     BentoGroup(title: "通知", tone: .l3) {
@@ -193,12 +126,18 @@ struct LearningDashboardView: View {
         // `gesture` は行の中身に負けるので、デッキ行の操作は邪魔しない。
         .gesture(TapGesture().onEnded { endEditing() }, including: isEditing ? .all : .none)
         .scrollContentBackground(.hidden)
-        .contentMargins(.top, WireMetrics.spacingM, for: .scrollContent)
+        // 右上に固定した「デッキ追加」ボタンの下から並べ始める。
+        .contentMargins(.top, addDeckButtonClearance, for: .scrollContent)
         // NavigationStack の内側にある List では、外側の safeAreaInset だけでは
         // 最後の行が避けない。末尾をバー高ぶんだけ追加でスクロールできるようにする。
         .contentMargins(.bottom, bottomActionBarClearance, for: .scrollContent)
         // 並べ替え側は双方向 Binding が必要。constant にすると終了操作が反映されない。
         .environment(\.editMode, $editMode)
+        .overlay(alignment: .topTrailing) {
+            if !isEditing {
+                addDeckButton
+            }
+        }
         .simultaneousGesture(
             DragGesture(minimumDistance: 1)
                 .onChanged(updateActionBarVisibility)
@@ -238,7 +177,13 @@ struct LearningDashboardView: View {
     private func deckRow(_ deck: Deck) -> some View {
         Button {
             guard !isEditing else { return }
-            studyLaunch = StudyLaunch(deck: deck, mode: .all)
+            switch playStyle {
+            // ponytail: 5択はまだ無いのでカードと同じ学習を開く。5択画面ができたらここで分ける。
+            case .card, .choice:
+                studyLaunch = StudyLaunch(deck: deck, mode: .all)
+            case .list:
+                wordListDeck = deck
+            }
         } label: {
             VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
                 HStack(alignment: .top, spacing: WireMetrics.spacingM) {
@@ -263,7 +208,7 @@ struct LearningDashboardView: View {
         // デッキは1件ずつ枠で囲う。どこからどこまでが1つのデッキか、
         // 区切り線だけだと分かりにくかったため（外枠より細い線と1段濃い面）。
         .buttonStyle(.bentoCard(tone: deckCardTone))
-        .accessibilityHint("学習を始めます")
+        .accessibilityHint(playStyle == .list ? "単語リストを開きます" : "学習を始めます")
         .simultaneousGesture(
             LongPressGesture(minimumDuration: 0.45).onEnded { _ in
                 guard appState.studyDataSource.supportsDeckReordering, !isEditing else { return }
@@ -272,66 +217,45 @@ struct LearningDashboardView: View {
         )
     }
 
-    /// 単語画面への入口の1行。枠は外側のグループが持つので重ねない。
-    private func wordEntryRow(title: String, detail: String?) -> some View {
-        HStack(spacing: WireMetrics.spacingM) {
-            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                Text(title)
-                    .wireFont(.label)
-                if let detail {
-                    Text(detail)
-                        .wireFont(.caption)
-                }
-            }
-            Spacer(minLength: WireMetrics.spacingS)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, WireMetrics.spacingS)
-    }
-
-    /// 並べ替え中は行が動くので、追加行は出さない。
+    /// 並べ替え中は行が動くので、追加ボタンは隠す。
     /// ログインの有無では出し分けない。デッキを増やせることは、どちらでも同じにする。
-    private var showsAddDeckRow: Bool { !isEditing }
-
-    /// デッキ一覧グループの最後に置く「デッキを追加」の行。
-    private var addDeckRow: some View {
+    private var addDeckButton: some View {
         Button {
-            endEditing()
             isShowingLibrary = true
         } label: {
-            HStack(spacing: WireMetrics.spacingM) {
-                Image(systemName: "plus")
-                    .wireFont(.label)
-                    .accessibilityHidden(true)
-                Text("デッキを追加")
-                    .wireFont(.label)
-                Spacer(minLength: WireMetrics.spacingS)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(WireMetrics.spacingL)
-            .contentShape(Rectangle())
+            Text("デッキ追加 +")
+                .wireFont(.label, color: WireColor.surface)
+                .padding(.horizontal, WireMetrics.spacingL)
+                .frame(height: Self.addDeckButtonHeight)
+                .background(Capsule().fill(WireColor.ink))
+                .contentShape(Capsule())
         }
-        .buttonStyle(.bentoRow(tone: deckGroupTone))
+        .buttonStyle(.plain)
+        .padding(.top, WireMetrics.spacingS)
+        .padding(.trailing, WireMetrics.screenPadding)
         .accessibilityLabel("デッキを追加")
         .accessibilityHint("デッキライブラリを開きます")
     }
 
-    /// デッキ一覧グループの中に収める空状態。枠は外側のグループが持つので重ねない。
+    private static let addDeckButtonHeight: CGFloat = 44
+
+    private var addDeckButtonClearance: CGFloat {
+        Self.addDeckButtonHeight + WireMetrics.spacingS + WireMetrics.spacingM
+    }
+
+    /// デッキが1件もないときの案内。
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
             Text("デッキがありません")
                 .wireFont(.body)
-            Text("下の「デッキを追加」から追加してください。")
+            Text("右上の「デッキ追加 +」から追加してください。")
                 .wireFont(.caption)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(WireMetrics.spacingL)
     }
 
-    /// デッキ一覧は画面の一番上のまとまりなので、最も薄い段を使う。
-    private var deckGroupTone: BentoTone { .l1 }
-
-    /// グループの中に置くデッキカードは、外枠より1段濃くして囲いを見せる。
+    /// デッキカードは背景より1段濃くして、1件ずつの囲いを見せる。
     private var deckCardTone: BentoTone { .l2 }
 
     /// デッキIDから決まる仮の表示値。開き直しても数字が動かないようにしている。
