@@ -6,7 +6,7 @@
 --                                    word_pronunciations / word_forms / word_relations は CASCADE で消える)
 --   cards             deck_id = 286
 --
--- 実行前に、投入手順書 docs/operations/import-official-content-production.md の
+-- 実行前に、投入手順書 docs/archive/operations/import-official-content-production.md の
 -- 「切り戻し」節を読むこと。1トランザクションで、途中で止まれば何も消えない。
 --
 -- 利用者データの扱い:

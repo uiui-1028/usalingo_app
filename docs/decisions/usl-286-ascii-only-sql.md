@@ -54,9 +54,9 @@ UTF-8のバイト列がMac Romanとして解釈され、そのまま保存され
   `encode(convert_to(値,'UTF8'),'hex')` を使う。
 - ASCII化は生成SQLだけの対策である。正本JSON、Notion、文書は日本語のままでよい。
   問題は「SQLを別アプリへ貼る」経路に限られる。
-- `docs/content/target-1900-0001-0050.json` は影響を受けていない。事故は本番DBの中だけで起きた。
+- `docs/archive/content/target-1900-0001-0050.json` は影響を受けていない。事故は本番DBの中だけで起きた。
 
 ## 根拠
 
 - [`usl-286-repo-owned-content.md`](usl-286-repo-owned-content.md)（正本JSONの決定）
-- [`../operations/import-official-content-production.md`](../operations/import-official-content-production.md)（本番手順）
+- [`../operations/import-official-content-production.md`](../archive/operations/import-official-content-production.md)（本番手順）

@@ -1,10 +1,12 @@
 # USL-297 引き継ぎ｜意味を複数ならべて表示し、例文が優先度1以外でも絵と音を出す
 
+状態: **完了**（2026-09-10、PR #121）。表示はその後 [デッキごとに単語の主の意味を決める](../../decisions/deck-primary-sense-20260914.md) で変わった。
+
 作成日: 2026-09-10
 
 対象: Notion [USL-297](https://app.notion.com/p/3d4c3d1f59e88145b50df696381d59ea)
-根拠: [教材の正本と単語リスト](../decisions/content-source-and-word-list-20260907.md)、
-[milestones.md](milestones.md) M2
+根拠: [教材の正本と単語リスト](../../decisions/content-source-and-word-list-20260907.md)、
+[milestones.md](../../plans/milestones.md) M2
 
 ## 1. 何をしたいか
 
@@ -85,7 +87,7 @@ audioAssetPath: example?.audioAssetPath,
 
 1. **利用者の上書きは1つの文字列のまま。**
    `user_word_overrides.definition_jp` は `text` 列が1本
-   （[migration](../../supabase/migrations/20260618195500_create_user_word_overrides.sql)）。
+   （[migration](../../../supabase/migrations/20260618195500_create_user_word_overrides.sql)）。
    利用者が意味を書き換えたら、それは**並んだ意味の全体を置き換える1つの文字列**として扱う。
    意味ごとの上書きは今回やらない。DBを変えることになるため。
 

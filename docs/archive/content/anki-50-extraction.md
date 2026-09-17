@@ -1,5 +1,7 @@
 # Anki原本から最初の50語を取り出す手順
 
+状態: **役目を終えた**（2026-09-17 に archive へ移動）。50語の時代の記録。いまの教材は Google Spreadsheet から同期する。正本は [`docs/operations/sync-sheet-to-supabase.md`](../../operations/sync-sheet-to-supabase.md)。
+
 調査日: 2026-08-31
 対象: USL-280
 
@@ -7,7 +9,7 @@
 > 2026-09-02以降、50語の**正本は [`target-1900-0001-0050.json`](target-1900-0001-0050.json)** です。
 > Ankiは「最初にどこから取り出したか」の記録として残しますが、以後の投入・検証はリポジトリ内の
 > JSONを読みます。Ankiの原本は変更しません。経緯は
-> [`../decisions/usl-286-repo-owned-content.md`](../decisions/usl-286-repo-owned-content.md) にあります。
+> [`../decisions/usl-286-repo-owned-content.md`](../../decisions/usl-286-repo-owned-content.md) にあります。
 
 ## 結論
 

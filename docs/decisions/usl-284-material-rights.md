@@ -2,7 +2,7 @@
 
 決定日: 2026-09-01
 
-対象: `docs/content/anki-50-extraction.md` で確定した、Ankiデッキ「TARGET-1900」由来の最初の50語（画像150件、単語音声・例文音声を含む）
+対象: `docs/archive/content/anki-50-extraction.md` で確定した、Ankiデッキ「TARGET-1900」由来の最初の50語（画像150件、単語音声・例文音声を含む）
 
 ## 背景
 
@@ -57,7 +57,7 @@
 
 ## 使えない素材があれば、差し替え方針
 
-現時点で50語・150 media（`docs/content/anki-50-extraction.md` の検査結果: media存在確認 150/150）は
+現時点で50語・150 media（`docs/archive/content/anki-50-extraction.md` の検査結果: media存在確認 150/150）は
 いずれも作成者本人による生成AI利用と確認でき、差し替えが必要な素材は**ない**。
 
 ただし次の場合は本番投入（USL-288）前に差し替えを検討する。
@@ -66,7 +66,7 @@
 |---|---|
 | Google Cloud TTSの商用条件が「事前生成した音声の再配布用バンドル」を許可しないと規約原文で確認された場合 | VOICEVOX等、静的配布を明示的に許可する音声合成サービスで対象音声を再生成する。個々のvoice/キャラクターのクレジット表示義務があれば、上記credits.md追記案にその条件を反映する |
 | 将来Midjourneyの契約プランが無料トライアルへ変わった、または年間売上が100万USDを超えてPro/Mega契約が必要になった場合 | 該当プランへ契約を切り替えるか、商用利用可能な別サービスでイラストを再生成してから配信する |
-| 個別の単語・例文にNGワード等ブランド不適合な内容が見つかった場合 | 該当語のみChatGPTで再生成し、`docs/content/anki-50-extraction.md` の検査結果を更新する |
+| 個別の単語・例文にNGワード等ブランド不適合な内容が見つかった場合 | 該当語のみChatGPTで再生成し、`docs/archive/content/anki-50-extraction.md` の検査結果を更新する |
 
 ## 今回は含めないこと
 
@@ -83,7 +83,7 @@
 
 ## 根拠
 
-- `docs/content/anki-50-extraction.md`（対象50語・media 150件の検査結果）
+- `docs/archive/content/anki-50-extraction.md`（対象50語・media 150件の検査結果）
 - `docs/decisions/usl-283-media-delivery.md`（配信方式：Supabase Storageへ事前生成ファイルを配置）
 - `docs/legal/published/credits.md`（既存のクレジット表示の体裁）
 - `docs/plans/milestones.md` M2（この課題の根拠タスク）

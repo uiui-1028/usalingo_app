@@ -1,10 +1,12 @@
 # 公式教材50語をローカルDBへ入れる手順
 
+状態: **役目を終えた**（2026-09-17 に archive へ移動）。50語の時代の記録。いまの教材は Google Spreadsheet から同期する。正本は [`docs/operations/sync-sheet-to-supabase.md`](../../operations/sync-sheet-to-supabase.md)。
+
 対象: USL-286 / TARGET-1900の原本番号1〜50
 
 > [!IMPORTANT]
 > **2026-09-15から、教材は Google Spreadsheet から同期します。** 手順は
-> [`sync-sheet-to-supabase.md`](sync-sheet-to-supabase.md) です。この文書は、Anki と正本JSONで
+> [`sync-sheet-to-supabase.md`](../../operations/sync-sheet-to-supabase.md) です。この文書は、Anki と正本JSONで
 > 50語を入れていたときの記録として残しています。
 
 ## 結論
@@ -16,7 +18,7 @@ Anki原本は直接変更せず、読取用コピーから中間JSONを作り、
 2026-09-02以降、50語の正本は [`../content/target-1900-0001-0050.json`](../content/target-1900-0001-0050.json)
 です。**通常はステップ1・2を飛ばし、この正本JSONからステップ3へ進みます。** ステップ1・2は、
 Ankiから取り直す必要が生じたときだけ使います。経緯は
-[`../decisions/usl-286-repo-owned-content.md`](../decisions/usl-286-repo-owned-content.md) にあります。
+[`../decisions/usl-286-repo-owned-content.md`](../../decisions/usl-286-repo-owned-content.md) にあります。
 
 生成SQLには教材本文が展開されるため、Gitへ追加せず `/private/tmp` などの一時領域に置きます。
 正本JSONはUSL-284の権利確認を経てリポジトリへ入れていますが、生成物は入れません。本番DB・
@@ -25,7 +27,7 @@ Ankiから取り直す必要が生じたときだけ使います。経緯は
 ## 変換の流れ
 
 ```text
-docs/content/target-1900-0001-0050.json（正本）
+docs/archive/content/target-1900-0001-0050.json（正本）
   → 固定IDと衝突検査を持つ1トランザクションSQL
   → ローカルSupabase
 
@@ -36,8 +38,8 @@ Anki collection.anki2 の読取用コピー
 ```
 
 変換規則の正本は [`anki-50-extraction.md`](../content/anki-50-extraction.md)、DB列は
-[`source-database-v5.md`](../content/source-database-v5.md)、予定Storageパスは
-[`usl-283-media-delivery.md`](../decisions/usl-283-media-delivery.md) です。
+[`source-database-v5.md`](../../content/source-database-v5.md)、予定Storageパスは
+[`usl-283-media-delivery.md`](../../decisions/usl-283-media-delivery.md) です。
 
 ## 1. Ankiの読取用コピーを作る（取り直すときだけ）
 
@@ -71,14 +73,14 @@ python3 scripts/prepare-official-content.py validate \
 複数senseの行では、例文をpriority 1へ接続したという警告が出ます。ローカル構造確認には
 使えますが、本番公開前に意味と例文の対応を人間が確認します。2026-09-02にこの22件を全件
 照合し、3件（concern / limit / challenge）を正本JSON側で直しました。詳細は
-[`../decisions/usl-286-repo-owned-content.md`](../decisions/usl-286-repo-owned-content.md)
+[`../decisions/usl-286-repo-owned-content.md`](../../decisions/usl-286-repo-owned-content.md)
 にあります。取り直したときは、この3件が消えていないかを差分で確認します。
 
 ## 3. ローカル用SQLを作る
 
 ```sh
 python3 scripts/prepare-official-content.py render-sql \
-  --input docs/content/target-1900-0001-0050.json \
+  --input docs/archive/content/target-1900-0001-0050.json \
   --output /private/tmp/usalingo-286-content.sql
 ```
 

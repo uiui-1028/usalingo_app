@@ -1,5 +1,5 @@
 -- G-4 学習記録バックアップ表の権限確認。
--- 実行計画書 docs/plans/guest-study-handoff-plan.md の受け入れ条件2点を実際に触って確かめる。
+-- 実行計画書 docs/archive/plans/guest-study-handoff-plan.md の受け入れ条件2点を実際に触って確かめる。
 -- 退会は即削除方式のため「退会手続き中」という状態は存在しない（usl_257 を見る）。
 begin;
 select plan(7);

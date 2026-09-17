@@ -9,7 +9,7 @@
 
 ## 公開先
 
-**2026-09-01 に方針を変えました。Bubble は使いません。** このリポジトリ内（`apps/legal-web/`）に静的サイトを作り、Vercel の無料枠（`https://usalingo-app.vercel.app`）で公開しています。3ページとも文章を出すだけで、Bubble の機能を必要としないためです。作業は Notion [USL-295](https://app.notion.com/3cec3d1f59e881f79968ffa0459b7350)、手順は [`../../plans/usl-295-handoff.md`](../../plans/usl-295-handoff.md) にあります。
+**2026-09-01 に方針を変えました。Bubble は使いません。** このリポジトリ内（`apps/legal-web/`）に静的サイトを作り、Vercel の無料枠（`https://usalingo-app.vercel.app`）で公開しています。3ページとも文章を出すだけで、Bubble の機能を必要としないためです。作業は Notion [USL-295](https://app.notion.com/3cec3d1f59e881f79968ffa0459b7350)、手順は [`../../plans/usl-295-handoff.md`](../../archive/plans/usl-295-handoff.md) にあります。
 
 | 文書 | 公開先 | アプリ内の表示行 |
 |---|---|---|
