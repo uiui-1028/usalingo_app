@@ -142,20 +142,18 @@ struct WordDetailSheet: View {
 
     private func detailPanel(height: CGFloat, width: CGFloat) -> some View {
         VStack(spacing: 0) {
-            Button {
-                animate { isExpanded.toggle() }
-            } label: {
-                VStack(spacing: 12) {
-                    Capsule().fill(.secondary.opacity(0.3)).frame(width: 44, height: 5)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 24)
-                .padding(.top, 10)
-                .padding(.bottom, WireMetrics.spacingM)
-                .contentShape(Rectangle())
+            VStack(spacing: 12) {
+                Capsule().fill(.secondary.opacity(0.3)).frame(width: 44, height: 5)
             }
-            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 24)
+            .padding(.top, 10)
+            .padding(.bottom, WireMetrics.spacingM)
+            .contentShape(Rectangle())
+            .onTapGesture { animate { isExpanded.toggle() } }
+            .accessibilityAddTraits(.isButton)
             .accessibilityLabel(isExpanded ? "詳細シートを縮小" : "詳細シートを展開")
+            .accessibilityAction { animate { isExpanded.toggle() } }
             .simultaneousGesture(DragGesture(
                 minimumDistance: 12,
                 coordinateSpace: .named("wordDetailViewport")
