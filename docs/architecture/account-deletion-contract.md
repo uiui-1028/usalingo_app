@@ -55,12 +55,11 @@
 | `public.users` | 利用者ID、メール | **連鎖削除** | `auth.users(id)` を参照する利用者データの親 |
 | `public.user_profiles` | nickname、plan | **連鎖削除** | 現行SwiftUIが読取・更新するプロフィール |
 | `public.user_card_progress` | Card単位の復習予定・正誤状態 | **連鎖削除** | 現行Anki型の学習記録 |
-| `public.user_learning_progress` | 旧word単位の復習予定・正誤状態 | **連鎖削除** | 切り戻し用に残る旧表。新旧の二重保持を忘れない |
 | `public.user_word_overrides` | 利用者の単語上書き | **連鎖削除** | `user_id` は `public.users(id)` 参照 |
 | `public.user_word_tags` | 利用者の単語タグ | **連鎖削除** | `user_id` は `public.users(id)` 参照 |
 | `public.user_local_study_backups` | 端末の学習記録のバックアップ1件 | **連鎖削除** | `user_id` は `public.users(id)` 参照（G-3） |
 
-現行コード・migrationでは `user_settings` や `user_widget_layouts` を現行サーバー表として利用していません。これらは旧資料だけの名前なので、削除処理へ推測で追加しません。本番実DBに存在する場合は、本番前監査で `user_id`、外部キー、用途を確認し、この表へ追加してから実装します。
+旧表の `user_learning_progress`、`user_settings`、`user_widget_layouts` は `20260915120000_drop_legacy_objects.sql` で本番から削除しました。
 
 ### 4.2 端末、Storage、外部サービス
 

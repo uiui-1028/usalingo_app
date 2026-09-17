@@ -2,7 +2,7 @@
 --
 -- 残すもの: words.id 1-50（2026-09-04に正本JSONへ差し替えた50語）とその学習履歴。
 -- 消すもの: words.id 51-1000 と、そこにぶら下がる意味・例文・音声・カード・
---           デッキ紐付け、そして その950語についた学習履歴。
+--           そして その950語についた学習履歴。
 --
 -- 権利者の判断:
 --   「残り950語は削除して。原本は他にあるからいつでも復元できる」
@@ -46,7 +46,6 @@ where c.id = p.card_id and c.word_id between 51 and 1000;
 
 -- cards は decks/words に対して RESTRICT。words より先に消す。
 delete from public.cards where word_id between 51 and 1000;
-delete from public.deck_words where word_id between 51 and 1000;
 
 -- words を消すと、意味・例文・例文音声・発音・活用・関連が CASCADE で消える。
 delete from public.words where id between 51 and 1000;
@@ -62,7 +61,6 @@ begin
   + (select count(*) from public.word_meanings where word_id between 51 and 1000)
   + (select count(*) from public.word_pronunciations where word_id between 51 and 1000)
   + (select count(*) from public.cards where word_id between 51 and 1000)
-  + (select count(*) from public.deck_words where word_id between 51 and 1000)
   into leftover;
   if leftover <> 0 then
     raise exception 'USL-286 delete incomplete: % rows remain', leftover;

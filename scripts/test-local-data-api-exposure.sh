@@ -3,8 +3,9 @@ set -eu
 
 # USL-224 local-only Data API exposure check.
 #
-# 20260830150000_close_production_only_exposure.sql closes the objects that were
-# created directly in production and recorded by USL-270. pgTAP proves the
+# 20260830150000_close_production_only_exposure.sql closed the objects that were
+# created directly in production, and 20260915120000_drop_legacy_objects.sql
+# dropped them. A 404 now counts as closed too. pgTAP proves the
 # catalog state (GRANT, RLS, security_invoker). This script proves the behaviour
 # that matters to a client: PostgREST actually refuses those objects.
 #
@@ -99,8 +100,7 @@ assert_closed 'anon cannot read v_database_size_monitoring' \
 assert_closed 'anon cannot read v_table_stats_monitoring' \
   "$(status_of GET 'v_table_stats_monitoring?select=*' "$ANON_KEY")"
 
-# 公式コンテンツはサインイン後だけ読める (20260812055432)。view も同じ扱いにする。
-printf '== content views follow the official content contract ==\n'
+printf '== dropped content views ==\n'
 assert_closed 'anon cannot read v_word_meanings_with_paths' \
   "$(status_of GET 'v_word_meanings_with_paths?select=id&limit=1' "$ANON_KEY")"
 assert_closed 'anon cannot read v_example_contents_with_paths' \
