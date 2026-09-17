@@ -58,8 +58,8 @@ struct WordListView: View {
                         .ignoresSafeArea()
 
                     if !isRedSheetEnabled {
+                        // 左右の余白は付けない（WordListDeckBanner の説明を参照）。
                         deckBanner
-                        .padding(.horizontal, WireMetrics.screenPadding)
                         .padding(.top, WireMetrics.spacingS)
                         .frame(height: bannerHeight + WireMetrics.spacingS, alignment: .top)
                         .transition(.opacity)
@@ -385,6 +385,7 @@ struct WordListView: View {
             Text(viewModel.deckMessage.isEmpty ? "デッキがありません" : viewModel.deckMessage)
                 .wireFont(.caption)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, WireMetrics.screenPadding)
         } else {
             WordListDeckBanner(decks: viewModel.decks, selectedDeckID: viewModel.deck?.id) { deck in
                 appState.wordListDeckID = deck.id
