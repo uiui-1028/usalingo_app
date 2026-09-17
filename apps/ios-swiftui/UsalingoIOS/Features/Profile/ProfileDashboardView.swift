@@ -629,7 +629,7 @@ struct LegalDocument: Identifiable {
     // これが起きた。
     static let publishedDocuments: [LegalDocument] = [
         published(.terms, path: "terms", version: "第1.0版", effectiveDate: "2026年9月1日"),
-        published(.privacy, path: "privacy", version: "第1.0版", effectiveDate: "2026年9月1日"),
+        published(.privacy, path: "privacy", version: "第1.1版", effectiveDate: "2026年9月17日"),
         published(.credits, path: "credits", version: "第1.1版", effectiveDate: "2026年9月4日")
     ].compactMap { $0 }
 
