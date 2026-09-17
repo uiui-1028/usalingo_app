@@ -1,0 +1,125 @@
+name: iOS Release
+
+# 配布用の署名済みビルドを作り、App Store Connect へアップロードします（USL-291）。
+# 手で押したときだけ動きます。テスターへの配布と審査提出は、人間が TestFlight の画面で行います。
+# 手で通した手順は docs/operations/release-archive.md にあります。
+on:
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: 'ビルド番号（前回アップロードより大きい整数）'
+        required: true
+        type: string
+      upload:
+        description: 'App Store Connect へアップロードする（外すと ipa を作って保存するだけ）'
+        required: false
+        type: boolean
+        default: true
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    name: アーカイブとアップロード
+    # main 以外のコードを配らないように、main から押したときだけ動かします。
+    if: github.ref == 'refs/heads/main'
+    # 2026年4月28日以降のアップロードには Xcode 26（iOS 26 SDK）が要ります。
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      BUILD_NUMBER: ${{ inputs.build_number }}
+
+    steps:
+      - name: リポジトリを取得
+        uses: actions/checkout@v4
+
+      - name: 入力と Secrets を確かめる
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          if ! [[ "$BUILD_NUMBER" =~ ^[1-9][0-9]*$ ]]; then
+            echo "ビルド番号は1以上の整数にしてください: $BUILD_NUMBER"
+            exit 1
+          fi
+          missing=0
+          for name in SUPABASE_PROJECT_REF SUPABASE_ANON_KEY ASC_KEY_ID ASC_ISSUER_ID ASC_KEY_P8; do
+            if [ -z "${!name}" ]; then
+              echo "Secret $name が登録されていません。"
+              missing=1
+            fi
+          done
+          [ "$missing" = 0 ] || exit 1
+          echo "KEY_PATH=$RUNNER_TEMP/AuthKey.p8" >> "$GITHUB_ENV"
+          xcodebuild -version
+
+      - name: 本番の接続先を書き込む
+        # 値が空でもアーカイブは成功してしまうため、前の手順で空でないことを確かめています。
+        # 鍵をログへ出さないよう、ファイルの中身は表示しません。
+        working-directory: apps/ios-swiftui
+        env:
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          printf 'SUPABASE_PROJECT_REF = %s\nSUPABASE_ANON_KEY = %s\n' \
+            "$SUPABASE_PROJECT_REF" "$SUPABASE_ANON_KEY" > Config/Local.xcconfig
+
+      - name: App Store Connect の API キーを置く
+        # 証明書とプロファイルは、このキーを使って Xcode が Apple 側で自動管理します（クラウド署名）。
+        env:
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+        run: |
+          umask 077
+          printf '%s\n' "$ASC_KEY_P8" > "$KEY_PATH"
+
+      - name: アーカイブする
+        # ここでは署名せず、次の書き出しで配布用の署名をまとめて付けます。
+        # ここで署名すると、実行のたびに開発用証明書が新しく作られて溜まるためです。
+        working-directory: apps/ios-swiftui
+        run: |
+          xcodebuild archive \
+            -project UsalingoIOS.xcodeproj \
+            -scheme UsalingoIOS \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/UsalingoIOS.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER"
+
+      - name: 書き出す（アップロードする場合はここで送る）
+        working-directory: apps/ios-swiftui
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          DESTINATION: ${{ inputs.upload && 'upload' || 'export' }}
+        run: |
+          plutil -create xml1 build/ExportOptions.plist
+          plutil -insert method -string app-store-connect build/ExportOptions.plist
+          plutil -insert destination -string "$DESTINATION" build/ExportOptions.plist
+          plutil -insert signingStyle -string automatic build/ExportOptions.plist
+          plutil -insert teamID -string CTSYH44JRG build/ExportOptions.plist
+          xcodebuild -exportArchive \
+            -archivePath build/UsalingoIOS.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist build/ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+
+      - name: ipa を保存する
+        if: ${{ !inputs.upload }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: UsalingoIOS-${{ inputs.build_number }}
+          path: apps/ios-swiftui/build/export/*.ipa
+          retention-days: 7
+
+      - name: 鍵を消す
+        if: always()
+        run: rm -f "$KEY_PATH" apps/ios-swiftui/Config/Local.xcconfig

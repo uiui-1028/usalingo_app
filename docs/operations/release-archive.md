@@ -97,7 +97,7 @@ xcodebuild archive \
 
 ## 4. この手順に含まれないもの
 
-- **CI での自動化** — USL-291（`reserved`）
+- **CI での自動化** — 下の7章（USL-291）
 - **App Store Connect への提出と自分のiPhoneへの内部配布** — USL-287
 - **輸出コンプライアンス、プライバシー、年齢区分の申告** — [TestFlight配信の準備一覧](testflight-release-checklist.md) の6章
 - **テストターゲットの署名** — 実機でテストを走らせる場合は `UsalingoIOSTests` にも `DEVELOPMENT_TEAM` が要ります。アーカイブには不要なため設定していません。CI はシミュレータで `CODE_SIGNING_ALLOWED=NO` のため影響しません
@@ -127,3 +127,39 @@ xcodebuild archive \
 
 初回で実際に詰まったのは「開発機のコードが古く、Personal Team で署名された」の1点でした。
 3章へ追記済みです。以降で新しい症状が出たら、同じように3章へ足してください。
+
+## 7. CIで作ってアップロードする（USL-291）
+
+2回目以降は、手元でアーカイブせずに GitHub Actions の `iOS Release`
+（`.github/workflows/ios-release.yml`）で作れます。やることは上の手順と同じで、
+アーカイブは署名なしで作り、書き出しのときに App Store Connect の API キーでクラウド署名します。証明書（`.p12`）は使いません。
+
+### 最初に1回だけ: Secrets を登録する
+
+GitHub のリポジトリの Settings → Secrets and variables → Actions に、次の5つを登録します。
+
+| 名前 | 中身 |
+|---|---|
+| `SUPABASE_PROJECT_REF` | 本番の値（`Config/Local.xcconfig` と同じ） |
+| `SUPABASE_ANON_KEY` | 本番の値（`Config/Local.xcconfig` と同じ） |
+| `ASC_KEY_ID` | App Store Connect API キーのキーID |
+| `ASC_ISSUER_ID` | 同じ画面の発行者ID |
+| `ASC_KEY_P8` | ダウンロードした `AuthKey_XXXX.p8` の中身すべて（`-----BEGIN` から `END-----` まで） |
+
+API キーは App Store Connect の「ユーザとアクセス → 統合 → App Store Connect API」で
+**チームキー**として作ります。クラウド署名で配布用証明書を扱うため、役割は **Admin** にします。
+`.p8` は一度しかダウンロードできません。登録したら手元のファイルは安全な場所へしまいます。
+
+### 毎回: 実行する
+
+1. GitHub の Actions → **iOS Release** → **Run workflow**（ブランチは `main`）
+2. `build_number` に**前回アップロードより大きい整数**を入れる。バージョン（`MARKETING_VERSION`）は変わりません
+3. `upload` は、そのままなら App Store Connect へ送ります。外すと ipa を作って Artifacts に7日間保存するだけです
+4. 終わって数分〜数十分すると、App Store Connect の TestFlight にビルドが出ます。**テスターへの配布は画面から手で行います**。審査提出はしません
+
+| 症状 | 原因と直し方 |
+|---|---|
+| `Secret ... が登録されていません` | 上の表の Secrets を登録する |
+| 何もせずに終わる（ジョブが skipped） | `main` 以外のブランチで押した。`main` を選び直す |
+| `Cloud signing permission error` など署名で失敗 | API キーの役割が足りない。Admin のチームキーで作り直す |
+| アップロードで「ビルド番号が使用済み」 | `build_number` を前回より大きくする |

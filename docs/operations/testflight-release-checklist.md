@@ -55,7 +55,7 @@
 | 項目 | 状態 | やること |
 |---|---|---|
 | **iOS 26 SDK / Xcode 26** | **未確認** | 2026年4月28日以降、App Store Connect へアップロードするアプリは iOS 26 SDK 以降でビルドしたものに限られる。人間が開発機の Xcode を確認する |
-| CI のランナー | 済み（要注意） | `ios-ci.yml` は `macos-15`。**テストには足りるが、将来ここでアーカイブするなら Xcode 26 が載るランナーへ上げる必要がある**（USL-291） |
+| CI のランナー | 済み | テストの `ios-ci.yml` は `macos-15`。配布用の `ios-release.yml` は Xcode 26 が載る `macos-26`（USL-291） |
 
 ## 5. App Store Connect
 
