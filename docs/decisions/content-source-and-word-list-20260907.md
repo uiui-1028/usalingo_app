@@ -11,7 +11,7 @@
 | 定義 | 実体 | 状態 |
 |---|---|---|
 | リポジトリ内のJSON | [`target-1900-0001-0050.json`](../archive/content/target-1900-0001-0050.json)。50語 | 2026-09-02から50語の正本（[USL-286](usl-286-repo-owned-content.md)） |
-| Anki collection | [`scripts/prepare-official-content.py`](../../scripts/prepare-official-content.py) が読む。deck `target-1900-image` | USL-286で取り直し用の経路に格下げ済み |
+| Anki collection | `scripts/prepare-official-content.py`（2026-09-17 に削除） が読む。deck `target-1900-image` | USL-286で取り直し用の経路に格下げ済み |
 | Google Spreadsheet `usgs_master_v5` | V5の8シート構成 | 構成は設計書どおり。中身は30語の確認用データ |
 | Notion `Word Property` 定義 | `word_meanings` に `synonyms`・`collocations`・`inflections` を持つ旧構成 | V5と別スキーマ |
 
@@ -70,7 +70,7 @@ DBは影響を受けない。運営処理を信頼済み環境に限る
   新: 「大学受験頻出1000語が、シートからアプリまで自動で届く」
 - `USL-280`（調査｜Anki原本から50語を取り出す手順と必要な項目を確定する）は前提が変わる。
   Notion側で見直す
-- [`prepare-official-content.py`](../../scripts/prepare-official-content.py) のAnki読み取り部分は
+- `prepare-official-content.py`（2026-09-17 に削除） のAnki読み取り部分は
   役目を終える。検査・SQL生成部分も今回は使わない。削除は別の課題として扱う
 - [`target-1900-0001-0050.json`](../archive/content/target-1900-0001-0050.json) は50語の正本ではなくなる。
   1000語がSpreadsheetへ入るまでは動作確認用として残し、置き換え後の扱いは別の課題で決める

@@ -53,7 +53,7 @@ V5原本は、活用を `04_extra_forms`、類義語などを `04_extra_relation
   （[`import-official-content-production.md`](../archive/operations/import-official-content-production.md)）。
   2表を消すことは本番データの削除にあたるので、本番への適用は別に実行承認を得る
 - 次のファイルがこの2表を使っている。USL-308で直すか消す
-  - [`scripts/prepare-official-content.py`](../../scripts/prepare-official-content.py)
+  - `scripts/prepare-official-content.py`（2026-09-17 に削除）
   - [`supabase/tests/usl_280_source_database_v5.test.sql`](../../supabase/tests/usl_280_source_database_v5.test.sql)
   - [`scripts/sql/usl-286-rollback-merge.sql`](../../scripts/sql/usl-286-rollback-merge.sql)、[`scripts/sql/usl-286-rollback-production.sql`](../../scripts/sql/usl-286-rollback-production.sql)
 - [`anki-50-extraction.md`](../archive/content/anki-50-extraction.md) と過去の運用記録は、履歴なので書き換えない
