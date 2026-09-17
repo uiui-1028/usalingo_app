@@ -120,7 +120,7 @@
 - [`usalingo-simple-product-plan.md`](plan.md)
 - [`anki-aligned-spec.md`](../architecture/anki-aligned-spec.md)
 - [`usl-247-first-experience.md`](../decisions/usl-247-first-experience.md)
-- [`03-shortest-success-flow.md`](../archive/workflow-records/03-shortest-success-flow.md)
+- `docs/archive/workflow-records/03-shortest-success-flow.md`（2026-09-17 に削除。Git の履歴に残っている）
 - `apps/ios-swiftui/UsalingoIOS/Features/Onboarding/`
 - `apps/ios-swiftui/UsalingoIOS/Features/Study/`
 

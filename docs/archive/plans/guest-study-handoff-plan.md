@@ -1,18 +1,20 @@
 # ゲスト学習記録の引き継ぎ 実行計画書
 
+状態: **役目を終えた**（2026-09-17 に archive へ移動）。ゲストは匿名アカウントになった。いまの正本は [`docs/plans/guest-as-anonymous-account-plan.md`](../../plans/guest-as-anonymous-account-plan.md)。
+
 状態: **G-1〜G-4すべて完了**（2026-09-04に本番適用まで実施）
 
 判定（2026-08-30）: **G-4は要る（M1）。** 適用するまで学習記録のバックアップは保存時にエラーになるため、
 人に配る前に終わらせる必要がある。Notion USL-245 が対応し、
 「実行｜最初のビルドをTestFlightへ提出して内部テスターへ配る」の前提になっている。
-根拠は [../decisions/plan-scope-20260830.md](../decisions/plan-scope-20260830.md)、
-マイルストーンは [milestones.md](milestones.md) を見る。
+根拠は [../decisions/plan-scope-20260830.md](../../decisions/plan-scope-20260830.md)、
+マイルストーンは [milestones.md](../../plans/milestones.md) を見る。
 
 作成日: 2026-08-28
 
 対象: `apps/ios-swiftui/UsalingoIOS/` と `supabase/migrations/`
 
-前提: [学習タブ ゲストファースト再構築](../archive/learning-tab-guest-first/plan.md) の U-2
+前提: 学習タブ ゲストファースト再構築の U-2（その計画書は 2026-09-17 に削除した。Git の履歴に残っている）
 
 ---
 
@@ -122,7 +124,7 @@
 この関数を作る `20260825145625_create_account_deletion_lifecycle.sql` が本番へ未適用だったためである。
 
 そこで退会の設計そのものを見直し、**365日の復元期間をやめて即時削除へ改めた**
-（[account-deletion-contract.md](../architecture/account-deletion-contract.md) の選択肢1）。
+（[account-deletion-contract.md](../../architecture/account-deletion-contract.md) の選択肢1）。
 停止状態が存在しなくなるため、`is_current_user_active()` も restrictive ポリシーも不要になり、
 `20260825145625` は丸ごと削除した。`20260828060000` からも該当ポリシーを取り除いた。
 

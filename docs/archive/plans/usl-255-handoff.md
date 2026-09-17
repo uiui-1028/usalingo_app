@@ -1,5 +1,7 @@
 # USL-255 引き継ぎ｜法務・ライセンス・クレジットの表示
 
+状態: **完了**（2026-09-02、PR #74）。いまの正本は [`docs/legal/published/README.md`](../../legal/published/README.md)。
+
 作成日: 2026-09-01
 
 対象: Notion [USL-255](https://app.notion.com/3bdc3d1f59e881a1a109c8549c87adca)
@@ -45,7 +47,7 @@ USL-287 自体は `will`。USL-255 が done になれば、そのまま着手で
 ## 範囲が縮んだ（2026-09-01 時点の新情報）
 
 USL-278 で「v0.1 は**現在の同梱教材で先に配る**」と決めた
-（[usl-278-v01-release-scope.md](../decisions/usl-278-v01-release-scope.md)）。
+（[usl-278-v01-release-scope.md](../../decisions/usl-278-v01-release-scope.md)）。
 その結果、クレジットに書くべき素材は次だけになった。
 
 - 同梱デッキは `apps/ios-swiftui/UsalingoIOS/Resources/SampleDecks/toeic-basic.json` の**1本のみ**
@@ -114,7 +116,7 @@ USL-278 で「v0.1 は**現在の同梱教材で先に配る**」と決めた
 ---
 
 USL-255（実装｜法務・ライセンス・クレジットをアプリ内で確認できるようにする）を進めたい。
-状況は `docs/plans/usl-255-handoff.md` にまとめてある。まずこれを読むこと。
+状況は `docs/archive/plans/usl-255-handoff.md` にまとめてある。まずこれを読むこと。
 
 要点だけ先に伝える。
 
@@ -127,7 +129,7 @@ USL-255（実装｜法務・ライセンス・クレジットをアプリ内で�
 やってほしいこと。
 
 1. 法務3ページ（Notion USL-295）が公開されたか確認する。Bubble ではなく、リポジトリ内の
-   静的サイトを Vercel で公開する方針に変わっている。詳細は `docs/plans/usl-295-handoff.md`。
+   静的サイトを Vercel で公開する方針に変わっている。詳細は `docs/archive/plans/usl-295-handoff.md`。
 2. 公開されたら、実機でプロフィール →「法務・ライセンス」から4行すべてをタップし、
    ページが開くこと、版と施行日が出ること、問い合わせでメールが起動することを確認してもらう。
    VoiceOver と Dynamic Type も同じ画面で確認する。やり方は USL-285 と同じ。
@@ -147,8 +149,8 @@ USL-255（実装｜法務・ライセンス・クレジットをアプリ内で�
 
 ## 参照
 
-- [milestones.md](milestones.md) — M1 / M2 の全体像とチケットの依存
-- [external-package-adoption-plan.md](external-package-adoption-plan.md#領域1-法務ライセンス問い合わせバージョン) — 領域1 の詳細
-- [usl-278-v01-release-scope.md](../decisions/usl-278-v01-release-scope.md) — v0.1 で配るもの
-- [../legal/asset-and-privacy-inventory.md](../legal/asset-and-privacy-inventory.md) — 公開前の確認リスト7項目
-- [../operations/testflight-release-checklist.md](../operations/testflight-release-checklist.md) — Apple 側の準備状況
+- [milestones.md](../../plans/milestones.md) — M1 / M2 の全体像とチケットの依存
+- [external-package-adoption-plan.md](../../plans/external-package-adoption-plan.md#領域1-法務ライセンス問い合わせバージョン) — 領域1 の詳細
+- [usl-278-v01-release-scope.md](../../decisions/usl-278-v01-release-scope.md) — v0.1 で配るもの
+- [../legal/asset-and-privacy-inventory.md](../../legal/asset-and-privacy-inventory.md) — 公開前の確認リスト7項目
+- [../operations/testflight-release-checklist.md](../../operations/testflight-release-checklist.md) — Apple 側の準備状況

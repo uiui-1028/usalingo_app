@@ -40,7 +40,7 @@
 - `docs/plans/milestones.md`
 - `docs/plans/bento-grouping-ui-plan.md`
 - `docs/plans/external-package-adoption-plan.md`
-- `docs/plans/guest-study-handoff-plan.md`
+- `docs/archive/plans/guest-study-handoff-plan.md`
 - Notion `Pro｜Usalingo｜02｜Taskspace`
 
 ## 延期したものに残る危険

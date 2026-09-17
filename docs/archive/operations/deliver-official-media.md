@@ -1,5 +1,7 @@
 # 公式教材50語の画像・音声をStorageへ登録する手順
 
+状態: **役目を終えた**（2026-09-17 に archive へ移動）。50語の時代の記録。いまの教材は Google Spreadsheet から同期する。正本は [`docs/operations/sync-sheet-to-supabase.md`](../../operations/sync-sheet-to-supabase.md)。
+
 対象: USL-288 / TARGET-1900の原本番号1〜50
 
 ## 結論
@@ -22,7 +24,7 @@ StorageアップロードとDB更新を別の変更として扱い、各操作�
 | 例文音声 | 50 | mono、44.1 kHz、64 kbps MP3、metadata除去 | 96 KiB | 12秒 |
 
 原本画像50枚はすべて16:9で、3:4の黒い枠へ収めるとSwiftUIの `scaledToFit` 表示で絵が
-小さくなります。このため、[`usl-288-preserve-source-aspect.md`](../decisions/usl-288-preserve-source-aspect.md)
+小さくなります。このため、[`usl-288-preserve-source-aspect.md`](../../decisions/usl-288-preserve-source-aspect.md)
 の判断どおり、内容を切り落とさず16:9へ正規化します。再生成や内容の描き換えは行いません。
 音声の長さは無音を含む全体で上限以下を要求するため、USL-283より厳しい検査です。
 上限超過、欠落、重複path、不正な拡張子はmanifestへまとめて記録し、登録前に停止します。

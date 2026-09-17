@@ -1,5 +1,7 @@
 # 公式教材50語を本番Supabaseへ入れる手順
 
+状態: **役目を終えた**（2026-09-17 に archive へ移動）。50語の時代の記録。いまの教材は Google Spreadsheet から同期する。正本は [`docs/operations/sync-sheet-to-supabase.md`](../../operations/sync-sheet-to-supabase.md)。
+
 対象: USL-286 / USL-288 の本番投入。TARGET-1900の原本番号1〜50
 
 > [!IMPORTANT]
@@ -22,10 +24,10 @@
 
 | 条件 | 状態（2026-09-02時点） |
 |---|---|
-| USL-284の権利確認が `done` | 済。[`../decisions/usl-284-material-rights.md`](../decisions/usl-284-material-rights.md) |
+| USL-284の権利確認が `done` | 済。[`../decisions/usl-284-material-rights.md`](../../decisions/usl-284-material-rights.md) |
 | Google Cloud TTSの商用利用可否 | 権利者の判断で可 |
 | 正本JSONが最新 | [`../content/target-1900-0001-0050.json`](../content/target-1900-0001-0050.json) |
-| 複数sense 22語の意味づけ確認 | 済。3件修正。[`../decisions/usl-286-repo-owned-content.md`](../decisions/usl-286-repo-owned-content.md) |
+| 複数sense 22語の意味づけ確認 | 済。3件修正。[`../decisions/usl-286-repo-owned-content.md`](../../decisions/usl-286-repo-owned-content.md) |
 | 本番Storageに150件が登録済み | 済。匿名GET・SHA-256とも150/150 |
 | 本番の対象ID帯が空 | 要再確認（下の手順1） |
 | 投入対象行とrollbackを示した承認 | **実行のたびに取り直す** |
@@ -71,7 +73,7 @@ order by k;
 
 ```sh
 python3 scripts/prepare-official-content.py render-sql \
-  --input docs/content/target-1900-0001-0050.json \
+  --input docs/archive/content/target-1900-0001-0050.json \
   --output /private/tmp/usalingo-286-production.sql
 ```
 
@@ -137,7 +139,7 @@ select
 
 ## 切り戻し
 
-[`../../scripts/sql/usl-286-rollback-production.sql`](../../scripts/sql/usl-286-rollback-production.sql)
+[`../../scripts/sql/usl-286-rollback-production.sql`](../../../scripts/sql/usl-286-rollback-production.sql)
 を実行します。固定ID帯だけを消し、ほかのデッキ・単語には触りません。
 
 このSQLには番人が入っています。次のどちらかがあれば、**何も消さずに停止**します。
@@ -204,14 +206,14 @@ USL-288で登録した画像50件と例文音声50件は、当面どこからも
 
 ```sh
 python3 scripts/prepare-official-content.py render-merge-sql \
-  --input docs/content/target-1900-0001-0050.json \
+  --input docs/archive/content/target-1900-0001-0050.json \
   --output /private/tmp/usalingo-286-merge.sql
 ```
 
 出力は**非ASCIIを1文字も含みません**。日本語はUnicodeエスケープ `U&'\6311\6226'` で
 書かれます。2026-09-04にこの対策なしで実行し、クリップボード経由の貼り付けで
 UTF-8がMac Romanとして読まれ、本番の日本語がすべて文字化けしました。経緯は
-[`../decisions/usl-286-ascii-only-sql.md`](../decisions/usl-286-ascii-only-sql.md) にあります。
+[`../decisions/usl-286-ascii-only-sql.md`](../../decisions/usl-286-ascii-only-sql.md) にあります。
 
 **実行後の確認は、画面の文字ではなくバイトで行います。** 表示側の解釈で正しく見える
 ことがあるためです。
@@ -238,7 +240,7 @@ from word_meanings where word_id in (17, 23, 35) order by id;
 
 ### 切り戻し
 
-[`../../scripts/sql/usl-286-rollback-merge.sql`](../../scripts/sql/usl-286-rollback-merge.sql)
+[`../../scripts/sql/usl-286-rollback-merge.sql`](../../../scripts/sql/usl-286-rollback-merge.sql)
 を実行します。控えの表から元の値へ戻し、追加した意味・活用・関連を消します。
 **`words` 行を消さないので、利用者のメモ・タグ・学習履歴は巻き込まれません**（単語ごと消す
 `usl-286-rollback-production.sql` とは別物です）。
@@ -263,5 +265,5 @@ ROLLED BACK     50    0    0              0            0  関係する、心配�
 - 51語目以降の投入
 - `Starter Deck`（1000語）の削除・整理
 - bucket設定、policy、公開範囲の変更
-- [`../legal/published/credits.md`](../legal/published/credits.md) の更新。第3節・第4節が
+- [`../legal/published/credits.md`](../../legal/published/credits.md) の更新。第3節・第4節が
   本番の実態とずれている件は別課題として扱う

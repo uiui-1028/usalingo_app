@@ -1,5 +1,7 @@
 # USL-295 引き継ぎ｜法務3ページを静的サイトとして作りVercelで公開する
 
+状態: **完了**（2026-09-01、PR #65・#69）。いまの正本は [`docs/legal/published/README.md`](../../legal/published/README.md) と `apps/legal-web/`。
+
 作成日: 2026-09-01
 
 対象: Notion [USL-295](https://app.notion.com/3cec3d1f59e881f79968ffa0459b7350)
@@ -97,7 +99,7 @@ USL-287 では App Store Connect にプライバシーポリシーの**URL**を�
 ---
 
 USL-295「実装｜法務3ページを静的サイトとして作りVercelで公開する」を進めたい。
-背景と条件は `docs/plans/usl-295-handoff.md` にある。まずこれを読むこと。
+背景と条件は `docs/archive/plans/usl-295-handoff.md` にある。まずこれを読むこと。
 
 要点。
 
@@ -138,5 +140,5 @@ USL-295「実装｜法務3ページを静的サイトとして作りVercelで公
 ## 参照
 
 - [usl-255-handoff.md](usl-255-handoff.md) — USL-255 の状態と、確定した事業者情報
-- [milestones.md](milestones.md) — M1 / M2 の全体像
-- [../legal/published/README.md](../legal/published/README.md) — 正本と公開先の対応表
+- [milestones.md](../../plans/milestones.md) — M1 / M2 の全体像
+- [../legal/published/README.md](../../legal/published/README.md) — 正本と公開先の対応表

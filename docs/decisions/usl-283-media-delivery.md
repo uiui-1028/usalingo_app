@@ -123,7 +123,7 @@ mediaをDBより先に置くことで、DBに読めないURLが先に現れる�
 
 ## 根拠
 
-- `docs/content/anki-50-extraction.md`（50語、media 150件）
+- `docs/archive/content/anki-50-extraction.md`（50語、media 150件）
 - `docs/content/source-database-v5.md`（V5の音声テーブルと相対パス）
 - `docs/architecture/official-content-contract.md`（公開bucket、パス、権限、欠損時動作）
 - Supabase公式: [Storage CDN](https://supabase.com/docs/guides/storage/cdn/fundamentals)

@@ -7,7 +7,7 @@
 ## 決めたこと
 
 50語の教材データの正本を、ローカルAnkiから
-[`../content/target-1900-0001-0050.json`](../content/target-1900-0001-0050.json) へ移す。
+[`../content/target-1900-0001-0050.json`](../archive/content/target-1900-0001-0050.json) へ移す。
 以後の検査・SQL生成・本番投入はこのJSONを読む。**Ankiの原本は変更しない。**
 
 ## なぜ
@@ -24,7 +24,7 @@
 - 誰がいつ何を直したかがGitに残らない
 - 別の作業者・別の環境で同じデータを再現できない
 
-[`../operations/import-official-content.md`](../operations/import-official-content.md) は当初
+[`../operations/import-official-content.md`](../archive/operations/import-official-content.md) は当初
 「中間JSONはGitへ追加せず一時領域だけに置く」としていたが、その理由は
 「権利確認前の素材だから」であった。USL-284で権利確認が完了したため、この制約は解消している。
 
@@ -76,10 +76,10 @@
 
 ```sh
 python3 scripts/prepare-official-content.py validate \
-  --input docs/content/target-1900-0001-0050.json
+  --input docs/archive/content/target-1900-0001-0050.json
 
 python3 scripts/prepare-official-content.py render-sql \
-  --input docs/content/target-1900-0001-0050.json \
+  --input docs/archive/content/target-1900-0001-0050.json \
   --output /private/tmp/usalingo-286-content.sql
 ```
 
@@ -87,6 +87,6 @@ python3 scripts/prepare-official-content.py render-sql \
 
 ## 根拠
 
-- [`../content/anki-50-extraction.md`](../content/anki-50-extraction.md)（抽出規則の正本）
+- [`../content/anki-50-extraction.md`](../archive/content/anki-50-extraction.md)（抽出規則の正本）
 - [`usl-284-material-rights.md`](usl-284-material-rights.md)（権利確認）
-- [`../operations/import-official-content.md`](../operations/import-official-content.md)（投入手順）
+- [`../operations/import-official-content.md`](../archive/operations/import-official-content.md)（投入手順）

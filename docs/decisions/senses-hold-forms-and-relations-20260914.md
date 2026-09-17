@@ -50,10 +50,10 @@ V5原本は、活用を `04_extra_forms`、類義語などを `04_extra_relation
 - 訳や補足の中で `;` を使えない
 - 活用のJSONを手で書くので、括弧や引用符のまちがいが起きうる。取りこみ（USL-308）で読めなければ全体を止める
 - 本番の `word_forms`・`word_relations` には、過去の50語ぶんが各50行入っている
-  （[`import-official-content-production.md`](../operations/import-official-content-production.md)）。
+  （[`import-official-content-production.md`](../archive/operations/import-official-content-production.md)）。
   2表を消すことは本番データの削除にあたるので、本番への適用は別に実行承認を得る
 - 次のファイルがこの2表を使っている。USL-308で直すか消す
   - [`scripts/prepare-official-content.py`](../../scripts/prepare-official-content.py)
   - [`supabase/tests/usl_280_source_database_v5.test.sql`](../../supabase/tests/usl_280_source_database_v5.test.sql)
   - [`scripts/sql/usl-286-rollback-merge.sql`](../../scripts/sql/usl-286-rollback-merge.sql)、[`scripts/sql/usl-286-rollback-production.sql`](../../scripts/sql/usl-286-rollback-production.sql)
-- [`anki-50-extraction.md`](../content/anki-50-extraction.md) と過去の運用記録は、履歴なので書き換えない
+- [`anki-50-extraction.md`](../archive/content/anki-50-extraction.md) と過去の運用記録は、履歴なので書き換えない

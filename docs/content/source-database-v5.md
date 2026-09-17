@@ -25,7 +25,7 @@ Ankiは退役しました。1000語ぶんの取り出しは人が手で1回だ�
 - この文書: 原本と配信用DBの論理契約
 - [`supabase/migrations/`](../../supabase/migrations/): 実行可能なDB構造の正本
 - [`official-content-contract.md`](../architecture/official-content-contract.md): Storage、欠損時動作、アクセス権
-- [`anki-50-extraction.md`](anki-50-extraction.md): 最初の50語をAnkiから取り出したときの記録。履歴であり、いまの手順ではない
+- [`anki-50-extraction.md`](../archive/content/anki-50-extraction.md): 最初の50語をAnkiから取り出したときの記録。履歴であり、いまの手順ではない
 
 学習履歴、利用者設定、デッキ内のCard順などの運用データはSupabaseだけで管理します。
 

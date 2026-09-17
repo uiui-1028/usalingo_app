@@ -104,4 +104,4 @@ usalingo_app/
 
 終わった計画書を `docs/plans/` に残さないでください。棚の意味がくずれます。
 
-整理の経緯は [`docs/archive/docs-restructure/plan.md`](../archive/docs-restructure/plan.md)（なぜ）と [`docs/archive/docs-restructure/execution.md`](../archive/docs-restructure/execution.md)（どう進めたか）にあります。
+整理の経緯を書いた記録（`docs/archive/docs-restructure/`）は 2026-09-17 に削除しました。Git の履歴に残っています。
