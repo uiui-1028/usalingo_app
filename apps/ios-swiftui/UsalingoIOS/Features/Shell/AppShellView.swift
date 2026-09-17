@@ -7,6 +7,7 @@ struct AppShellView: View {
     @State private var isTabBarHiddenByScroll = false
     @State private var previousVerticalDragTranslation: CGFloat?
     @State private var tabBarHeight: CGFloat = 0
+    @AppStorage(DeckPlayStyle.storageKey) private var playStyle: DeckPlayStyle = .card
 
     private let tabs: [ShellTab] = [
         .init(title: "デザイン", selectedTitle: "Design", symbol: "paintpalette"),
@@ -28,7 +29,7 @@ struct AppShellView: View {
                 }
 
             if isTabBarPresented {
-                floatingTabBar
+                bottomBars
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
@@ -95,6 +96,50 @@ struct AppShellView: View {
         isTabBarHiddenByScroll = verticalMovement < 0
     }
 
+    /// 学習タブでは、タブバーの上にデッキの遊び方を選ぶバーを重ねる。
+    /// 高さは2本まとめて測り、一覧の末尾がどちらにも隠れないようにする。
+    private var bottomBars: some View {
+        VStack(spacing: WireMetrics.spacingM) {
+            if selectedTab == 1 {
+                playStyleBar
+            }
+            floatingTabBar
+        }
+        .padding(.horizontal, WireMetrics.screenPadding)
+        .padding(.bottom, WireMetrics.spacingXL)
+        .background {
+            GeometryReader { proxy in
+                Color.clear.preference(key: ShellTabBarHeightKey.self, value: proxy.size.height)
+            }
+        }
+    }
+
+    private var playStyleBar: some View {
+        HStack(spacing: WireMetrics.spacingXS) {
+            ForEach(DeckPlayStyle.allCases) { style in
+                let isSelected = playStyle == style
+                Button {
+                    playStyle = style
+                } label: {
+                    Text(style.title)
+                        .wireFont(.label, color: isSelected ? WireColor.surface : WireColor.ink)
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(Capsule().fill(isSelected ? WireColor.ink : WireColor.surface))
+                        .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair))
+                        .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(isSelected ? .isSelected : [])
+            }
+        }
+        .padding(WireMetrics.spacingXS)
+        .background(Capsule().fill(WireColor.surface))
+        .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair))
+        .animation(.spring(response: 0.26, dampingFraction: 0.82), value: playStyle)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("デッキの遊び方")
+    }
+
     private var floatingTabBar: some View {
         HStack(spacing: 8) {
             ForEach(tabs.indices, id: \.self) { index in
@@ -132,13 +177,6 @@ struct AppShellView: View {
         .background(Capsule().fill(.clear))
         .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
         .offsetShadow(.card, in: Capsule())
-        .padding(.horizontal, WireMetrics.screenPadding)
-        .padding(.bottom, WireMetrics.spacingXL)
-        .background {
-            GeometryReader { proxy in
-                Color.clear.preference(key: ShellTabBarHeightKey.self, value: proxy.size.height)
-            }
-        }
     }
 }
 
