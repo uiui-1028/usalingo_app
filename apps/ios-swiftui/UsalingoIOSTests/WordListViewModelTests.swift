@@ -88,6 +88,71 @@ final class WordListViewModelTests: XCTestCase {
     }
 
     @MainActor
+    func testLoadDecksOpensPreferredDeckOrFallsBackToFirst() async {
+        let decks = [Deck(id: 1, deckName: "A", description: nil), Deck(id: 2, deckName: "B", description: nil)]
+        let dataSource = FakeStudyDataSource(
+            deckCards: [1: [makeWord(id: 10, text: "a")], 2: [makeWord(id: 20, text: "b")]],
+            decks: decks
+        )
+
+        let remembered = WordListViewModel()
+        await remembered.loadDecks(dataSource: dataSource, preferredDeckID: 2)
+        XCTAssertEqual(remembered.decks.map(\.id), [1, 2])
+        XCTAssertEqual(remembered.deck?.id, 2)
+        XCTAssertEqual(remembered.words.map(\.id), [20])
+
+        let missing = WordListViewModel()
+        await missing.loadDecks(dataSource: dataSource, preferredDeckID: 99)
+        XCTAssertEqual(missing.deck?.id, 1)
+        XCTAssertEqual(missing.words.map(\.id), [10])
+    }
+
+    @MainActor
+    func testLoadDecksWithoutDecksShowsNoWords() async {
+        let dataSource = FakeStudyDataSource(wordList: [makeWord(id: 1, text: "other")])
+        let viewModel = WordListViewModel()
+
+        await viewModel.loadDecks(dataSource: dataSource, preferredDeckID: nil)
+
+        XCTAssertNil(viewModel.deck)
+        XCTAssertTrue(viewModel.words.isEmpty)
+        XCTAssertTrue(viewModel.deckMessage.isEmpty)
+    }
+
+    @MainActor
+    func testLoadDecksFailureKeepsErrorInBanner() async {
+        let dataSource = FakeStudyDataSource(deckError: LocalStudyError.deckNotFound)
+        let viewModel = WordListViewModel()
+
+        await viewModel.loadDecks(dataSource: dataSource, preferredDeckID: nil)
+
+        XCTAssertTrue(viewModel.decks.isEmpty)
+        XCTAssertFalse(viewModel.deckMessage.isEmpty)
+        XCTAssertTrue(viewModel.message.isEmpty)
+    }
+
+    @MainActor
+    func testSelectDeckSwapsWordsAndClearsOnlyTagFilter() async {
+        let decks = [Deck(id: 1, deckName: "A", description: nil), Deck(id: 2, deckName: "B", description: nil)]
+        let dataSource = FakeStudyDataSource(
+            deckCards: [1: [makeWord(id: 10, text: "a", tags: ["x"])], 2: [makeWord(id: 20, text: "b")]],
+            decks: decks
+        )
+        let viewModel = WordListViewModel()
+        await viewModel.loadDecks(dataSource: dataSource, preferredDeckID: nil)
+        viewModel.selectedTagFilter = "x"
+        viewModel.selectedSort = .alphabetical
+
+        await viewModel.selectDeck(decks[1], dataSource: dataSource)
+
+        XCTAssertEqual(viewModel.deck?.id, 2)
+        XCTAssertEqual(viewModel.words.map(\.id), [20])
+        XCTAssertNil(viewModel.selectedTagFilter)
+        XCTAssertEqual(viewModel.selectedSort, .alphabetical)
+        XCTAssertFalse(viewModel.isLoading)
+    }
+
+    @MainActor
     func testFilteredWordsAppliesTagStatusDueAndSearch() {
         let viewModel = WordListViewModel(previewWords: [
             makeWord(id: 1, text: "apple", tags: ["fruit"], learningStatus: "learning"),
@@ -330,14 +395,27 @@ private final class FakeStudyDataSource: StudyDataSource {
     private let wordList: [WordCard]
     private let deckCards: [Int: [WordCard]]
     private let error: Error?
+    private let decks: [Deck]
+    private let deckError: Error?
 
-    init(wordList: [WordCard] = [], deckCards: [Int: [WordCard]] = [:], error: Error? = nil) {
+    init(
+        wordList: [WordCard] = [],
+        deckCards: [Int: [WordCard]] = [:],
+        error: Error? = nil,
+        decks: [Deck] = [],
+        deckError: Error? = nil
+    ) {
         self.wordList = wordList
         self.deckCards = deckCards
         self.error = error
+        self.decks = decks
+        self.deckError = deckError
     }
 
-    func fetchDecks() async throws -> [Deck] { [] }
+    func fetchDecks() async throws -> [Deck] {
+        if let deckError { throw deckError }
+        return decks
+    }
     func fetchDeckCounts(deckId: Int) async throws -> StudyDeckCounts { StudyDeckCounts(newCount: 0, dueCount: 0) }
 
     func fetchCards(deckId: Int) async throws -> [WordCard] {
