@@ -1,8 +1,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// デッキJSONの書き出しに使う入れ物。読み込みは fileImporter で直接 Data を読むため、
-/// ここでは書き出しに必要な最小限だけを実装する。
+/// デッキJSONの書き出しに使う入れ物。書き出しに必要な最小限だけを実装する。
 struct DeckDocument: FileDocument {
     static let readableContentTypes = [UTType.json]
 
@@ -26,9 +25,6 @@ struct DeckLibraryView: View {
     @EnvironmentObject private var appState: AppState
     let onChanged: () -> Void
     @State private var bundledDecks: [DeckFile] = []
-    @State private var isImporting = false
-    @State private var message: String?
-    @State private var isMessageError = false
 
     var body: some View {
         ScrollView {
@@ -64,16 +60,6 @@ struct DeckLibraryView: View {
                         }
                     }
                 }
-                if appState.studyDataSource.supportsDeckFileTransfer {
-                    Button { isImporting = true } label: {
-                        Label("JSONを読み込む", systemImage: "square.and.arrow.down")
-                            .frame(maxWidth: .infinity)
-                    }.buttonStyle(.bordered)
-                }
-                if let message {
-                    Text(message).font(.footnote)
-                        .foregroundStyle(isMessageError ? .red : .secondary)
-                }
             }
             .padding(20)
         }
@@ -81,7 +67,6 @@ struct DeckLibraryView: View {
         .navigationTitle("ギャラリー")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
-        .fileImporter(isPresented: $isImporting, allowedContentTypes: [.json], allowsMultipleSelection: false, onCompletion: handleImport)
         .task { reload() }
     }
 
@@ -91,32 +76,6 @@ struct DeckLibraryView: View {
 
     private func decks(for genre: String) -> [DeckFile] {
         bundledDecks.filter { GalleryDeck.genre($0) == genre }
-    }
-
-    /// 読み込み失敗は黙って捨てず、理由をそのまま画面へ出す。
-    private func handleImport(_ result: Result<[URL], Error>) {
-        do {
-            guard let url = try result.get().first else { return }
-            let needsScope = url.startAccessingSecurityScopedResource()
-            defer {
-                if needsScope { url.stopAccessingSecurityScopedResource() }
-            }
-            let data = try Data(contentsOf: url)
-            let deck = try appState.localStudy.importDeck(from: data)
-            message = "「\(deck.name)」を追加しました。"
-            isMessageError = false
-            reload()
-            onChanged()
-        } catch let error as DeckFileError {
-            message = UserFacingError.message(for: error)
-            isMessageError = true
-        } catch let error as LocalStudyError {
-            message = UserFacingError.message(for: error)
-            isMessageError = true
-        } catch {
-            message = "ファイルを読み込めませんでした。\(UserFacingError.advice(for: error))"
-            isMessageError = true
-        }
     }
 }
 
