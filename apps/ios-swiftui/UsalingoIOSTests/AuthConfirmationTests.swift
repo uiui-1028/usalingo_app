@@ -12,6 +12,20 @@ final class AuthConfirmationTests: XCTestCase {
         }
     }
 
+    func testSignUpAndResendSendRedirectToAsQuery() async throws {
+        let transport = ConfirmationTransport(data: Data("{\"user\":{\"id\":\"learner\"}}".utf8))
+        let service = AuthService(sessionStore: ConfirmationStore(), client: ConfirmationClient(), session: transport)
+
+        _ = try await service.signUp(email: "learner@example.com", password: "test-password")
+        try await service.resendSignUpConfirmation(email: "learner@example.com")
+
+        XCTAssertEqual(transport.requests.count, 2)
+        for request in transport.requests {
+            let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems
+            XCTAssertEqual(query, [URLQueryItem(name: "redirect_to", value: "com.usalingo.ios://auth-callback")])
+        }
+    }
+
     func testExpiredCallbackIsReportedWithoutSendingTokens() async {
         let transport = ConfirmationTransport(data: Data())
         let service = AuthService(sessionStore: ConfirmationStore(), client: ConfirmationClient(), session: transport)
