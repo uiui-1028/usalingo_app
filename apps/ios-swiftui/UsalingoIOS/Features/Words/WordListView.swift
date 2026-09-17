@@ -18,8 +18,6 @@ struct WordListView: View {
     @StateObject private var viewModel: WordListViewModel
     @State private var selectedWord: WordCard?
     @State private var taggingWord: WordCard?
-    /// バナーで選んでいるデッキ。いまは見た目だけで、一覧の中身は変えない。
-    @State private var selectedDeckID: Int?
 
     init(
         deck: Deck? = nil,
@@ -60,9 +58,7 @@ struct WordListView: View {
                         .ignoresSafeArea()
 
                     if !isRedSheetEnabled {
-                        WordListDeckBanner(decks: bannerDecks) { deck in
-                            selectedDeckID = deck.id
-                        }
+                        deckBanner
                         .padding(.horizontal, WireMetrics.screenPadding)
                         .padding(.top, WireMetrics.spacingS)
                         .frame(height: bannerHeight + WireMetrics.spacingS, alignment: .top)
@@ -106,7 +102,16 @@ struct WordListView: View {
             }
             .presentationDetents([.medium])
         }
-        .task(id: appState.session?.user.id ?? "guest") { await viewModel.load(dataSource: appState.studyDataSource) }
+        .task(id: appState.session?.user.id ?? "guest") {
+            if sheetOnly {
+                await viewModel.load(dataSource: appState.studyDataSource)
+            } else {
+                await viewModel.loadDecks(
+                    dataSource: appState.studyDataSource,
+                    preferredDeckID: appState.wordListDeckID
+                )
+            }
+        }
         // 浮いているタブバーが一覧の末尾に重なるので、この画面にいる間は
         // シェルの操作面を隠す。戻る導線はスワイプが担う。
         .onAppear {
@@ -373,17 +378,19 @@ struct WordListView: View {
         ]
     }
 
-    /// バナーに並べるデッキ。いまは見た目を決めるための仮の並び。
-    /// 所持デッキの取得と、選んだデッキで一覧を差し替える処理はこれから作る
-    /// （`docs/plans/word-list-deck-banner-plan.md`）。
-    private var bannerDecks: [Deck] {
-        [
-            Deck(id: 1, deckName: "TOEIC 頻出単語", description: nil),
-            Deck(id: 2, deckName: "旅行の英語", description: nil),
-            Deck(id: 3, deckName: "会議の英語", description: nil),
-            Deck(id: 4, deckName: "接客の英語", description: nil),
-            Deck(id: 5, deckName: "ニュースの英語", description: nil)
-        ]
+    /// 背面のデッキ選択。0件と取得失敗は札を並べず、1行の案内にとどめる。
+    @ViewBuilder
+    private var deckBanner: some View {
+        if viewModel.decks.isEmpty {
+            Text(viewModel.deckMessage.isEmpty ? "デッキがありません" : viewModel.deckMessage)
+                .wireFont(.caption)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            WordListDeckBanner(decks: viewModel.decks, selectedDeckID: viewModel.deck?.id) { deck in
+                appState.wordListDeckID = deck.id
+                Task { await viewModel.selectDeck(deck, dataSource: appState.studyDataSource) }
+            }
+        }
     }
 }
 

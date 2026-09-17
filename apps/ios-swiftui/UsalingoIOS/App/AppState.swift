@@ -19,6 +19,8 @@ final class AppState: ObservableObject {
     @Published private(set) var isSwipeTutorialPresented: Bool
     @Published var authMessage = ""
     @Published private(set) var studyDataVersion = 0
+    /// 単語リストのバナーで最後に選んだデッキ。画面を出入りしても同じデッキを開く。
+    var wordListDeckID: Int?
     @Published private(set) var isDeletingAccount = false
     @Published var accountDeletionNotice: String?
 
