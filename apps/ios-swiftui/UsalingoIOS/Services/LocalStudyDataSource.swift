@@ -99,6 +99,7 @@ final class LocalStudyDataSource: StudyDataSource {
         static let overrides = "overrides.json"
         static let remoteDecks = "remote-decks.json"
         static let importedDirectory = "imported"
+        static let pendingGuestHandoff = "pending-guest-handoff"
     }
 
     // StudyService と同じ上限を移植する。
@@ -135,6 +136,65 @@ final class LocalStudyDataSource: StudyDataSource {
     /// 古い画面が持つデータ層を変えず、新しいアカウント用の実体を作る。
     func forAccount(id: String?) -> LocalStudyDataSource {
         LocalStudyDataSource(directoryURL: rootDirectoryURL, accountId: id, fileManager: fileManager)
+    }
+
+    var hasPendingGuestHandoff: Bool {
+        fileManager.fileExists(atPath: rootDirectoryURL.appendingPathComponent(FileName.pendingGuestHandoff).path)
+    }
+
+    /// 新規の未接続利用だけを後で匿名アカウントへ引き継ぐ。以前の共通保存先に
+    /// 記録がある場合は、その持ち主を特定できないので自動取得しない。
+    func beginGuestHandoffIfPristine() throws {
+        guard !hasPendingGuestHandoff,
+              progressByCardId.isEmpty, tagsByWordId.isEmpty, overridesByWordId.isEmpty,
+              library.decks.allSatisfy(\.isBundled), library.removedBundledKeys.isEmpty,
+              cachedRemoteDecks.isEmpty else { return }
+        try ensureDirectory(rootDirectoryURL)
+        try Data().write(to: rootDirectoryURL.appendingPathComponent(FileName.pendingGuestHandoff), options: .atomic)
+    }
+
+    /// コピーがすべて終わるまで元データを残す。途中終了後の再試行では、
+    /// コピー済みの同一ファイルだけを認め、別の内容を上書きしない。
+    func adoptPendingGuestStudy(for accountId: String) throws {
+        guard hasPendingGuestHandoff else { return }
+        let destination = Self.accountDirectory(root: rootDirectoryURL, id: accountId)
+        try ensureDirectory(destination)
+        let names = [FileName.library, FileName.progress, FileName.tags, FileName.overrides, FileName.remoteDecks]
+        for name in names {
+            try copyGuestFileIfNeeded(from: rootDirectoryURL.appendingPathComponent(name),
+                                      to: destination.appendingPathComponent(name))
+        }
+        let imported = rootDirectoryURL.appendingPathComponent(FileName.importedDirectory, isDirectory: true)
+        if fileManager.fileExists(atPath: imported.path) {
+            let destinationImported = destination.appendingPathComponent(FileName.importedDirectory, isDirectory: true)
+            try ensureDirectory(destinationImported)
+            for name in try fileManager.contentsOfDirectory(atPath: imported.path) {
+                try copyGuestFileIfNeeded(from: imported.appendingPathComponent(name),
+                                          to: destinationImported.appendingPathComponent(name))
+            }
+        }
+        for name in names {
+            let source = rootDirectoryURL.appendingPathComponent(name)
+            if fileManager.fileExists(atPath: source.path) { try fileManager.removeItem(at: source) }
+        }
+        if fileManager.fileExists(atPath: imported.path) { try fileManager.removeItem(at: imported) }
+        try fileManager.removeItem(at: rootDirectoryURL.appendingPathComponent(FileName.pendingGuestHandoff))
+    }
+
+    func cancelPendingGuestHandoff() throws {
+        let marker = rootDirectoryURL.appendingPathComponent(FileName.pendingGuestHandoff)
+        if fileManager.fileExists(atPath: marker.path) { try fileManager.removeItem(at: marker) }
+    }
+
+    private func copyGuestFileIfNeeded(from source: URL, to destination: URL) throws {
+        guard fileManager.fileExists(atPath: source.path) else { return }
+        if fileManager.fileExists(atPath: destination.path) {
+            guard try Data(contentsOf: source) == Data(contentsOf: destination) else {
+                throw LocalStudyError.snapshotUnreadable
+            }
+        } else {
+            try fileManager.copyItem(at: source, to: destination)
+        }
     }
 
     /// アカウントの教材・記録を端末上でも分ける。未接続時は保存済みセッションのIDを選ぶ。
