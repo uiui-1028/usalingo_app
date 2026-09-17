@@ -17,7 +17,10 @@ struct UsalingoIOSApp: App {
                 }
                 .onChange(of: scenePhase) { _, phase in
                     if phase == .active {
-                        Task { await appState.retryStartup() }
+                        Task {
+                            await appState.retryStartup()
+                            await appState.refreshOfficialContentIfConnected()
+                        }
                         return
                     }
                     // 背面へ回る前に、待機中の学習記録バックアップを出しきる。

@@ -4,7 +4,7 @@ import Foundation
 ///
 /// 品詞は意味ごとに変わる（`light` ＝ 明かり／名詞、軽い／形容詞）ため、
 /// 意味と品詞は必ず組にして持つ。
-struct WordSense: Hashable {
+struct WordSense: Codable, Hashable {
     let meaning: String
     let partOfSpeech: String?
 
@@ -14,7 +14,7 @@ struct WordSense: Hashable {
     }
 }
 
-struct WordCard: Identifiable, Hashable {
+struct WordCard: Identifiable, Codable, Hashable {
     /// 意味を横に並べるときの区切り。
     static let meaningSeparator = "／"
 
@@ -261,9 +261,28 @@ struct WordCard: Identifiable, Hashable {
             etymology: etymology
         )
     }
+
+    func withWordId(_ wordId: Int) -> WordCard {
+        WordCard(
+            id: wordId,
+            cardId: cardId,
+            text: text,
+            senses: senses,
+            sentenceEnglish: sentenceEnglish,
+            sentenceJapanese: sentenceJapanese,
+            imageAssetPath: imageAssetPath,
+            audioAssetPath: audioAssetPath,
+            wordAudioAssetPath: wordAudioAssetPath,
+            tags: tags,
+            learningStatus: learningStatus,
+            learning: learning,
+            synonyms: synonyms,
+            etymology: etymology
+        )
+    }
 }
 
-struct WordLearningSnapshot: Decodable, Hashable {
+struct WordLearningSnapshot: Codable, Hashable {
     let status: String
     let nextReviewDate: String
     let srsLevel: Int
@@ -437,7 +456,7 @@ struct WordPronunciation: Decodable {
 }
 
 /// 類義語1件。Anki の `単語 :: 訳 :: 補足` を1件ずつ持ち直したもの。
-struct WordSynonym: Decodable, Hashable, Identifiable {
+struct WordSynonym: Codable, Hashable, Identifiable {
     let word: String
     let meaning: String
     let note: String?

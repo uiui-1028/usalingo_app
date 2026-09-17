@@ -15,7 +15,7 @@ final class WordCardTests: XCTestCase {
             localStudy: local
         )
 
-        XCTAssertTrue((state.studyDataSource as AnyObject) === local)
+        XCTAssertTrue(state.studyDataSource is LocalStudyDataSource)
 
         let session = AuthSession(
             accessToken: "test-access",
@@ -25,10 +25,11 @@ final class WordCardTests: XCTestCase {
         )
         state.setSession(session)
 
-        XCTAssertTrue((state.studyDataSource as AnyObject) === local)
+        XCTAssertTrue(state.studyDataSource is LocalStudyDataSource)
+        XCTAssertFalse((state.studyDataSource as AnyObject) === local)
 
         state.signOut()
-        XCTAssertTrue((state.studyDataSource as AnyObject) === local)
+        XCTAssertTrue(state.studyDataSource is LocalStudyDataSource)
     }
 
     @MainActor

@@ -8,7 +8,8 @@ final class AppState: ObservableObject {
 
     @Published var session: AuthSession? {
         didSet {
-            guard session?.user.id != oldValue?.user.id else { return }
+            guard session?.user.id != oldValue?.user.id
+                || session?.user.isAnonymousAccount != oldValue?.user.isAnonymousAccount else { return }
             handleSessionChange()
         }
     }
@@ -24,7 +25,7 @@ final class AppState: ObservableObject {
     let designSettings: DesignSettings
 
     /// ローカル同梱データ層（D-1）。デッキ一覧・入出力はこの実体を直接使う。
-    let localStudy: LocalStudyDataSource
+    @Published private(set) var localStudy: LocalStudyDataSource
 
     /// 学習画面が使うデータ層。通信状態や認証状態にかかわらず、回答を端末へ先に保存する。
     /// Supabase は認証や、既存の復元用バックアップにだけ使う。
@@ -36,6 +37,7 @@ final class AppState: ObservableObject {
     private lazy var backupSyncer = makeBackupSyncer(localStudy)
 
     private let authService: AuthService
+    private let remoteStudy: any RemoteStudyImporting
     private let accountDeletionService: any AccountDeletionServicing
     private let defaults: UserDefaults
     private let makeBackupSyncer: @MainActor (LocalStudyDataSource) -> StudyBackupSyncer
@@ -50,13 +52,15 @@ final class AppState: ObservableObject {
         restoresSession: Bool = true,
         defaults: UserDefaults = .standard,
         authService: AuthService = AuthService(),
+        remoteStudy: any RemoteStudyImporting = StudyService(),
         accountDeletionService: any AccountDeletionServicing = AccountDeletionService(),
         localStudy: LocalStudyDataSource = LocalStudyDataSource(),
         makeBackupSyncer: @escaping @MainActor (LocalStudyDataSource) -> StudyBackupSyncer = { StudyBackupSyncer(localStudy: $0) }
     ) {
-        self.localStudy = localStudy
+        self.localStudy = localStudy.forAccount(id: authService.cachedUserId())
         self.defaults = defaults
         self.authService = authService
+        self.remoteStudy = remoteStudy
         self.accountDeletionService = accountDeletionService
         self.makeBackupSyncer = makeBackupSyncer
         designSettings = DesignSettings(defaults: defaults)
@@ -190,17 +194,43 @@ final class AppState: ObservableObject {
 
     /// ログイン・セッション復元で利用者が変わったときだけ、バックアップの同期をやり直す。
     private func handleSessionChange() {
+        backupSyncer.stop()
+        localStudy = localStudy.forAccount(id: session?.user.id)
+        backupSyncer = makeBackupSyncer(localStudy)
+        studyDataVersion += 1
         // 匿名アカウントへの端末スナップショット送信は、外部保存の範囲を
         // 広げないため従来どおり行わない。登録済みアカウントだけ既存の控えを使う。
-        guard let session, !session.user.isAnonymousAccount else {
-            backupSyncer.stop()
-            return
-        }
+        guard let session else { return }
         Task { [weak self] in
             guard let self, self.session?.user.id == session.user.id else { return }
-            await self.backupSyncer.start(session: session) { [weak self] in
-                self?.studyDataVersion += 1
+            if !session.user.isAnonymousAccount {
+                await self.backupSyncer.start(session: session) { [weak self] in
+                    self?.studyDataVersion += 1
+                }
             }
+            await self.refreshOfficialContent(session: session)
+        }
+    }
+
+    func refreshOfficialContentIfConnected() async {
+        guard let session else { return }
+        await refreshOfficialContent(session: session)
+    }
+
+    private func refreshOfficialContent(session: AuthSession) async {
+        let accountStudy = localStudy
+        do {
+            let decks = try await remoteStudy.fetchDecks(session: session)
+            var cardsByDeck: [Int: [WordCard]] = [:]
+            for deck in decks {
+                cardsByDeck[deck.id] = try await remoteStudy.fetchCards(deckId: deck.id, session: session)
+            }
+            let progress = try await remoteStudy.fetchAllLearningProgress(session: session)
+            guard self.session?.user.id == session.user.id, localStudy === accountStudy else { return }
+            try accountStudy.cacheRemoteDecks(decks, cardsByDeck: cardsByDeck, progress: progress, userId: session.user.id)
+            studyDataVersion += 1
+        } catch {
+            // 最後に成功した端末版を使い続ける。学習と回答保存は止めない。
         }
     }
 
@@ -226,7 +256,14 @@ final class AppState: ObservableObject {
                 return
             }
         } catch {
-            // 復元に失敗しても、下の匿名サインインでやり直す。
+            // サーバーに拒否されて保存セッションが消えた場合、前の利用者の
+            // 教材・回答を匿名画面へ見せない。通信障害なら保存IDを維持する。
+            if authService.cachedUserId() == nil {
+                backupSyncer.stop()
+                localStudy = localStudy.forAccount(id: nil)
+                backupSyncer = makeBackupSyncer(localStudy)
+                studyDataVersion += 1
+            }
         }
 
         // 保存済みのセッションが無ければ、匿名アカウントで始める。

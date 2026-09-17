@@ -40,11 +40,6 @@ final class AccountDeletionTests: XCTestCase {
         let directory = temporaryStudyDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
         let localStudy = LocalStudyDataSource(directoryURL: directory, bundle: .main)
-        let decks = try await localStudy.fetchDecks()
-        let deck = try XCTUnwrap(decks.first)
-        let cards = try await localStudy.fetchCards(deckId: deck.id)
-        let card = try XCTUnwrap(cards.first)
-        _ = try await localStudy.saveAnswer(card: card, isCorrect: true)
         let sessionStore = DeletionSessionStore()
         let authService = AuthService(
             sessionStore: sessionStore,
@@ -61,6 +56,12 @@ final class AccountDeletionTests: XCTestCase {
         let session = testSession
         try sessionStore.save(session)
         appState.setSession(session)
+        let activeStudy = appState.localStudy
+        let decks = try await activeStudy.fetchDecks()
+        let deck = try XCTUnwrap(decks.first)
+        let cards = try await activeStudy.fetchCards(deckId: deck.id)
+        let card = try XCTUnwrap(cards.first)
+        _ = try await activeStudy.saveAnswer(card: card, isCorrect: true)
         appState.completeSwipeTutorial()
         appState.designSettings.accentName = "orange"
         appState.designSettings.cardCornerRadius = 30
@@ -76,9 +77,11 @@ final class AccountDeletionTests: XCTestCase {
         XCTAssertEqual(appState.designSettings.accentName, "green")
         XCTAssertEqual(appState.designSettings.cardCornerRadius, 18)
         XCTAssertNotNil(appState.accountDeletionNotice)
-        XCTAssertFalse(localStudy.hasStudyRecord)
-        XCTAssertEqual(localStudy.decks().map(\.key), ["toeic-basic"])
-        XCTAssertFalse(LocalStudyDataSource(directoryURL: directory, bundle: .main).hasStudyRecord)
+        XCTAssertFalse(activeStudy.hasStudyRecord)
+        XCTAssertEqual(appState.localStudy.decks().map(\.key), ["toeic-basic"])
+        let reopened = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+        reopened.selectAccount(id: session.user.id)
+        XCTAssertFalse(reopened.hasStudyRecord)
     }
 
     @MainActor
@@ -95,11 +98,6 @@ final class AccountDeletionTests: XCTestCase {
             let directory = temporaryStudyDirectory()
             defer { try? FileManager.default.removeItem(at: directory) }
             let localStudy = LocalStudyDataSource(directoryURL: directory, bundle: .main)
-            let decks = try await localStudy.fetchDecks()
-            let deck = try XCTUnwrap(decks.first)
-            let cards = try await localStudy.fetchCards(deckId: deck.id)
-            let card = try XCTUnwrap(cards.first)
-            _ = try await localStudy.saveAnswer(card: card, isCorrect: true)
             let appState = AppState(
                 restoresSession: false,
                 defaults: defaults,
@@ -109,6 +107,12 @@ final class AccountDeletionTests: XCTestCase {
             )
             try store.save(testSession)
             appState.setSession(testSession)
+            let activeStudy = appState.localStudy
+            let decks = try await activeStudy.fetchDecks()
+            let deck = try XCTUnwrap(decks.first)
+            let cards = try await activeStudy.fetchCards(deckId: deck.id)
+            let card = try XCTUnwrap(cards.first)
+            _ = try await activeStudy.saveAnswer(card: card, isCorrect: true)
 
             do {
                 try await appState.deleteAccount(password: "password123", confirmation: "退会")
@@ -118,8 +122,10 @@ final class AccountDeletionTests: XCTestCase {
             }
             XCTAssertNotNil(appState.session)
             XCTAssertNotNil(store.savedSession)
-            XCTAssertTrue(localStudy.hasStudyRecord)
-            XCTAssertTrue(LocalStudyDataSource(directoryURL: directory, bundle: .main).hasStudyRecord)
+            XCTAssertTrue(activeStudy.hasStudyRecord)
+            let reopened = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+            reopened.selectAccount(id: testSession.user.id)
+            XCTAssertTrue(reopened.hasStudyRecord)
         }
     }
 

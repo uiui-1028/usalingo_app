@@ -1,5 +1,11 @@
 import Foundation
 
+protocol RemoteStudyImporting {
+    func fetchDecks(session: AuthSession) async throws -> [Deck]
+    func fetchCards(deckId: Int, session: AuthSession) async throws -> [WordCard]
+    func fetchAllLearningProgress(session: AuthSession) async throws -> [LearningProgress]
+}
+
 struct UserWordTag: Codable {
     let userId: String
     let wordId: Int
@@ -127,7 +133,7 @@ enum StudyMode: String, CaseIterable, Identifiable, Hashable {
     }
 }
 
-final class StudyService {
+final class StudyService: RemoteStudyImporting {
     private let client: any SupabaseRequesting
 
     init(client: any SupabaseRequesting = SupabaseClient.shared) {
@@ -522,6 +528,19 @@ final class StudyService {
             currentStreak: streak,
             totalReviews: rows.reduce(0) { $0 + $1.repetitions },
             reviewedDays: reviewedDays
+        )
+    }
+
+    /// 既存のサーバー進捗を端末へ移すため、本人の行をページ単位で読み取る。
+    func fetchAllLearningProgress(session: AuthSession) async throws -> [LearningProgress] {
+        try await fetchAllPages(
+            path: "user_card_progress",
+            queryItems: [
+                URLQueryItem(name: "select", value: SelectColumns.progress),
+                URLQueryItem(name: "user_id", value: "eq.\(session.user.id)"),
+                URLQueryItem(name: "order", value: "card_id.asc")
+            ],
+            accessToken: session.accessToken
         )
     }
 

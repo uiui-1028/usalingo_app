@@ -197,6 +197,11 @@ final class AuthService {
         }
     }
 
+    /// 通信せず、端末に保存済みの利用者だけを確認する。
+    func cachedUserId() -> String? {
+        try? sessionStore.load()?.user.id
+    }
+
     func signOut() throws {
         try sessionStore.clear()
     }
