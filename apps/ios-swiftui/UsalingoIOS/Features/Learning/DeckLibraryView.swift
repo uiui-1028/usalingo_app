@@ -20,44 +20,31 @@ struct DeckDocument: FileDocument {
     }
 }
 
-/// ジャンル → 詳細から同梱デッキを選ぶギャラリー。
+/// ジャンル → 詳細から公式デッキを選んで、学習タブへ追加するギャラリー。
+/// 一覧はサーバーの公式デッキを毎回読む。
 struct DeckLibraryView: View {
     @EnvironmentObject private var appState: AppState
     let onChanged: () -> Void
-    @State private var bundledDecks: [DeckFile] = []
+    @State private var decks: [OfficialDeck] = []
+    @State private var isLoading = true
+    @State private var message: String?
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                ForEach(GalleryDeck.genres, id: \.self) { genre in
-                    VStack(alignment: .leading, spacing: 14) {
-                        HStack {
-                            Text(genre).font(.title2.bold())
-                            Spacer()
-                            Text("\(decks(for: genre).count)デッキ")
-                                .font(.caption).foregroundStyle(.secondary)
-                        }
-                        ForEach(decks(for: genre), id: \.deckId) { file in
-                            NavigationLink {
-                                GalleryDeckDetail(file: file, onChanged: onChanged)
-                            } label: {
-                                HStack(spacing: 16) {
-                                    GalleryDeckCover(file: file, size: 76)
-                                    VStack(alignment: .leading, spacing: 5) {
-                                        Text(file.deckName).font(.headline).foregroundStyle(.primary)
-                                        Text(file.description ?? "サンプルデッキ")
-                                            .font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                                        Text("\(file.cards.count)語 · サンプル")
-                                            .font(.caption2).foregroundStyle(.secondary)
-                                    }
-                                    Spacer(minLength: 0)
-                                    Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
-                                }
-                                .padding(14)
-                                .background(.background, in: RoundedRectangle(cornerRadius: 22))
-                            }
-                            .buttonStyle(.plain)
-                        }
+                if isLoading {
+                    ProgressView().frame(maxWidth: .infinity)
+                } else if let message {
+                    VStack(spacing: 12) {
+                        Text(message).font(.footnote).multilineTextAlignment(.center)
+                        Button("もう一度読み込む") { Task { await reload() } }
+                            .buttonStyle(.bordered)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .accessibilityIdentifier("galleryLoadMessage")
+                } else {
+                    ForEach(GalleryDeck.genres, id: \.self) { genre in
+                        genreSection(genre)
                     }
                 }
             }
@@ -67,78 +54,96 @@ struct DeckLibraryView: View {
         .navigationTitle("ギャラリー")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
-        .task { reload() }
+        .task { await reload() }
     }
 
-    private func reload() {
-        bundledDecks = appState.localStudy.allBundledDecks().filter { $0.deckId.hasPrefix("gallery-") }
+    private func genreSection(_ genre: String) -> some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Text(genre).font(.title2.bold())
+                Spacer()
+                Text("\(decks.count)デッキ")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            ForEach(decks) { official in
+                NavigationLink {
+                    GalleryDeckDetail(official: official, onChanged: {
+                        onChanged()
+                        Task { await reload() }
+                    })
+                } label: {
+                    HStack(spacing: 16) {
+                        GalleryDeckCover(size: 76)
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text(official.deck.deckName).font(.headline).foregroundStyle(.primary)
+                            if let description = official.deck.description {
+                                Text(description)
+                                    .font(.caption).foregroundStyle(.secondary).lineLimit(2)
+                            }
+                            if official.isAdded {
+                                Text("追加済み").font(.caption2).foregroundStyle(.secondary)
+                            }
+                        }
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right").font(.caption.bold()).foregroundStyle(.secondary)
+                    }
+                    .padding(14)
+                    .background(.background, in: RoundedRectangle(cornerRadius: 22))
+                }
+                .buttonStyle(.plain)
+            }
+        }
     }
 
-    private func decks(for genre: String) -> [DeckFile] {
-        bundledDecks.filter { GalleryDeck.genre($0) == genre }
+    private func reload() async {
+        if decks.isEmpty { isLoading = true }
+        defer { isLoading = false }
+        do {
+            decks = try await appState.fetchOfficialDecks()
+            message = nil
+        } catch {
+            message = UserFacingError.message(for: error)
+        }
     }
 }
 
 private enum GalleryDeck {
-    static let genres = ["TOEIC", "日常", "受験"]
-    static func language(_ file: DeckFile) -> String {
-        file.deckId.hasPrefix("gallery-ja-") ? "日本語" : "英語"
-    }
-    static func genre(_ file: DeckFile) -> String {
-        file.deckId.contains("-toeic-") ? "TOEIC" : file.deckId.contains("-daily-") ? "日常" : "受験"
-    }
-    static func tint(_ file: DeckFile) -> Color {
-        switch genre(file) {
-        case "TOEIC": .indigo
-        case "日常": .teal
-        default: .orange
-        }
-    }
-    static func symbol(_ file: DeckFile) -> String {
-        switch genre(file) {
-        case "TOEIC": "briefcase.fill"
-        case "日常": "bubble.left.and.bubble.right.fill"
-        default: "graduationcap.fill"
-        }
-    }
+    // ponytail: 公式デッキは今は受験向けだけなので、ジャンルは1つに固定する。
+    // ジャンルが増えたら、decks にジャンルの列を足してここを置き換える。
+    static let genres = ["受験"]
+    static let tint = Color.orange
+    static let symbol = "graduationcap.fill"
 }
 
 private struct GalleryDeckCover: View {
-    let file: DeckFile
     let size: CGFloat
     var body: some View {
-        ZStack(alignment: .bottomLeading) {
-            RoundedRectangle(cornerRadius: size * 0.23)
-                .fill(GalleryDeck.tint(file).gradient)
-            Image(systemName: GalleryDeck.symbol(file))
-                .font(.system(size: size * 0.36, weight: .medium))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            Text(GalleryDeck.language(file) == "日本語" ? "あ" : "Aa")
-                .font(.system(size: size * 0.15, weight: .bold))
-                .padding(size * 0.12)
-        }
-        .foregroundStyle(.white)
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
+        RoundedRectangle(cornerRadius: size * 0.23)
+            .fill(GalleryDeck.tint.gradient)
+            .overlay {
+                Image(systemName: GalleryDeck.symbol)
+                    .font(.system(size: size * 0.36, weight: .medium))
+            }
+            .foregroundStyle(.white)
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
     }
 }
 
 private struct GalleryDeckDetail: View {
     @EnvironmentObject private var appState: AppState
-    let file: DeckFile
+    let official: OfficialDeck
     let onChanged: () -> Void
+    @State private var words: [WordCard] = []
+    @State private var isLoadingWords = true
     @State private var isDownloading = false
-    @State private var isInstalled = false
-    @State private var isCheckingInstallation = true
+    @State private var isInstalled: Bool
     @State private var message: String?
 
-    private var words: [WordCard] {
-        file.cards.map {
-            WordCard(id: $0.id, text: $0.text, meaning: $0.meaning,
-                     partOfSpeech: $0.partOfSpeech, sentenceEnglish: $0.sentenceEnglish,
-                     sentenceJapanese: $0.sentenceJapanese, imageAssetPath: $0.imageAssetPath,
-                     audioAssetPath: $0.audioAssetPath, tags: $0.tags ?? [], learningStatus: nil, learning: nil)
-        }
+    init(official: OfficialDeck, onChanged: @escaping () -> Void) {
+        self.official = official
+        self.onChanged = onChanged
+        _isInstalled = State(initialValue: official.isAdded)
     }
 
     var body: some View {
@@ -147,10 +152,10 @@ private struct GalleryDeckDetail: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 20) {
                         HStack(alignment: .top, spacing: 18) {
-                            GalleryDeckCover(file: file, size: 94)
+                            GalleryDeckCover(size: 94)
                             VStack(alignment: .leading, spacing: 8) {
-                                Text(file.deckName).font(.title2.bold())
-                                Text("Usalingo · サンプルデッキ")
+                                Text(official.deck.deckName).font(.title2.bold())
+                                Text("Usalingo · 公式デッキ")
                                     .font(.caption).foregroundStyle(.secondary)
                                 Button(action: download) {
                                     HStack(spacing: 6) {
@@ -160,23 +165,21 @@ private struct GalleryDeckDetail: View {
                                     }.font(.subheadline.bold())
                                 }
                                 .buttonStyle(.borderedProminent).buttonBorderShape(.capsule)
-                                .disabled(isDownloading || isInstalled || isCheckingInstallation)
+                                .disabled(isDownloading || isInstalled)
                                 if let message {
                                     Text(message).font(.footnote).accessibilityIdentifier("galleryDownloadMessage")
                                 }
                             }
                         }
                         HStack(spacing: 0) {
-                            metric("収録単語", "\(file.cards.count)語")
-                            metric("言語", GalleryDeck.language(file))
-                            metric("ジャンル", GalleryDeck.genre(file))
+                            metric("収録単語", isLoadingWords ? "—" : "\(words.count)語")
+                            metric("ジャンル", GalleryDeck.genres[0])
                         }
-                        Divider()
-                        Text("このデッキについて").font(.headline)
-                        Text(file.description ?? "毎日の学習にぴったりの単語を集めました。")
-                            .font(.subheadline)
-                        Text("1日3語から、自分のペースで。下のリストで収録語を確認してから追加できます。説明と教材は画面確認用のサンプルです。")
-                            .font(.subheadline).foregroundStyle(.secondary)
+                        if let description = official.deck.description {
+                            Divider()
+                            Text("このデッキについて").font(.headline)
+                            Text(description).font(.subheadline)
+                        }
                     }.padding(20)
                 }
                 .frame(height: proxy.size.height * 0.48)
@@ -185,9 +188,15 @@ private struct GalleryDeckDetail: View {
                     HStack {
                         Text("収録単語").font(.headline)
                         Spacer()
-                        Text("\(file.cards.count)語").font(.caption).foregroundStyle(.secondary)
+                        if !isLoadingWords {
+                            Text("\(words.count)語").font(.caption).foregroundStyle(.secondary)
+                        }
                     }.padding(.horizontal, 20).padding(.vertical, 12)
-                    WordListView(previewWords: words, sheetOnly: true)
+                    if isLoadingWords {
+                        ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                    } else {
+                        WordListView(previewWords: words, sheetOnly: true)
+                    }
                 }
                 .background(WireColor.surface)
                 .clipShape(UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28))
@@ -202,18 +211,13 @@ private struct GalleryDeckDetail: View {
         .navigationTitle("デッキ詳細")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)
-        .task(id: appState.session?.user.id ?? "guest") {
-            isCheckingInstallation = true
-            defer { isCheckingInstallation = false }
-            if appState.studyDataSource.supportsDeckFileTransfer {
-                isInstalled = appState.localStudy.decks().contains { $0.key == file.deckId }
-            } else {
-                do {
-                    let decks = try await appState.studyDataSource.fetchDecks()
-                    isInstalled = decks.contains { $0.deckName == file.deckName }
-                } catch {
-                    message = UserFacingError.message(for: error)
-                }
+        .task(id: official.id) {
+            isLoadingWords = true
+            defer { isLoadingWords = false }
+            do {
+                words = try await appState.fetchOfficialDeckCards(deckId: official.id)
+            } catch {
+                message = UserFacingError.message(for: error)
             }
         }
     }
@@ -232,12 +236,9 @@ private struct GalleryDeckDetail: View {
         Task { @MainActor in
             defer { isDownloading = false }
             do {
-                let outcome = try await appState.studyDataSource.installBundledDeck(file)
+                try await appState.addOfficialDeck(id: official.id)
                 isInstalled = true
                 message = "学習タブに追加しました。"
-                if outcome.skippedCardCount > 0 {
-                    message = "\(outcome.addedCardCount)語を追加しました。\(outcome.skippedCardCount)語は配信中の単語に無いため追加していません。"
-                }
                 onChanged()
             } catch {
                 message = UserFacingError.message(for: error)

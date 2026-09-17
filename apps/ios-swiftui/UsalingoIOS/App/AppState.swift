@@ -220,20 +220,47 @@ final class AppState: ObservableObject {
     }
 
     private func refreshOfficialContent(session: AuthSession) async {
+        // 失敗しても、最後に成功した端末版を使い続ける。学習と回答保存は止めない。
+        try? await loadOfficialContent(session: session)
+    }
+
+    private func loadOfficialContent(session: AuthSession) async throws {
         let accountStudy = localStudy
-        do {
-            let decks = try await remoteStudy.fetchDecks(session: session)
-            var cardsByDeck: [Int: [WordCard]] = [:]
-            for deck in decks {
-                cardsByDeck[deck.id] = try await remoteStudy.fetchCards(deckId: deck.id, session: session)
-            }
-            let progress = try await remoteStudy.fetchAllLearningProgress(session: session)
-            guard self.session?.user.id == session.user.id, localStudy === accountStudy else { return }
-            try accountStudy.cacheRemoteDecks(decks, cardsByDeck: cardsByDeck, progress: progress, userId: session.user.id)
-            studyDataVersion += 1
-        } catch {
-            // 最後に成功した端末版を使い続ける。学習と回答保存は止めない。
+        let decks = try await remoteStudy.fetchDecks(session: session)
+        var cardsByDeck: [Int: [WordCard]] = [:]
+        for deck in decks {
+            cardsByDeck[deck.id] = try await remoteStudy.fetchCards(deckId: deck.id, session: session)
         }
+        let progress = try await remoteStudy.fetchAllLearningProgress(session: session)
+        guard self.session?.user.id == session.user.id, localStudy === accountStudy else { return }
+        try accountStudy.cacheRemoteDecks(decks, cardsByDeck: cardsByDeck, progress: progress, userId: session.user.id)
+        studyDataVersion += 1
+    }
+
+    // MARK: - デッキ追加（ギャラリー）
+
+    /// ギャラリーに並べる公式デッキ。追加済みかどうかも一緒に返す。
+    func fetchOfficialDecks() async throws -> [OfficialDeck] {
+        try await remoteStudy.fetchOfficialDecks(session: try connectedSession())
+    }
+
+    /// ギャラリーの詳細画面で見せる、公式デッキの収録単語。
+    func fetchOfficialDeckCards(deckId: Int) async throws -> [WordCard] {
+        try await remoteStudy.fetchCards(deckId: deckId, session: try connectedSession())
+    }
+
+    /// 公式デッキを学習タブへ追加し、端末の控えまで更新してから戻る。
+    func addOfficialDeck(id: Int) async throws {
+        let session = try connectedSession()
+        try await remoteStudy.addOfficialDeck(id: id, session: session)
+        try await loadOfficialContent(session: session)
+    }
+
+    private func connectedSession() throws -> AuthSession {
+        guard let session else {
+            throw SupabaseError.badResponse("サーバーに接続できないため、デッキを読み込めませんでした。")
+        }
+        return session
     }
 
     func showSwipeTutorial() {

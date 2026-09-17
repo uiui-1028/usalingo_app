@@ -13,27 +13,40 @@ final class LocalStudyDataSourceTests: XCTestCase {
         try? FileManager.default.removeItem(at: directoryURL)
     }
 
-    func testGallerySamplesInstallAndPersistWithTheirPreviewWords() async throws {
-        let source = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
-        let samples = source.allBundledDecks().filter { $0.deckId.hasPrefix("gallery-") }
-        XCTAssertEqual(samples.count, 18)
-        for language in ["ja", "en"] {
-            for genre in ["toeic", "daily", "exam"] {
-                XCTAssertEqual(samples.filter { $0.deckId.hasPrefix("gallery-\(language)-\(genre)-") }.count, 3)
-            }
-        }
-        for file in samples {
-            try file.validate()
-            XCTAssertFalse(file.cards.isEmpty)
-            let outcome = try await source.installBundledDeck(file)
-            XCTAssertEqual(outcome.addedCardCount, file.cards.count)
-            XCTAssertEqual(outcome.skippedCardCount, 0)
-            let reopened = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
-            let words = try await reopened.fetchCards(deckId: outcome.deck.id)
-            XCTAssertEqual(words.map(\.text), file.cards.map(\.text))
-            XCTAssertEqual(words.map(\.meaning), file.cards.map(\.meaning))
-            XCTAssertFalse(reopened.availableBundledDecks().contains { $0.deckId == file.deckId })
-        }
+    func testLeftoverBundledDeckRowsAreDroppedOnOpen() async throws {
+        let bundled = LocalDeck(id: 1, key: "toeic-basic", name: "TOEIC 頻出単語", description: nil, isBundled: true)
+        let library = LocalStudyLibrary(decks: [bundled], removedBundledKeys: [], nextDeckId: 2, nextCardId: 1, cardIds: [:])
+        try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
+        try JSONEncoder().encode(library).write(to: directoryURL.appendingPathComponent("library.json"))
+
+        let source = LocalStudyDataSource(directoryURL: directoryURL)
+
+        XCTAssertTrue(source.decks().isEmpty)
+        let words = try await source.fetchWordList()
+        XCTAssertTrue(words.isEmpty)
+        XCTAssertTrue(LocalStudyDataSource(directoryURL: directoryURL).decks().isEmpty)
+    }
+
+    @MainActor
+    func testAddingOfficialDeckCachesItBeforeReturning() async throws {
+        let remote = TestRemoteStudyImporter(
+            deck: Deck(id: 42, deckName: "公式教材", description: nil),
+            card: remoteCard(),
+            progress: LearningProgress.initial(userId: "account-a", cardId: 50)
+        )
+        let state = AppState(
+            restoresSession: false,
+            authService: AuthService(sessionStore: TestStudySessionStore()),
+            remoteStudy: remote,
+            localStudy: makeDataSource()
+        )
+        state.setSession(testSession(userId: "account-a"))
+
+        try await state.addOfficialDeck(id: 7)
+
+        XCTAssertEqual(remote.addedDeckIds, [7])
+        let decks = try await state.studyDataSource.fetchDecks()
+        XCTAssertTrue(decks.contains { $0.id == -43 })
     }
 
     func testImportedDeckProvidesNewCardQueue() async throws {
@@ -176,7 +189,7 @@ final class LocalStudyDataSourceTests: XCTestCase {
     }
 
     func testResetRemovesLocalStudyDataAndRestoresBundledDefault() async throws {
-        let source = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
+        let source = LocalStudyDataSource(directoryURL: directoryURL)
         let imported = try source.importDeck(from: sampleDeckData(cardCount: 1))
         let cards = try await source.fetchCards(deckId: imported.id)
         let card = try XCTUnwrap(cards.first)
@@ -197,12 +210,12 @@ final class LocalStudyDataSourceTests: XCTestCase {
 
         try source.reset()
 
-        let reopened = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
+        let reopened = LocalStudyDataSource(directoryURL: directoryURL)
         XCTAssertFalse(reopened.hasStudyRecord)
         let tags = try await reopened.fetchTags(wordId: card.wordId)
         XCTAssertNil(tags)
         XCTAssertFalse(reopened.decks().contains { $0.key == imported.key })
-        XCTAssertEqual(reopened.decks().map(\.key), ["toeic-basic"])
+        XCTAssertTrue(reopened.decks().isEmpty)
         let remainingCards = try await reopened.fetchWordList()
         XCTAssertFalse(remainingCards.contains { $0.text == "edited" })
         let snapshot = try reopened.snapshot()
@@ -409,7 +422,7 @@ final class LocalStudyDataSourceTests: XCTestCase {
     // MARK: - Helpers
 
     private func makeDataSource() -> LocalStudyDataSource {
-        LocalStudyDataSource(directoryURL: directoryURL, bundle: Bundle(for: Self.self))
+        LocalStudyDataSource(directoryURL: directoryURL)
     }
 
     private func sampleDeckData(cardCount: Int = 3, deckId: String = "sample", formatVersion: Int = 1) -> Data {
@@ -467,6 +480,7 @@ private final class TestRemoteStudyImporter: RemoteStudyImporting {
     let card: WordCard
     var progress: LearningProgress
     var shouldFail = false
+    private(set) var addedDeckIds: [Int] = []
 
     init(deck: Deck, card: WordCard, progress: LearningProgress) {
         self.deck = deck
@@ -477,6 +491,14 @@ private final class TestRemoteStudyImporter: RemoteStudyImporting {
     func fetchDecks(session: AuthSession) async throws -> [Deck] {
         if shouldFail { throw URLError(.notConnectedToInternet) }
         return [deck]
+    }
+
+    func fetchOfficialDecks(session: AuthSession) async throws -> [OfficialDeck] {
+        [OfficialDeck(deck: deck, isAdded: true)]
+    }
+
+    func addOfficialDeck(id: Int, session: AuthSession) async throws {
+        addedDeckIds.append(id)
     }
 
     func fetchCards(deckId: Int, session: AuthSession) async throws -> [WordCard] { [card] }
@@ -500,7 +522,7 @@ extension LocalStudyDataSourceTests {
         let otherDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent("LocalStudyDataSourceTests-other-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: otherDirectory) }
-        let restored = LocalStudyDataSource(directoryURL: otherDirectory, bundle: Bundle(for: Self.self))
+        let restored = LocalStudyDataSource(directoryURL: otherDirectory)
         XCTAssertFalse(restored.hasStudyRecord)
 
         try restored.restore(LocalStudyDataSource.decodeSnapshot(from: data))

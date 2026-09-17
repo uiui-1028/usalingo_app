@@ -37,7 +37,6 @@
 		A10000000000000000000024 /* Services/StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* Services/StudyDataSource.swift */; };
 		A10000000000000000000025 /* Services/LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* Services/LocalStudyDataSource.swift */; };
 		A10000000000000000000026 /* Features/Learning/DeckLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */; };
-		A10000000000000000000027 /* Resources/SampleDecks in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000027 /* Resources/SampleDecks */; };
 		A10000000000000000000028 /* Services/GuestStudyBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* Services/GuestStudyBackupService.swift */; };
 		A10000000000000000000029 /* Services/StudyBackupSyncer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* Services/StudyBackupSyncer.swift */; };
 		A1000000000000000000002A /* Services/UserFacingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002A /* Services/UserFacingError.swift */; };
@@ -134,7 +133,6 @@
 		A20000000000000000000024 /* Services/StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* Services/LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckLibraryView.swift; sourceTree = "<group>"; };
-		A20000000000000000000027 /* Resources/SampleDecks */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/SampleDecks; sourceTree = "<group>"; };
 		A20000000000000000000028 /* Services/GuestStudyBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/GuestStudyBackupService.swift; sourceTree = "<group>"; };
 		A20000000000000000000029 /* Services/StudyBackupSyncer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyBackupSyncer.swift; sourceTree = "<group>"; };
 		A2000000000000000000002A /* Services/UserFacingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/UserFacingError.swift; sourceTree = "<group>"; };
@@ -281,7 +279,6 @@
 				A2000000000000000000001B /* Features/Words/TagSheet.swift */,
 				A2000000000000000000001F /* Features/Study/SwipeTutorialView.swift */,
 				A20000000000000000000022 /* Resources/Licenses */,
-				A20000000000000000000027 /* Resources/SampleDecks */,
 				A2000000000000000000002B /* Resources/Assets.xcassets */,
 				A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */,
 				A20000000000000000000012 /* Info.plist */,
@@ -407,7 +404,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000022 /* Resources/Licenses in Resources */,
-				A10000000000000000000027 /* Resources/SampleDecks in Resources */,
 				A1000000000000000000002B /* Resources/Assets.xcassets in Resources */,
 				A1000000000000000000002C /* Resources/PrivacyInfo.xcprivacy in Resources */,
 			);

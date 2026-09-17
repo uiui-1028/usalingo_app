@@ -1,7 +1,7 @@
 import Foundation
 import CryptoKit
 
-/// 端末に保存しているデッキ。同梱JSONと読み込みJSONの両方をこの形で登録する。
+/// 端末に保存しているデッキ。読み込んだJSONをこの形で登録する。
 struct LocalDeck: Identifiable, Codable, Equatable {
     /// アプリ内で割り当てた番号。既存の `Deck.id` と互換にするため Int を使う。
     let id: Int
@@ -9,6 +9,8 @@ struct LocalDeck: Identifiable, Codable, Equatable {
     let key: String
     var name: String
     var description: String?
+    /// 同梱デッキを配っていた頃の名残。古い保存データとバックアップを読み書きするために残す。
+    /// 端末は起動時に true の行を一覧から外す。
     var isBundled: Bool
 
     var deck: Deck {
@@ -23,6 +25,7 @@ typealias LocalDeckCounts = StudyDeckCounts
 /// バックアップへそのまま入れるため、内部だけの型にしない。
 struct LocalStudyLibrary: Codable {
     var decks: [LocalDeck] = []
+    /// 同梱デッキを配っていた頃の名残。古いバックアップとの互換のためだけに残す。
     var removedBundledKeys: [String] = []
     var nextDeckId = 1
     var nextCardId = 1
@@ -41,7 +44,7 @@ struct LocalStudySnapshot: Codable {
     let progress: [String: LearningProgress]
     let tags: [String: [String]]
     let overrides: [String: UserWordOverride]
-    /// 読み込みで追加したデッキの中身。同梱デッキはアプリに入っているため含めない（G-D5）。
+    /// 読み込みで追加したデッキの中身。
     let importedDecks: [String: DeckFile]
     let createdAt: String
 }
@@ -78,7 +81,8 @@ enum LocalStudyError: LocalizedError, Equatable {
     }
 }
 
-/// ローカル同梱データ方針（D-1）の実装。単語は同梱JSONから読み、進捗は端末のファイルへ保存する。
+/// 端末側の学習データ。公式デッキはサーバーから読んだ控え、個人のデッキは読み込んだJSONを使い、
+/// 進捗は端末のファイルへ保存する。
 /// キューの組み立ては既存 StudyService の limitedStudyQueue / isDue /
 /// sortByNextReviewDateThenId をそのまま移植したもので、SM-2 の計算は
 /// `LearningProgress.marking(isCorrect:)` に委ねる。
@@ -109,7 +113,6 @@ final class LocalStudyDataSource: StudyDataSource {
     private let fileManager: FileManager
     private let rootDirectoryURL: URL
     private var directoryURL: URL
-    private let bundle: Bundle
 
     private var library: LocalStudyLibrary
     private var progressByCardId: [String: LearningProgress]
@@ -117,9 +120,8 @@ final class LocalStudyDataSource: StudyDataSource {
     private var overridesByWordId: [String: UserWordOverride]
     private var cachedRemoteDecks: [CachedRemoteDeck]
 
-    init(directoryURL: URL? = nil, accountId: String? = nil, bundle: Bundle = .main, fileManager: FileManager = .default) {
+    init(directoryURL: URL? = nil, accountId: String? = nil, fileManager: FileManager = .default) {
         self.fileManager = fileManager
-        self.bundle = bundle
         self.rootDirectoryURL = directoryURL ?? Self.defaultDirectoryURL(fileManager: fileManager)
         self.directoryURL = Self.accountDirectory(root: rootDirectoryURL, id: accountId)
         library = Self.loadJSON(LocalStudyLibrary.self, from: self.directoryURL.appendingPathComponent(FileName.library)) ?? LocalStudyLibrary()
@@ -127,12 +129,12 @@ final class LocalStudyDataSource: StudyDataSource {
         tagsByWordId = Self.loadJSON([String: [String]].self, from: self.directoryURL.appendingPathComponent(FileName.tags)) ?? [:]
         overridesByWordId = Self.loadJSON([String: UserWordOverride].self, from: self.directoryURL.appendingPathComponent(FileName.overrides)) ?? [:]
         cachedRemoteDecks = Self.loadJSON([CachedRemoteDeck].self, from: self.directoryURL.appendingPathComponent(FileName.remoteDecks)) ?? []
-        syncBundledDecks()
+        dropBundledDecks()
     }
 
     /// 古い画面が持つデータ層を変えず、新しいアカウント用の実体を作る。
     func forAccount(id: String?) -> LocalStudyDataSource {
-        LocalStudyDataSource(directoryURL: rootDirectoryURL, accountId: id, bundle: bundle, fileManager: fileManager)
+        LocalStudyDataSource(directoryURL: rootDirectoryURL, accountId: id, fileManager: fileManager)
     }
 
     /// アカウントの教材・記録を端末上でも分ける。未接続時は保存済みセッションのIDを選ぶ。
@@ -143,7 +145,7 @@ final class LocalStudyDataSource: StudyDataSource {
         tagsByWordId = Self.loadJSON([String: [String]].self, from: directoryURL.appendingPathComponent(FileName.tags)) ?? [:]
         overridesByWordId = Self.loadJSON([String: UserWordOverride].self, from: directoryURL.appendingPathComponent(FileName.overrides)) ?? [:]
         cachedRemoteDecks = Self.loadJSON([CachedRemoteDeck].self, from: directoryURL.appendingPathComponent(FileName.remoteDecks)) ?? []
-        syncBundledDecks()
+        dropBundledDecks()
     }
 
     /// 全件取得が成功してから更新。通信失敗時は前回の端末版を残す。
@@ -211,44 +213,13 @@ final class LocalStudyDataSource: StudyDataSource {
     func removeDecks(atOffsets offsets: IndexSet) throws {
         for index in offsets {
             guard library.decks.indices.contains(index) else { continue }
-            let deck = library.decks[index]
-            if deck.isBundled {
-                library.removedBundledKeys.append(deck.key)
-            } else {
-                try? fileManager.removeItem(at: importedFileURL(key: deck.key))
-            }
+            try? fileManager.removeItem(at: importedFileURL(key: library.decks[index].key))
         }
         library.decks.remove(atOffsets: offsets)
         try persistLibrary()
     }
 
     // MARK: - デッキ入出力（デッキライブラリ用）
-
-    /// 同梱サンプルデッキのうち、まだ一覧に入っていないもの。
-    func availableBundledDecks() -> [DeckFile] {
-        let installedKeys = Set(library.decks.map(\.key))
-        return bundledDeckFiles().filter { !installedKeys.contains($0.deckId) }
-    }
-
-    /// 同梱デッキの全件。取り込み先が端末以外のときは、端末の一覧で
-    /// 済みかどうかを判断できないため、絞らずにそのまま出す。
-    func allBundledDecks() -> [DeckFile] {
-        bundledDeckFiles()
-    }
-
-    @discardableResult
-    func installBundledDeck(key: String) throws -> LocalDeck {
-        guard let file = bundledDeckFiles().first(where: { $0.deckId == key }) else {
-            throw LocalStudyError.deckFileMissing(key)
-        }
-        guard !library.decks.contains(where: { $0.key == key }) else {
-            throw LocalStudyError.duplicateDeckKey(key)
-        }
-        library.removedBundledKeys.removeAll { $0 == key }
-        let deck = registerDeck(from: file, isBundled: true)
-        try persistLibrary()
-        return deck
-    }
 
     @discardableResult
     func importDeck(from data: Data) throws -> LocalDeck {
@@ -258,7 +229,7 @@ final class LocalStudyDataSource: StudyDataSource {
         }
         try ensureDirectory(importedDirectoryURL())
         try file.encoded().write(to: importedFileURL(key: file.deckId), options: .atomic)
-        let deck = registerDeck(from: file, isBundled: false)
+        let deck = registerDeck(from: file)
         try persistLibrary()
         return deck
     }
@@ -417,15 +388,6 @@ final class LocalStudyDataSource: StudyDataSource {
 
     var supportsDeckFileTransfer: Bool { true }
 
-    func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome {
-        let deck = try installBundledDeck(key: file.deckId)
-        return DeckInstallOutcome(
-            deck: deck.deck,
-            addedCardCount: file.cards.count,
-            skippedCardCount: 0
-        )
-    }
-
     func deleteDeck(id: Int) async throws {
         guard let index = library.decks.firstIndex(where: { $0.id == id }) else {
             throw LocalStudyError.deckNotFound
@@ -442,7 +404,7 @@ final class LocalStudyDataSource: StudyDataSource {
 
     func snapshot(now: Date = Date()) throws -> LocalStudySnapshot {
         var importedDecks: [String: DeckFile] = [:]
-        for deck in library.decks where !deck.isBundled {
+        for deck in library.decks {
             importedDecks[deck.key] = try deckFile(for: deck)
         }
         return LocalStudySnapshot(
@@ -484,8 +446,8 @@ final class LocalStudyDataSource: StudyDataSource {
         try persist(tagsByWordId, to: FileName.tags)
         try persist(overridesByWordId, to: FileName.overrides)
 
-        // このビルドに入っている同梱デッキを、復元後の一覧へ合わせ直す。
-        syncBundledDecks()
+        // 古いバックアップに残る同梱デッキの行を外す。
+        dropBundledDecks()
     }
 
     func encodedSnapshot(now: Date = Date()) throws -> Data {
@@ -512,7 +474,7 @@ final class LocalStudyDataSource: StudyDataSource {
         tagsByWordId = [:]
         overridesByWordId = [:]
         cachedRemoteDecks = []
-        syncBundledDecks()
+        dropBundledDecks()
         try persistLibrary()
     }
 
@@ -605,62 +567,27 @@ final class LocalStudyDataSource: StudyDataSource {
 
     // MARK: - デッキ登録
 
-    private func registerDeck(from file: DeckFile, isBundled: Bool) -> LocalDeck {
+    private func registerDeck(from file: DeckFile) -> LocalDeck {
         let deck = LocalDeck(
             id: library.nextDeckId,
             key: file.deckId,
             name: file.deckName,
             description: file.description,
-            isBundled: isBundled
+            isBundled: false
         )
         library.nextDeckId += 1
         library.decks.append(deck)
         return deck
     }
 
-    /// 初期状態で学習タブへ並べる同梱デッキ。ここに無い同梱デッキは自動登録せず、
-    /// 「デッキを追加」の同梱デッキ一覧から利用者が選んで追加する。
-    private static let autoInstalledBundledDeckKeys: Set<String> = ["toeic-basic"]
-
-    /// 同梱サンプルデッキを一覧へ自動登録する。ユーザーが消したものは再登録しない。
-    /// 同梱JSONの差し替えでデッキ名が変わった場合も、ここで追従する。
-    private func syncBundledDecks() {
-        var changed = false
-        let removed = Set(library.removedBundledKeys)
-        for file in bundledDeckFiles() {
-            if let index = library.decks.firstIndex(where: { $0.key == file.deckId }) {
-                if library.decks[index].name != file.deckName || library.decks[index].description != file.description {
-                    library.decks[index].name = file.deckName
-                    library.decks[index].description = file.description
-                    changed = true
-                }
-            } else if Self.autoInstalledBundledDeckKeys.contains(file.deckId), !removed.contains(file.deckId) {
-                _ = registerDeck(from: file, isBundled: true)
-                changed = true
-            }
-        }
-        if changed {
-            try? persistLibrary()
-        }
-    }
-
-    private func bundledDeckFiles() -> [DeckFile] {
-        let urls = bundle.urls(forResourcesWithExtension: "json", subdirectory: "SampleDecks") ?? []
-        return urls
-            .compactMap { url -> DeckFile? in
-                guard let data = try? Data(contentsOf: url) else { return nil }
-                return try? DeckFile.decode(from: data)
-            }
-            .sorted { $0.deckId < $1.deckId }
+    /// 同梱デッキはアプリから外した。古い保存データに残る行は、中身を読めないので一覧から外す。
+    private func dropBundledDecks() {
+        guard library.decks.contains(where: \.isBundled) else { return }
+        library.decks.removeAll(where: \.isBundled)
+        try? persistLibrary()
     }
 
     private func deckFile(for deck: LocalDeck) throws -> DeckFile {
-        if deck.isBundled {
-            guard let file = bundledDeckFiles().first(where: { $0.deckId == deck.key }) else {
-                throw LocalStudyError.deckFileMissing(deck.key)
-            }
-            return file
-        }
         guard let data = try? Data(contentsOf: importedFileURL(key: deck.key)) else {
             throw LocalStudyError.deckFileMissing(deck.key)
         }

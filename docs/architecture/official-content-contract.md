@@ -57,6 +57,7 @@ DBには完全URLではなく、`bucket/object-key` を保存します。`theme-
 | 公式DB (`words` など) | 不可 | 読み取りのみ | `service_role` で書き込み |
 | 個人デッキ (`decks.owner_id = 本人`, その配下の `cards`) | 不可 | 本人の行だけ読み書き | 必要時だけ管理 |
 | 公開画像・音声 | URLを知れば読み取り可 | 読み取り可 | `service_role` でアップロード・更新・削除 |
+| 公式デッキの追加記録 (`user_added_decks`) | 不可 | 本人の行だけ読み取り・追加。追加できるのは公式デッキだけ | 必要時だけ管理 |
 | 利用者の学習記録 | 不可 | 本人の行だけ読み書き | 必要時だけ管理 |
 
 公開bucketはファイル取得だけを公開します。アップロード、上書き、移動、削除を許可する `anon` / `authenticated` 用Storage policyは作りません。運営処理はiOSアプリ外の信頼済み環境で行い、`service_role` をアプリへ入れません。
@@ -68,6 +69,11 @@ DBのGRANTとRLSは別の門です。公式DBは `authenticated` へ `SELECT` �
 `authenticated` へ `INSERT` / `UPDATE` / `DELETE` もGRANTします。ただしRLSで
 `decks.owner_id = auth.uid()` の行に限定し、公式行（`owner_id IS NULL`）への
 書き込みは一切許可しません。「公式コンテンツは読み取り専用」はこの例外でも保たれます。
+
+学習タブに並ぶ公式デッキは、`decks.is_starter` が true のものと、本人が
+ギャラリーから追加したもの（`user_added_decks`）だけです
+（[決定](../decisions/official-deck-gallery-20260918.md)）。
+ギャラリーは公式デッキの全件を読みます。
 
 具体的な公式DB権限は各テーブルのmigrationを正本とし、本番適用前に現在のpolicyとGRANTを再監査します。
 

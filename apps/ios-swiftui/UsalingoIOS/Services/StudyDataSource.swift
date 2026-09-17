@@ -38,8 +38,6 @@ protocol StudyDataSource {
     /// デッキJSONの読み込みと書き出しを扱えるか。
     /// 端末のデッキファイルが元になるため、リモートを正本にする実装では false。
     var supportsDeckFileTransfer: Bool { get }
-    /// 同梱デッキを自分のデッキとして取り込む。
-    func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome
     /// 自分のデッキを削除する。公式デッキへは使わない。
     func deleteDeck(id: Int) async throws
 }
@@ -151,10 +149,6 @@ final class RemoteStudyDataSource: StudyDataSource {
 
     /// JSONの読み書きは端末のデッキファイルが元になるため、リモートでは扱わない。
     var supportsDeckFileTransfer: Bool { false }
-
-    func installBundledDeck(_ file: DeckFile) async throws -> DeckInstallOutcome {
-        try await service.installPersonalDeck(from: file, session: session)
-    }
 
     func deleteDeck(id: Int) async throws {
         try await service.deletePersonalDeck(id: id, session: session)

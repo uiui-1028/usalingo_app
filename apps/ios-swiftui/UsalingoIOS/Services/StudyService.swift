@@ -2,6 +2,8 @@ import Foundation
 
 protocol RemoteStudyImporting {
     func fetchDecks(session: AuthSession) async throws -> [Deck]
+    func fetchOfficialDecks(session: AuthSession) async throws -> [OfficialDeck]
+    func addOfficialDeck(id: Int, session: AuthSession) async throws
     func fetchCards(deckId: Int, session: AuthSession) async throws -> [WordCard]
     func fetchAllLearningProgress(session: AuthSession) async throws -> [LearningProgress]
 }
@@ -50,54 +52,56 @@ struct UserProfile: Codable {
     }
 }
 
-/// 個人デッキを作った結果。落とした単語の件数を黙って捨てないために持つ。
-struct DeckInstallOutcome {
-    let deck: Deck
-    let addedCardCount: Int
-    let skippedCardCount: Int
-}
-
-private struct NewDeckPayload: Encodable {
-    let deckName: String
-    let description: String?
-    let ownerId: String
-
-    enum CodingKeys: String, CodingKey {
-        case deckName = "deck_name"
-        case description
-        case ownerId = "owner_id"
-    }
-}
-
-private struct NewCardPayload: Encodable {
-    let wordId: Int
-    let cardTemplateId: Int
-    let deckId: Int
-    let sortOrder: Int
-
-    enum CodingKeys: String, CodingKey {
-        case wordId = "word_id"
-        case cardTemplateId = "card_template_id"
-        case deckId = "deck_id"
-        case sortOrder = "sort_order"
-    }
-}
-
 private struct CardIdRecord: Decodable {
     let id: Int
 }
 
-private struct CardTemplateIdRecord: Decodable {
-    let id: Int
+/// ギャラリーに並べる公式デッキ。`isAdded` は、この利用者の学習タブに出ているか。
+struct OfficialDeck: Identifiable, Equatable {
+    let deck: Deck
+    let isAdded: Bool
+
+    var id: Int { deck.id }
 }
 
-private struct WordIdRecord: Decodable {
+/// 学習タブに出すかどうかを決める列を足したデッキ行。
+private struct DeckCatalogRecord: Decodable {
     let id: Int
-    let wordText: String
+    let deckName: String
+    let description: String?
+    let ownerId: String?
+    let isStarter: Bool
+    let addedBy: [AddedDeckRecord]
 
     enum CodingKeys: String, CodingKey {
         case id
-        case wordText = "word_text"
+        case deckName = "deck_name"
+        case description
+        case ownerId = "owner_id"
+        case isStarter = "is_starter"
+        case addedBy = "user_added_decks"
+    }
+
+    var deck: Deck { Deck(id: id, deckName: deckName, description: description, ownerId: ownerId) }
+    /// RLS で本人の追加記録しか返らないので、空でなければ本人が追加済み。
+    var isOnStudyList: Bool { ownerId != nil || isStarter || !addedBy.isEmpty }
+}
+
+private struct AddedDeckRecord: Decodable {
+    let deckId: Int
+
+    enum CodingKeys: String, CodingKey {
+        case deckId = "deck_id"
+    }
+}
+
+private struct AddedDeckPayload: Encodable {
+    let userId: String
+    let deckId: Int
+
+    enum CodingKeys: String, CodingKey {
+        case userId = "user_id"
+        case deckId = "deck_id"
     }
 }
 
@@ -196,67 +200,39 @@ final class StudyService: RemoteStudyImporting {
         static let studyCard = "id,word_id,sort_order,primary_meaning_id,word:words!inner(\(word))"
     }
 
+    /// 学習タブに並べるデッキ。最初から出す公式デッキ、本人が追加した公式デッキ、本人のデッキ。
     func fetchDecks(session: AuthSession) async throws -> [Deck] {
+        try await fetchDeckCatalog(session: session).filter(\.isOnStudyList).map(\.deck)
+    }
+
+    /// ギャラリーに並べる公式デッキの全件。
+    func fetchOfficialDecks(session: AuthSession) async throws -> [OfficialDeck] {
+        try await fetchDeckCatalog(session: session)
+            .filter { $0.ownerId == nil }
+            .map { OfficialDeck(deck: $0.deck, isAdded: $0.isOnStudyList) }
+    }
+
+    /// 公式デッキを本人の学習タブへ追加する。追加済みなら何もしない。
+    func addOfficialDeck(id: Int, session: AuthSession) async throws {
+        try await execute(
+            path: "user_added_decks",
+            method: .post,
+            accessToken: session.accessToken,
+            body: [AddedDeckPayload(userId: session.user.id, deckId: id)],
+            prefer: "resolution=ignore-duplicates,return=minimal"
+        )
+    }
+
+    private func fetchDeckCatalog(session: AuthSession) async throws -> [DeckCatalogRecord] {
         // owner_id を必ず取る。公式デッキ（NULL）と個人デッキの区別は、
         // 画面が「編集できるか」を決めるための唯一の手がかりになる。
         try await fetchAllPages(
             path: "decks",
             queryItems: [
-                URLQueryItem(name: "select", value: "id,deck_name,description,owner_id"),
+                URLQueryItem(name: "select", value: "id,deck_name,description,owner_id,is_starter,user_added_decks(deck_id)"),
                 URLQueryItem(name: "order", value: "id.asc")
             ],
             accessToken: session.accessToken
-        )
-    }
-
-    // MARK: - 個人デッキ
-
-    /// 同梱デッキJSONを、公式の単語と突き合わせて個人デッキとして作る。
-    /// `words` に無い単語は作らない（単語は公式のまま）。落とした件数を返す。
-    func installPersonalDeck(from file: DeckFile, session: AuthSession) async throws -> DeckInstallOutcome {
-        let matchedWordIds = try await fetchWordIds(matching: file.cards.map(\.text), session: session)
-        let templateId = try await fetchDefaultCardTemplateId(session: session)
-
-        let created: [Deck] = try await request(
-            path: "decks",
-            method: .post,
-            queryItems: [URLQueryItem(name: "select", value: "id,deck_name,description,owner_id")],
-            accessToken: session.accessToken,
-            body: [NewDeckPayload(
-                deckName: file.deckName,
-                description: file.description,
-                ownerId: session.user.id
-            )],
-            prefer: "return=representation"
-        )
-        guard let deck = created.first else {
-            throw SupabaseError.badResponse("Creating a personal deck returned no row")
-        }
-
-        if !matchedWordIds.isEmpty {
-            let cards = matchedWordIds.enumerated().map { index, wordId in
-                NewCardPayload(
-                    wordId: wordId,
-                    cardTemplateId: templateId,
-                    deckId: deck.id,
-                    sortOrder: index
-                )
-            }
-            for batch in cards.chunked(into: FetchLimit.identifierBatchSize) {
-                try await execute(
-                    path: "cards",
-                    method: .post,
-                    accessToken: session.accessToken,
-                    body: batch,
-                    prefer: "return=minimal"
-                )
-            }
-        }
-
-        return DeckInstallOutcome(
-            deck: deck,
-            addedCardCount: matchedWordIds.count,
-            skippedCardCount: file.cards.count - matchedWordIds.count
         )
     }
 
@@ -297,55 +273,6 @@ final class StudyService: RemoteStudyImporting {
             queryItems: [URLQueryItem(name: "id", value: "eq.\(id)")],
             accessToken: session.accessToken
         )
-    }
-
-    /// 単語文字列から公式の `words.id` を引く。重複と大文字小文字の揺れは
-    /// 最初の1件へ寄せ、渡された順番を保つ。
-    private func fetchWordIds(matching texts: [String], session: AuthSession) async throws -> [Int] {
-        let wanted = texts
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
-        guard !wanted.isEmpty else { return [] }
-
-        var idByLoweredText: [String: Int] = [:]
-        for batch in wanted.chunked(into: FetchLimit.identifierBatchSize) {
-            let list = batch
-                .map { "\"\($0.replacingOccurrences(of: "\"", with: ""))\"" }
-                .joined(separator: ",")
-            let rows: [WordIdRecord] = try await fetchAllPages(
-                path: "words",
-                queryItems: [
-                    URLQueryItem(name: "select", value: "id,word_text"),
-                    URLQueryItem(name: "word_text", value: "in.(\(list))")
-                ],
-                accessToken: session.accessToken
-            )
-            for row in rows where idByLoweredText[row.wordText.lowercased()] == nil {
-                idByLoweredText[row.wordText.lowercased()] = row.id
-            }
-        }
-
-        var seen = Set<Int>()
-        return wanted.compactMap { text in
-            guard let id = idByLoweredText[text.lowercased()], seen.insert(id).inserted else { return nil }
-            return id
-        }
-    }
-
-    private func fetchDefaultCardTemplateId(session: AuthSession) async throws -> Int {
-        let rows: [CardTemplateIdRecord] = try await request(
-            path: "card_templates",
-            queryItems: [
-                URLQueryItem(name: "select", value: "id"),
-                URLQueryItem(name: "order", value: "id.asc"),
-                URLQueryItem(name: "limit", value: "1")
-            ],
-            accessToken: session.accessToken
-        )
-        guard let id = rows.first?.id else {
-            throw SupabaseError.badResponse("No card template is available")
-        }
-        return id
     }
 
     func fetchStudyQueue(deckId: Int, mode: StudyMode = .all, session: AuthSession) async throws -> [WordCard] {
