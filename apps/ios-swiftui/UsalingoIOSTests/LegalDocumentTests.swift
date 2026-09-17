@@ -52,7 +52,7 @@ final class LegalDocumentTests: XCTestCase {
     func testVersionAndEffectiveDateMatchThePublishedDocuments() {
         let expected: [LegalDocument.Kind: (version: String, effectiveDate: String)] = [
             .terms: ("第1.0版", "2026年9月1日"),
-            .privacy: ("第1.0版", "2026年9月1日"),
+            .privacy: ("第1.1版", "2026年9月17日"),
             .credits: ("第1.1版", "2026年9月4日")
         ]
 
