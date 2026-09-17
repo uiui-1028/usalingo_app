@@ -52,10 +52,10 @@ struct WordCard: Identifiable, Hashable {
         senses.first?.meaning ?? ""
     }
 
-    /// 副の意味をつないだもの。副が無ければ nil。
+    /// 副の意味を `, ` でつないだもの。カードで主の意味の後ろに細字で続ける。副が無ければ nil。
     var secondaryMeaning: String? {
         let rest = senses.dropFirst().map(\.meaning)
-        return rest.isEmpty ? nil : rest.joined(separator: Self.meaningSeparator)
+        return rest.isEmpty ? nil : rest.joined(separator: ", ")
     }
 
     /// 代表の品詞。1つしか置けない場所（詳細画面の見出しなど）で使う。
