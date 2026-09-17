@@ -2,6 +2,53 @@ import XCTest
 @testable import UsalingoIOS
 
 final class AuthTransportTests: XCTestCase {
+    func testRestoreSessionKeepsSavedSessionWhenNetworkIsUnavailable() async {
+        let saved = AuthSession(
+            accessToken: "saved-access",
+            refreshToken: "saved-refresh",
+            expiresAt: 123,
+            user: AuthUser(id: "user-1", email: "learner@example.com")
+        )
+        let store = FakeSessionStore(savedSession: saved)
+        let service = AuthService(
+            sessionStore: store,
+            client: FakeAuthSupabaseClient(),
+            session: OfflineNetworkSession()
+        )
+
+        do {
+            _ = try await service.restoreSession()
+            XCTFail("Expected offline refresh to fail")
+        } catch is URLError {
+            XCTAssertEqual(store.savedSession?.accessToken, saved.accessToken)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testRestoreSessionClearsSavedSessionWhenServerRejectsRefresh() async {
+        let store = FakeSessionStore(savedSession: AuthSession(
+            accessToken: "expired-access",
+            refreshToken: "invalid-refresh",
+            expiresAt: 123,
+            user: AuthUser(id: "user-1", email: "learner@example.com")
+        ))
+        let service = AuthService(
+            sessionStore: store,
+            client: FakeAuthSupabaseClient(),
+            session: StubNetworkSession(data: Data(), statusCode: 401)
+        )
+
+        do {
+            _ = try await service.restoreSession()
+            XCTFail("Expected rejected refresh to fail")
+        } catch is SupabaseError {
+            XCTAssertNil(store.savedSession)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
     func testSignInSucceedsWithoutNetworkAndSavesSession() async throws {
         let transport = StubNetworkSession(
             data: Data("""
@@ -165,8 +212,18 @@ private final class StubNetworkSession: NetworkSession {
     }
 }
 
+private final class OfflineNetworkSession: NetworkSession {
+    func data(for request: URLRequest) async throws -> (Data, URLResponse) {
+        throw URLError(.notConnectedToInternet)
+    }
+}
+
 private final class FakeSessionStore: SessionStoring {
     private(set) var savedSession: AuthSession?
+
+    init(savedSession: AuthSession? = nil) {
+        self.savedSession = savedSession
+    }
 
     func save(_ session: AuthSession) throws { savedSession = session }
     func load() throws -> AuthSession? { savedSession }

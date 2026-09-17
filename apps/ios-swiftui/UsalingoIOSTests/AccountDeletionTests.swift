@@ -37,6 +37,14 @@ final class AccountDeletionTests: XCTestCase {
     func testSuccessfulDeletionClearsSessionAndLocalState() async throws {
         let defaults = try makeDefaults()
         defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
+        let directory = temporaryStudyDirectory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let localStudy = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+        let decks = try await localStudy.fetchDecks()
+        let deck = try XCTUnwrap(decks.first)
+        let cards = try await localStudy.fetchCards(deckId: deck.id)
+        let card = try XCTUnwrap(cards.first)
+        _ = try await localStudy.saveAnswer(card: card, isCorrect: true)
         let sessionStore = DeletionSessionStore()
         let authService = AuthService(
             sessionStore: sessionStore,
@@ -47,7 +55,8 @@ final class AccountDeletionTests: XCTestCase {
             restoresSession: false,
             defaults: defaults,
             authService: authService,
-            accountDeletionService: SuccessfulDeletionService()
+            accountDeletionService: SuccessfulDeletionService(),
+            localStudy: localStudy
         )
         let session = testSession
         try sessionStore.save(session)
@@ -67,6 +76,9 @@ final class AccountDeletionTests: XCTestCase {
         XCTAssertEqual(appState.designSettings.accentName, "green")
         XCTAssertEqual(appState.designSettings.cardCornerRadius, 18)
         XCTAssertNotNil(appState.accountDeletionNotice)
+        XCTAssertFalse(localStudy.hasStudyRecord)
+        XCTAssertEqual(localStudy.decks().map(\.key), ["toeic-basic"])
+        XCTAssertFalse(LocalStudyDataSource(directoryURL: directory, bundle: .main).hasStudyRecord)
     }
 
     @MainActor
@@ -80,11 +92,20 @@ final class AccountDeletionTests: XCTestCase {
                 client: DeletionSupabaseClient(),
                 session: CapturingDeletionNetworkSession(data: Data(), statusCode: 200)
             )
+            let directory = temporaryStudyDirectory()
+            defer { try? FileManager.default.removeItem(at: directory) }
+            let localStudy = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+            let decks = try await localStudy.fetchDecks()
+            let deck = try XCTUnwrap(decks.first)
+            let cards = try await localStudy.fetchCards(deckId: deck.id)
+            let card = try XCTUnwrap(cards.first)
+            _ = try await localStudy.saveAnswer(card: card, isCorrect: true)
             let appState = AppState(
                 restoresSession: false,
                 defaults: defaults,
                 authService: auth,
-                accountDeletionService: FailingDeletionService(error: expectedError)
+                accountDeletionService: FailingDeletionService(error: expectedError),
+                localStudy: localStudy
             )
             try store.save(testSession)
             appState.setSession(testSession)
@@ -97,6 +118,8 @@ final class AccountDeletionTests: XCTestCase {
             }
             XCTAssertNotNil(appState.session)
             XCTAssertNotNil(store.savedSession)
+            XCTAssertTrue(localStudy.hasStudyRecord)
+            XCTAssertTrue(LocalStudyDataSource(directoryURL: directory, bundle: .main).hasStudyRecord)
         }
     }
 
@@ -170,6 +193,11 @@ final class AccountDeletionTests: XCTestCase {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: name))
         defaults.removePersistentDomain(forName: name)
         return defaults
+    }
+
+    private func temporaryStudyDirectory() -> URL {
+        FileManager.default.temporaryDirectory
+            .appendingPathComponent("AccountDeletionTests-\(UUID().uuidString)", isDirectory: true)
     }
 }
 

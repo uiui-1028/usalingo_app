@@ -431,6 +431,21 @@ final class LocalStudyDataSource: StudyDataSource {
         }
     }
 
+    /// 退会完了後、このアプリが作った学習ファイルだけを消す。
+    func reset() throws {
+        let targets = [FileName.library, FileName.progress, FileName.tags, FileName.overrides]
+            .map { directoryURL.appendingPathComponent($0) } + [importedDirectoryURL()]
+        for target in targets where fileManager.fileExists(atPath: target.path) {
+            try fileManager.removeItem(at: target)
+        }
+        library = LocalStudyLibrary()
+        progressByCardId = [:]
+        tagsByWordId = [:]
+        overridesByWordId = [:]
+        syncBundledDecks()
+        try persistLibrary()
+    }
+
     // MARK: - カードの読み込み
 
     private func loadCards(deckId: Int) throws -> [WordCard] {

@@ -82,7 +82,7 @@ struct AuthView: View {
             .buttonStyle(.wireSecondary)
             .disabled(isLoading)
 
-            // 記録がどうなるかを、押す前に書く。あとから知らせても遅い。
+            // 端末の記録がどうなるかを、押す前に書く。あとから知らせても遅い。
             WireframeNotice(text: handoffNotice)
         }
     }
@@ -90,8 +90,7 @@ struct AuthView: View {
     /// いまの学習記録がどう扱われるかの説明。匿名アカウントかどうかで変わる。
     private var handoffNotice: String {
         appState.isGuest
-            ? "Create Account では、いまの学習記録がそのまま引き継がれます。"
-                + "別のアカウントで Sign In すると、いまの記録はこの端末から見えなくなります。"
+            ? "Create Account や Sign In のあとも、この端末の学習記録はそのまま使えます。"
             : "すでに登録済みのアカウントです。"
     }
 
@@ -173,8 +172,7 @@ struct AuthView: View {
         do {
             if signUp {
                 if appState.isGuest {
-                    // いまの匿名アカウントを育てる。新しいアカウントを作らないので、
-                    // user_id が変わらず、学習記録は移送せずに残る。
+                    // いまの匿名アカウントを育てる。端末の学習記録はそのまま残る。
                     try await appState.linkAnonymousAccount(email: email, password: password)
                     pendingConfirmationEmail = email
                     resendAvailableAt = Date().addingTimeInterval(60)

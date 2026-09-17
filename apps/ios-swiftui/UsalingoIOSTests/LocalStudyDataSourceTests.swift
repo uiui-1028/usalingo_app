@@ -175,6 +175,44 @@ final class LocalStudyDataSourceTests: XCTestCase {
         XCTAssertEqual(reloaded.first?.meaning, "編集済み")
     }
 
+    func testResetRemovesLocalStudyDataAndRestoresBundledDefault() async throws {
+        let source = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
+        let imported = try source.importDeck(from: sampleDeckData(cardCount: 1))
+        let cards = try await source.fetchCards(deckId: imported.id)
+        let card = try XCTUnwrap(cards.first)
+        _ = try await source.saveAnswer(card: card, isCorrect: true)
+        try await source.saveTags(["重要"], wordId: card.wordId)
+        _ = try await source.saveWordOverride(
+            WordOverridePayload(
+                wordId: card.wordId,
+                wordText: "edited",
+                definitionJapanese: "編集済み",
+                sentenceEnglish: nil,
+                sentenceJapanese: nil,
+                imageAssetPath: nil
+            )
+        )
+        let unrelatedFile = directoryURL.appendingPathComponent("unrelated.txt")
+        try Data("keep".utf8).write(to: unrelatedFile)
+
+        try source.reset()
+
+        let reopened = LocalStudyDataSource(directoryURL: directoryURL, bundle: .main)
+        XCTAssertFalse(reopened.hasStudyRecord)
+        let tags = try await reopened.fetchTags(wordId: card.wordId)
+        XCTAssertNil(tags)
+        XCTAssertFalse(reopened.decks().contains { $0.key == imported.key })
+        XCTAssertEqual(reopened.decks().map(\.key), ["toeic-basic"])
+        let remainingCards = try await reopened.fetchWordList()
+        XCTAssertFalse(remainingCards.contains { $0.text == "edited" })
+        let snapshot = try reopened.snapshot()
+        XCTAssertTrue(snapshot.progress.isEmpty)
+        XCTAssertTrue(snapshot.tags.isEmpty)
+        XCTAssertTrue(snapshot.overrides.isEmpty)
+        XCTAssertTrue(snapshot.importedDecks.isEmpty)
+        XCTAssertEqual(try String(contentsOf: unrelatedFile, encoding: .utf8), "keep")
+    }
+
     func testCardIdsStayStableWhenDeckShrinks() async throws {
         let dataSource = makeDataSource()
         let deck = try dataSource.importDeck(from: sampleDeckData(cardCount: 3))

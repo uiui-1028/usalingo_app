@@ -211,15 +211,21 @@ struct ProfileDashboardView: View {
     private func load() async {
         do {
             stats = try await appState.studyDataSource.fetchStudyStats()
-            if let session = appState.session {
-                profile = try await studyService.fetchUserProfile(session: session)
-            } else {
-                profile = UserProfile(userId: "", nickname: nil, plan: "free")
-            }
             message = ""
         } catch {
             stats = .empty
-            message = "プロフィール情報を読み込めませんでした。"
+            message = "端末の学習記録を読み込めませんでした。"
+        }
+
+        guard let session = appState.session else {
+            profile = UserProfile(userId: "", nickname: nil, plan: "free")
+            return
+        }
+        do {
+            profile = try await studyService.fetchUserProfile(session: session)
+        } catch {
+            // アカウント情報の通信失敗で、先に読めた端末の学習統計まで消さない。
+            message = "アカウント情報は接続後に更新します。"
         }
     }
 

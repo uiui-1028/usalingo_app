@@ -188,7 +188,11 @@ final class AuthService {
             try sessionStore.save(session)
             return session
         } catch {
-            try? sessionStore.clear()
+            // 通信できないだけで復元用トークンを捨てると、回線復帰後に元の
+            // アカウントへ戻れない。サーバーが拒否したときだけ無効と判断する。
+            if error is SupabaseError {
+                try? sessionStore.clear()
+            }
             throw error
         }
     }
