@@ -31,7 +31,7 @@ struct WordDetailSheet: View {
             let restingHeight = height * (isExpanded ? 0.68 : 0.29)
             let panelHeight = min(height * 0.72, max(height * 0.25, restingHeight - sheetDrag))
             let stageHeight = max(100, isFocused ? height - 110 : height - panelHeight - 64)
-            let cardHeight = max(80, min(stageHeight - 24, (geometry.size.width - 56) / 0.64))
+            let cardHeight = max(80, min(stageHeight - 24, min(350, geometry.size.width - 56) / 0.74))
             ZStack(alignment: .bottom) {
                 // カードとボトムシートを除いた背景。カードだけの状態は、
                 // ここを押すと詳細ありへ戻る。
@@ -124,10 +124,10 @@ struct WordDetailSheet: View {
                 let position = CGFloat(offset) - (reduceMotion ? 0 : pagingProgress)
                 InteractiveWordCard(word: selection.words[index], reduceMotion: reduceMotion)
                     .id(selection.words[index].id)
-                    .frame(width: cardHeight * 0.64, height: cardHeight)
+                    .frame(width: cardHeight * 0.74, height: cardHeight)
                     // 触れる範囲を札の形へ切り直す。中の傾き（3D 回転）で判定が
                     // 札の外まで広がると、背景のタップを奪ってしまうため。
-                    .contentShape(RoundedRectangle(cornerRadius: 22))
+                    .contentShape(RoundedRectangle(cornerRadius: WireMetrics.radiusCard))
                     // 拡大の切り替えはカードの上だけで受ける。カードの外は背景に残す。
                     .onTapGesture { animate { isFocused.toggle() } }
                     .accessibilityAction(named: isFocused ? "詳細を表示" : "カードを拡大") {
@@ -477,19 +477,7 @@ private struct InteractiveWordCard: View {
             let angle = baseAngle + flipAngle(for: flipDrag, width: width)
             let showsBack = isBack(angle)
 
-            ZStack {
-                face(showsBack: showsBack)
-                if !reduceMotion {
-                    LinearGradient(colors: [.clear, .white.opacity(touch == nil ? 0.08 : 0.38), .clear],
-                                   startPoint: UnitPoint(x: 0.1 + x * 0.4, y: y * 0.3),
-                                   endPoint: UnitPoint(x: 0.9 + x * 0.4, y: 1 + y * 0.3))
-                        .allowsHitTesting(false)
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 22))
-            .overlay(RoundedRectangle(cornerRadius: 22).stroke(.white.opacity(0.75), lineWidth: 1))
-            .shadow(color: .black.opacity(touch == nil ? 0.16 : 0.24),
-                    radius: touch == nil ? 12 : 24, x: -x * 12, y: 12 - y * 10)
+            face(showsBack: showsBack)
             .rotation3DEffect(.degrees(-y * 13 * tilt), axis: (x: 1, y: 0, z: 0), perspective: 0.5)
             .rotation3DEffect(.degrees(angle + x * 13 * tilt), axis: (x: 0, y: 1, z: 0), perspective: 0.5)
             .scaleEffect(touch == nil || reduceMotion ? 1 : 1.025)
@@ -529,67 +517,15 @@ private struct InteractiveWordCard: View {
     }
 
     private var front: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 22).fill(.white)
-            VStack(spacing: 0) {
-                Color.clear
-                    .overlay {
-                        if let url = word.illustrationURL {
-                            CardImage(url: url, contentMode: .fill, showsLoadingIndicator: true) {
-                                placeholder
-                            }
-                        } else {
-                            placeholder
-                        }
-                    }
-                    .clipped()
-                VStack(spacing: 5) {
-                    Text(word.text).font(.title2.bold()).lineLimit(2).minimumScaleFactor(0.6)
-                    Text(word.partOfSpeech?.uppercased() ?? "VOCABULARY")
-                        .font(.caption2.weight(.medium)).tracking(2)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(14)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-            .padding(5)
-            // 裏があることは、隠された操作なので小さく示しておく。
-            flipHint
+        StudyCardFace {
+            StudyCardFront(card: word, content: WordCardContent(card: word), showAnswer: true)
         }
     }
 
     private var back: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 22).fill(.white)
+        StudyCardFace {
             // 回っている間はスクロールを閉じる。理由は `StudyCardBack` 側に書いてある。
             StudyCardBack(content: WordCardContent(card: word), isScrollEnabled: !isTurning)
-                .padding(16)
-        }
-    }
-
-    private var flipHint: some View {
-        Image(systemName: "arrow.2.squarepath")
-            .font(.caption.weight(.semibold))
-            .foregroundStyle(.white)
-            .padding(7)
-            .background(.black.opacity(0.28), in: Circle())
-            .padding(12)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-            .allowsHitTesting(false)
-    }
-
-    private var placeholder: some View {
-        ZStack {
-            LinearGradient(colors: [Color(red: 0.82, green: 0.91, blue: 0.96),
-                                    Color(red: 0.90, green: 0.87, blue: 0.97)],
-                           startPoint: .topLeading, endPoint: .bottomTrailing)
-            VStack(spacing: 14) {
-                Image(systemName: "photo")
-                    .font(.system(size: 44, weight: .ultraLight))
-                Text("画像は準備中")
-                    .font(.caption)
-            }
-            .foregroundStyle(.secondary)
         }
     }
 
