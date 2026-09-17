@@ -31,8 +31,8 @@
 | 項目 | 状態 | 現在の値 / やること |
 |---|---|---|
 | Bundle ID（コード側） | 済み | `com.usalingo.ios`（`UsalingoIOS.xcodeproj/project.pbxproj`） |
-| Bundle ID（Apple側の登録） | 未確認 | 人間が Certificates, Identifiers & Profiles で同じ ID を登録する。自動署名なら Xcode が登録する場合もある |
-| バージョン / ビルド番号 | 済み | `MARKETING_VERSION = 0.1.0`、`CURRENT_PROJECT_VERSION = 1` |
+| Bundle ID（Apple側の登録） | 済み（USL-287） | アプリレコードを作れたので、Apple 側にも登録されている |
+| バージョン / ビルド番号 | 済み | 配るたびに上げる。2026-09-17 時点で `MARKETING_VERSION = 2.0.0`、`CURRENT_PROJECT_VERSION = 2` |
 | 表示名 | 済み | `Usalingo`（`Info.plist` の `CFBundleDisplayName`） |
 | アプリのカテゴリ | 済み | `public.app-category.education` |
 | アプリアイコン | 済み（USL-281） | `Resources/Assets.xcassets/AppIcon.appiconset` に 1024×1024 の PNG（透過なし）を追加済み。素材は `assets/usalingo_iconcomposer/Icons｜SimpleFlatt/` の Default。あとから差し替えられる |
@@ -54,32 +54,32 @@
 
 | 項目 | 状態 | やること |
 |---|---|---|
-| **iOS 26 SDK / Xcode 26** | **未確認** | 2026年4月28日以降、App Store Connect へアップロードするアプリは iOS 26 SDK 以降でビルドしたものに限られる。人間が開発機の Xcode を確認する |
+| iOS 26 SDK / Xcode 26 | 済み（2026-09-04） | 2026年4月28日以降、App Store Connect へアップロードするアプリは iOS 26 SDK 以降でビルドしたものに限られる。開発機でのアーカイブとアップロードが通ったため確認済み。提出のたびに再確認する |
 | CI のランナー | 済み | テストの `ios-ci.yml` は `macos-15`。配布用の `ios-release.yml` は Xcode 26 が載る `macos-26`（USL-291） |
 
 ## 5. App Store Connect
 
 | 項目 | 状態 | やること |
 |---|---|---|
-| アプリレコード | 未確認 | 人間が作る。**TestFlight を使う前に必須**。アプリ名、主言語、Bundle ID、SKU が要る。アプリ名は App Store 全体で一意 |
-| 自分の内部テスト利用 | 未確認 | App Store Connectで、自分のApple Accountがこのアプリの内部テストを利用できることを確認する。追加のテスター招待は行わない |
+| アプリレコード | 済み（USL-287） | 人間が作った。**TestFlight を使う前に必須**。アプリ名、主言語、Bundle ID、SKU が要る。アプリ名は App Store 全体で一意 |
+| 自分の内部テスト利用 | 済み（2026-09-04、USL-287） | 内部グループ「自分用」に自分のApple Accountだけを入れ、本人のiPhoneでTestFlightから起動できた。追加のテスター招待は行っていない |
 | Beta App Review | 不要 | **自分だけの内部テストは審査なしで配れる。**外部テストはこのチケットの対象外 |
 | ビルドの有効期限 | 情報 | アップロードしたビルドは **90日** でテストできなくなる |
-| テスト情報 | 未（人間） | ベータ版の説明、試してほしいこと、フィードバック用のメールアドレス。内部テストでも入力欄がある |
+| テスト情報 | 済み（USL-287） | ベータ版の説明、試してほしいこと、フィードバック用のメールアドレス。内部テストでも入力欄がある |
 
 ## 6. 提出時に必ず聞かれること
 
 | 項目 | 状態 | やること |
 |---|---|---|
-| 輸出コンプライアンス | 未（AI） | 独自の暗号は使っていない（`CryptoKit`、`CommonCrypto`、`SecKey` の利用なし）。通信は HTTPS のみ。`Info.plist` に `ITSAppUsesNonExemptEncryption = false` を入れると、アップロードのたびに聞かれなくなる。最終判断は人間が行う |
-| **プライバシーマニフェスト** | **未（AI）** | `PrivacyInfo.xcprivacy` が存在しない。`UserDefaults` を使っている（`Models/DesignSettings.swift`、`App/AppState.swift`）ため、理由の申告が要る API に該当する。**第三者SDKは使っていない**（Swift Package の依存はゼロで、Supabase へは自前の `URLSession` で接続している）ので、自分のコードの分だけ書けば足りる |
-| App Privacy（収集する情報の申告） | 未（人間） | App Store Connect で申告する。メールアドレスと学習記録を扱う。既存のプライバシーポリシーと食い違わせない |
-| 年齢区分 | 未（人間） | App Store Connect の質問に答える |
+| 輸出コンプライアンス | 済み | 独自の暗号は使っていない（`CryptoKit`、`CommonCrypto`、`SecKey` の利用なし）。通信は HTTPS のみ。`Info.plist` に `ITSAppUsesNonExemptEncryption = false` を入れてあるので、アップロードのたびには聞かれない |
+| プライバシーマニフェスト | 済み | `Resources/PrivacyInfo.xcprivacy` がある。`UserDefaults` を使っている（`Models/DesignSettings.swift`、`App/AppState.swift`）ため、理由の申告が要る API に該当する。**第三者SDKは使っていない**（Supabase へは自前の `URLSession` で接続している）ので、自分のコードの分だけ書けば足りる |
+| App Privacy（収集する情報の申告） | 未（人間） | App Store Connect で申告する。メールアドレスと学習記録を扱う。公開中のプライバシーポリシー（`https://usalingo-app.vercel.app/privacy`）と食い違わせない |
+| 年齢区分 | 未（人間） | App Store Connect の質問に答える。決まったらプライバシーポリシー第7条（対象年齢）にも反映する |
 
 ## 7. 他チケットが前提になっているもの
 
-- **USL-255** 法務・ライセンス表示 — `Resources/Licenses/` が空。人に配るなら必要
-- **USL-245** Anki migration の本番適用 — 適用まで学習記録のバックアップが保存時にエラーになる
+- **USL-255** 法務・ライセンス表示 — 済み（2026-09-02）
+- **USL-245** Anki migration の本番適用 — 済み（2026-08-31）
 
 ## 8. 人間がやることだけを、順番に並べたもの
 
@@ -87,18 +87,18 @@
 - [x] チームIDを控えて共有する（`CTSYH44JRG`）
 - [x] アプリアイコンの絵を用意する（既存素材を採用）
 - [x] 開発機の Xcode が 26 以降か確認する（アーカイブが通ったため実質確認済み。提出時に再確認する）
-- [ ] App Store Connect でアプリレコードを作る（アプリ名を決める）
-- [ ] 自分のApple Accountで内部TestFlightを利用できることを確認する
+- [x] App Store Connect でアプリレコードを作る（USL-287）
+- [x] 自分のApple Accountで内部TestFlightを利用できることを確認する（2026-09-04、USL-287）
 - [ ] App Privacy と年齢区分に答える
 
-残っている4つは、どれから始めても構いません。
+残りは App Privacy と年齢区分だけです。Notion の Taskspace でチケットにしています。
+人間向けの同じ一覧は Notion の Knowledge「Xcode｜TestFlight 配信の準備一覧」にもあります。
 
 ## 9. AIが確認できなかったこと
 
-次はリポジトリからは見えないため、この文書では「未確認」としています。誤って
-「済み」と書かないための記録です。
-
-- App Store Connect にアプリレコードがあるかどうか
+App Store Connect の中身はリポジトリからは見えません。アプリレコードと内部テストは、
+USL-287 の完了報告（2026-09-04）を根拠に「済み」としています。App Privacy と
+年齢区分は、答えたという記録がまだないため「未（人間）」のままです。
 
 証明書、プロビジョニングプロファイル、Xcode のバージョンは、2026-09-01 に
 アーカイブが成功したことで確認済みになりました。

@@ -5,7 +5,7 @@
 > [!IMPORTANT]
 > **事業者情報は 2026-09-01 に確定しました。** 事業者は個人の「河合 泰芽」、所在地は〒446-0042 愛知県安城市大山町2-15-18、窓口は `support@usalingo.jp` です。
 > **版は文書ごとに持ちます。** 利用規約とプライバシーは第1.0版（2026年9月1日）、クレジットは第1.1版（2026年9月4日）です。1文書だけ改訂したときに他の版まで動かさないため、まとめて1つにしません。
-> **未了は次の2つです。** ①プライバシーポリシー第7条の対象年齢と第9条の保存期間が確定待ち、②法的な適否について専門家の確認は未実施。[`../asset-and-privacy-inventory.md`](../asset-and-privacy-inventory.md) の「公開前の確認リスト」7項目もあわせて確認してください。
+> **未了はプライバシーポリシー第7条の対象年齢と第9条の保有期間です。** 年齢区分を App Store Connect で答えてから確定します（Notion Taskspace のチケットで管理）。法的な適否の確認は 2026-09-02 に責任者が「適切」と報告済みです（USL-255）。[`../asset-and-privacy-inventory.md`](../asset-and-privacy-inventory.md) の「公開前の確認リスト」もあわせて確認してください。
 
 ## 公開先
 
@@ -52,7 +52,7 @@ App Store Connect はプライバシーポリシーの**URL**を求めるため�
 
 1. このMarkdownを直す
 2. **その文書の**版と施行日を上げる（利用規約・プライバシー: 第1.0版／2026年9月1日、クレジット: 第1.1版／2026年9月4日）
-3. Bubble の該当ページへ反映する
-4. `apps/ios-swiftui/UsalingoIOS/Features/Profile/ProfileDashboardView.swift` の `LegalDocument.publishedDocuments` の版・施行日を合わせる
+3. `apps/ios-swiftui/UsalingoIOS/Features/Profile/ProfileDashboardView.swift` の `LegalDocument.publishedDocuments` の版・施行日を合わせる
+4. main へ取りこむ。Vercel が `apps/legal-web/` から公開ページを作り直すので、デプロイが終わったら公開URLで版と施行日を確かめる
 
-4を忘れると、アプリが古い版を表示します。
+3を忘れると、アプリが古い版を表示します。HTML は生成物なので、手で書きません。
