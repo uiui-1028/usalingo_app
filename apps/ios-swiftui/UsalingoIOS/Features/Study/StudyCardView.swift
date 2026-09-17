@@ -18,11 +18,11 @@ struct StudyCardView: View {
     var body: some View {
         ZStack {
             // 表裏はどちらも同じ外形。半分より回ったところで入れ替える。
-            face { StudyCardFront(card: card, content: content, showAnswer: showAnswer) }
+            StudyCardFace { StudyCardFront(card: card, content: content, showAnswer: showAnswer) }
                 .opacity(isFlipped ? 0 : 1)
                 .rotation3DEffect(.degrees(isFlipped ? 180 : 0), axis: (x: 0, y: 1, z: 0))
 
-            face { StudyCardBack(content: content) }
+            StudyCardFace { StudyCardBack(content: content) }
                 .opacity(isFlipped ? 1 : 0)
                 .rotation3DEffect(.degrees(isFlipped ? 0 : -180), axis: (x: 0, y: 1, z: 0))
         }
@@ -30,9 +30,18 @@ struct StudyCardView: View {
         .frame(maxWidth: 350)
         .aspectRatio(0.74, contentMode: .fit)
     }
+}
 
-    private func face<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        content()
+/// 学習画面と単語詳細で共通のカード外形。
+struct StudyCardFace<Content: View>: View {
+    let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        content
             .padding(WireMetrics.spacingL)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .outlineSurface(
@@ -47,7 +56,7 @@ struct StudyCardView: View {
 
 /// 表面。単語・イラスト・品詞・訳・例文を、枠に収まる高さで並べる。
 /// スクロールしない面なので、長い文は行数を絞って縮める。
-private struct StudyCardFront: View {
+struct StudyCardFront: View {
     let card: WordCard
     let content: WordCardContent
     let showAnswer: Bool
