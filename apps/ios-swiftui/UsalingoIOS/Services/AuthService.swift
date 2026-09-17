@@ -70,24 +70,16 @@ enum SignUpResult {
 private struct AuthRequestBody: Encodable {
     let email: String
     let password: String
-    let emailRedirectTo: String?
-
-    enum CodingKeys: String, CodingKey {
-        case email, password
-        case emailRedirectTo = "email_redirect_to"
-    }
 }
 
 private struct ResendRequestBody: Encodable {
     let type = "signup"
     let email: String
-    let emailRedirectTo: String
-
-    enum CodingKeys: String, CodingKey {
-        case type, email
-        case emailRedirectTo = "email_redirect_to"
-    }
 }
+
+/// 確認メールのリンクの戻り先。Supabase Auth は本文ではなくクエリの `redirect_to` だけを読み、
+/// 無ければ Site URL へ送ってしまう。
+private let authCallbackRedirect = URLQueryItem(name: "redirect_to", value: SupabaseConfig.authCallbackURL.absoluteString)
 
 final class AuthService {
     private let sessionStore: any SessionStoring
@@ -129,8 +121,8 @@ final class AuthService {
     func signUp(email: String, password: String) async throws -> SignUpResult {
         guard let session = try await authRequest(
             path: "signup",
-            query: [],
-            body: AuthRequestBody(email: email, password: password, emailRedirectTo: SupabaseConfig.authCallbackURL.absoluteString)
+            query: [authCallbackRedirect],
+            body: AuthRequestBody(email: email, password: password)
         ) else {
             return .confirmationRequired
         }
@@ -140,12 +132,14 @@ final class AuthService {
     }
 
     func resendSignUpConfirmation(email: String) async throws {
-        var request = URLRequest(url: SupabaseConfig.authURL.appendingPathComponent("resend"))
+        var components = URLComponents(url: SupabaseConfig.authURL.appendingPathComponent("resend"), resolvingAgainstBaseURL: false)!
+        components.queryItems = [authCallbackRedirect]
+        var request = URLRequest(url: components.url!)
         request.httpMethod = "POST"
         request.setValue(SupabaseConfig.supabaseAnonKey, forHTTPHeaderField: "apikey")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(
-            ResendRequestBody(email: email, emailRedirectTo: SupabaseConfig.authCallbackURL.absoluteString)
+            ResendRequestBody(email: email)
         )
         _ = try await perform(request, fallbackMessage: "確認メールを再送できませんでした。")
     }
@@ -254,9 +248,7 @@ final class AuthService {
             url: SupabaseConfig.authURL.appendingPathComponent("user"),
             resolvingAgainstBaseURL: false
         )
-        components?.queryItems = [
-            URLQueryItem(name: "redirect_to", value: SupabaseConfig.authCallbackURL.absoluteString)
-        ]
+        components?.queryItems = [authCallbackRedirect]
         guard let url = components?.url else {
             throw SupabaseError.badResponse("Invalid Auth URL")
         }
@@ -303,7 +295,7 @@ final class AuthService {
     }
 
     private func authRequest(path: String, query: [URLQueryItem], email: String, password: String) async throws -> AuthSession {
-        guard let session = try await authRequest(path: path, query: query, body: AuthRequestBody(email: email, password: password, emailRedirectTo: nil)) else {
+        guard let session = try await authRequest(path: path, query: query, body: AuthRequestBody(email: email, password: password)) else {
             throw AuthError.emailConfirmationRequired
         }
         return session
