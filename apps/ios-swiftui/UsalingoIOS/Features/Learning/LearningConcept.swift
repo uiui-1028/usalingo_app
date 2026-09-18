@@ -113,12 +113,25 @@ enum ConceptIllustrationStyle: String, CaseIterable, Identifiable {
     }
 }
 
-/// デッキの周辺情報（B-2 / B-3 / B-4 / B-8 / B-12）のうち、
-/// いまのデータ層からは出せない値。デッキIDから決まるので、開くたびに数字が動くことはない。
+/// デッキの見分け記号（B-12）。デッキIDから決めるので、開き直しても変わらない。
+/// 学習の進み具合とは関係がないため、数字と分けて持つ。
+enum DeckCoverSymbol {
+    private static let symbols = ["diamond", "triangle", "circle", "square", "hexagon", "seal"]
+
+    static func forDeck(id: Int) -> String {
+        symbols[abs(id % symbols.count)]
+    }
+}
+
+/// デッキの進み具合（B-2 / B-3 / B-4 / B-8）。そのデッキの実際のカードと学習記録から数える。
 ///
-/// 新規と復習の件数だけは実データがあるので、この構造体には持たせない。
-struct DeckDisplaySample {
-    let coverSymbol: String
+/// 新規と復習の「いま出せる枚数」は出題の上限が効くので、`StudyDeckCounts` を別に使う。
+struct DeckProgressSummary: Equatable {
+    /// 収録内容プレビュー（B-8）に出す語数。
+    static let previewWordLimit = 5
+
+    static let empty = DeckProgressSummary(cards: [])
+
     let totalCount: Int
     let masteredCount: Int
     let learningCount: Int
@@ -139,30 +152,25 @@ struct DeckDisplaySample {
         "\(Int((masteryRatio * 100).rounded()))%"
     }
 
-    private static let coverSymbols = ["diamond", "triangle", "circle", "square", "hexagon", "seal"]
-
-    private static let wordPools: [[String]] = [
-        ["invoice", "deadline", "negotiate", "revenue", "warehouse"],
-        ["reserve", "receipt", "boarding", "aisle", "refund"],
-        ["agenda", "postpone", "attendee", "briefly", "handout"]
-    ]
-
-    private static let profiles: [(total: Int, mastered: Int, learning: Int, weak: Int)] = [
-        (55, 20, 18, 5),
-        (40, 25, 11, 2),
-        (24, 2, 9, 7)
-    ]
-
-    static func forDeck(id: Int) -> DeckDisplaySample {
-        let slot = abs(id) % profiles.count
-        let profile = profiles[slot]
-        return DeckDisplaySample(
-            coverSymbol: coverSymbols[abs(id) % coverSymbols.count],
-            totalCount: profile.total,
-            masteredCount: profile.mastered,
-            learningCount: profile.learning,
-            weakCount: profile.weak,
-            previewWords: wordPools[slot]
-        )
+    /// 1枚を1つの状態だけに数える。習得が最優先で、苦手は学習中から切り出す。
+    /// こうしないとチップの合計が総枚数を超える。
+    init(cards: [WordCard]) {
+        var mastered = 0
+        var learning = 0
+        var weak = 0
+        for card in cards {
+            if card.learningStatus == "mastered" {
+                mastered += 1
+            } else if card.learning?.isWeak == true {
+                weak += 1
+            } else if card.learning != nil {
+                learning += 1
+            }
+        }
+        totalCount = cards.count
+        masteredCount = mastered
+        learningCount = learning
+        weakCount = weak
+        previewWords = cards.prefix(Self.previewWordLimit).map(\.text)
     }
 }

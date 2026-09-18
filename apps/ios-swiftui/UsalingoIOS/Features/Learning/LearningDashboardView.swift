@@ -29,6 +29,8 @@ struct LearningDashboardView: View {
     private let setActionBarHidden: (Bool) -> Void
 
     @State private var decks: [Deck] = []
+    /// デッキごとの進み具合。カードを読み終えるまでは空のまま出す。
+    @State private var summaries: [Int: DeckProgressSummary] = [:]
     @State private var studyLaunch: StudyLaunch?
     /// 並べ替えモード。`.constant` で渡すと `List` 側から抜けられなくなるので、
     /// 書き戻せる状態として持つ。
@@ -187,7 +189,7 @@ struct LearningDashboardView: View {
         } label: {
             VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
                 HStack(alignment: .top, spacing: WireMetrics.spacingM) {
-                    DeckCoverMark(symbol: sample(for: deck).coverSymbol)
+                    DeckCoverMark(symbol: DeckCoverSymbol.forDeck(id: deck.id))
                     VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
                         Text(deck.deckName)
                             .wireFont(.titleS)
@@ -195,12 +197,12 @@ struct LearningDashboardView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }
                 DeckMasteryBar(
-                    masteredCount: sample(for: deck).masteredCount,
-                    totalCount: sample(for: deck).totalCount,
-                    ratio: sample(for: deck).masteryRatio,
-                    percentText: sample(for: deck).masteryPercentText
+                    masteredCount: summary(for: deck).masteredCount,
+                    totalCount: summary(for: deck).totalCount,
+                    ratio: summary(for: deck).masteryRatio,
+                    percentText: summary(for: deck).masteryPercentText
                 )
-                DeckStatusChips(sample: sample(for: deck))
+                DeckStatusChips(summary: summary(for: deck))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(WireMetrics.spacingL)
@@ -258,9 +260,9 @@ struct LearningDashboardView: View {
     /// デッキカードは背景より1段濃くして、1件ずつの囲いを見せる。
     private var deckCardTone: BentoTone { .l2 }
 
-    /// デッキIDから決まる仮の表示値。開き直しても数字が動かないようにしている。
-    private func sample(for deck: Deck) -> DeckDisplaySample {
-        DeckDisplaySample.forDeck(id: deck.id)
+    /// そのデッキの進み具合。まだ読めていないデッキは 0 枚として出す。
+    private func summary(for deck: Deck) -> DeckProgressSummary {
+        summaries[deck.id] ?? .empty
     }
 
     private var reloadKey: String {
@@ -274,9 +276,11 @@ struct LearningDashboardView: View {
             guard appState.localStudy === dataSource else { return }
             decks = fetched
             errorMessage = nil
+            await loadSummaries(for: fetched, from: dataSource)
         } catch {
             guard appState.localStudy === dataSource else { return }
             decks = []
+            summaries = [:]
             errorMessage = UserFacingError.message(for: error)
             editMode = .inactive
             return
@@ -284,6 +288,21 @@ struct LearningDashboardView: View {
         if decks.isEmpty {
             editMode = .inactive
         }
+    }
+
+    /// デッキごとの進み具合を数える。1件が読めなくても残りの行は出す。
+    ///
+    /// ponytail: 数え方はデッキのカードを全部読む素直なやり方。デッキが増えるか
+    /// 1デッキが大きくなって一覧の表示が遅れたら、データ層に件数だけを返す
+    /// 問い合わせ（`fetchDeckCounts` と同じ置き場所）を足して置き換える。
+    private func loadSummaries(for decks: [Deck], from dataSource: LocalStudyDataSource) async {
+        var loaded: [Int: DeckProgressSummary] = [:]
+        for deck in decks {
+            guard let cards = try? await dataSource.fetchCards(deckId: deck.id) else { continue }
+            loaded[deck.id] = DeckProgressSummary(cards: cards)
+        }
+        guard appState.localStudy === dataSource else { return }
+        summaries = loaded
     }
 
     /// 並べ替えモードを抜ける。出口はここ1か所にまとめる。

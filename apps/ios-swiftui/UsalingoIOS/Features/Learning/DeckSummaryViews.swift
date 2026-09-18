@@ -53,18 +53,18 @@ struct DeckMasteryBar: View {
     }
 }
 
-/// 状態内訳（B-4）。4つの数の合計が総枚数と合うよう、すべて同じ仮データから引く。
+/// 状態内訳（B-4）。4つの数の合計が総枚数と合うよう、すべて同じ集計から引く。
 /// 苦手だけ枠線を太くして、色を使わずに目を引かせる。
 struct DeckStatusChips: View {
-    let sample: DeckDisplaySample
+    let summary: DeckProgressSummary
 
     var body: some View {
         HStack(spacing: WireMetrics.spacingS) {
-            WirePill(title: "新規 \(sample.untouchedCount)", font: .caption)
-            WirePill(title: "学習中 \(sample.learningCount)", font: .caption)
-            WirePill(title: "習得 \(sample.masteredCount)", font: .caption)
-            if sample.weakCount > 0 {
-                WirePill(title: "苦手 \(sample.weakCount)", isSelected: true, font: .caption)
+            WirePill(title: "新規 \(summary.untouchedCount)", font: .caption)
+            WirePill(title: "学習中 \(summary.learningCount)", font: .caption)
+            WirePill(title: "習得 \(summary.masteredCount)", font: .caption)
+            if summary.weakCount > 0 {
+                WirePill(title: "苦手 \(summary.weakCount)", isSelected: true, font: .caption)
             }
         }
     }

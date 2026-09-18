@@ -233,7 +233,7 @@ struct WordListDeckTile: View {
 
     var body: some View {
         VStack(spacing: WireMetrics.spacingS) {
-            DeckCoverMark(symbol: DeckDisplaySample.forDeck(id: deck.id).coverSymbol, size: 34)
+            DeckCoverMark(symbol: DeckCoverSymbol.forDeck(id: deck.id), size: 34)
             Text(deck.deckName)
                 .wireFont(.caption)
                 .lineLimit(2)

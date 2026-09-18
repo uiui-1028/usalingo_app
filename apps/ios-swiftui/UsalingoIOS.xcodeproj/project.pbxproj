@@ -83,6 +83,7 @@
 		B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */; };
 		B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000B /* UserFacingErrorTests.swift */; };
 		B10000000000000000000E11 /* EmailInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000E11 /* EmailInputTests.swift */; };
+		B10000000000000000000E12 /* DeckProgressSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000E12 /* DeckProgressSummaryTests.swift */; };
 		B1000000000000000000002A /* LegalDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* LegalDocumentTests.swift */; };
 		B1000000000000000000009B /* StudyBackupSyncerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009B /* StudyBackupSyncerTests.swift */; };
 		B1000000000000000000009C /* CardImageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009C /* CardImageCacheTests.swift */; };
@@ -179,6 +180,7 @@
 		B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestStudyBackupServiceTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000000B /* UserFacingErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingErrorTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000E11 /* EmailInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailInputTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000E12 /* DeckProgressSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckProgressSummaryTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000002A /* LegalDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009B /* StudyBackupSyncerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyBackupSyncerTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009C /* CardImageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardImageCacheTests.swift; sourceTree = "<group>"; };
@@ -303,6 +305,7 @@
 				B20000000000000000000001 /* LearningProgressTests.swift */,
 				B2000000000000000000000B /* UserFacingErrorTests.swift */,
 				B20000000000000000000E11 /* EmailInputTests.swift */,
+				B20000000000000000000E12 /* DeckProgressSummaryTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
 				B200000000000000000012 /* WordListFiltersTests.swift */,
 				B200000000000000000013 /* WordListViewModelTests.swift */,
@@ -490,6 +493,7 @@
 				B10000000000000000000001 /* LearningProgressTests.swift in Sources */,
 				B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */,
 				B10000000000000000000E11 /* EmailInputTests.swift in Sources */,
+				B10000000000000000000E12 /* DeckProgressSummaryTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
 				B100000000000000000012 /* WordListFiltersTests.swift in Sources */,
 				B100000000000000000013 /* WordListViewModelTests.swift in Sources */,
