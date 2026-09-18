@@ -41,6 +41,7 @@
 		A10000000000000000000028 /* Services/GuestStudyBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* Services/GuestStudyBackupService.swift */; };
 		A10000000000000000000029 /* Services/StudyBackupSyncer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000029 /* Services/StudyBackupSyncer.swift */; };
 		A1000000000000000000002A /* Services/UserFacingError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002A /* Services/UserFacingError.swift */; };
+		A10000000000000000000E11 /* Services/EmailInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000E11 /* Services/EmailInput.swift */; };
 		A1000000000000000000002B /* Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002B /* Resources/Assets.xcassets */; };
 		A1000000000000000000002C /* Resources/PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */; };
 		A10000000000000000000030 /* DesignSystem/Tokens/WireColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000030 /* DesignSystem/Tokens/WireColor.swift */; };
@@ -83,6 +84,7 @@
 		B10000000000000000000008 /* LocalStudyDataSourceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000009 /* LocalStudyDataSourceTests.swift */; };
 		B1000000000000000000000A /* GuestStudyBackupServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */; };
 		B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000B /* UserFacingErrorTests.swift */; };
+		B10000000000000000000E11 /* EmailInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000E11 /* EmailInputTests.swift */; };
 		B1000000000000000000002A /* LegalDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* LegalDocumentTests.swift */; };
 		B1000000000000000000009B /* StudyBackupSyncerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009B /* StudyBackupSyncerTests.swift */; };
 		B1000000000000000000009C /* CardImageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009C /* CardImageCacheTests.swift */; };
@@ -138,6 +140,7 @@
 		A20000000000000000000028 /* Services/GuestStudyBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/GuestStudyBackupService.swift; sourceTree = "<group>"; };
 		A20000000000000000000029 /* Services/StudyBackupSyncer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyBackupSyncer.swift; sourceTree = "<group>"; };
 		A2000000000000000000002A /* Services/UserFacingError.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/UserFacingError.swift; sourceTree = "<group>"; };
+		A20000000000000000000E11 /* Services/EmailInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/EmailInput.swift; sourceTree = "<group>"; };
 		A2000000000000000000002B /* Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
 		A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A2000000000000000000002D /* Services/ImageLoading/CardImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ImageLoading/CardImageLoader.swift; sourceTree = "<group>"; };
@@ -179,6 +182,7 @@
 		B20000000000000000000009 /* LocalStudyDataSourceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalStudyDataSourceTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000000A /* GuestStudyBackupServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuestStudyBackupServiceTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000000B /* UserFacingErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingErrorTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000E11 /* EmailInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailInputTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000002A /* LegalDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009B /* StudyBackupSyncerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyBackupSyncerTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009C /* CardImageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardImageCacheTests.swift; sourceTree = "<group>"; };
@@ -228,6 +232,7 @@
 				A2000000000000000000001C /* Models/DesignSettings.swift */,
 				A20000000000000000000006 /* Services/SupabaseConfig.swift */,
 				A2000000000000000000002A /* Services/UserFacingError.swift */,
+				A20000000000000000000E11 /* Services/EmailInput.swift */,
 				A20000000000000000000007 /* Services/SupabaseClient.swift */,
 				A20000000000000000000008 /* Services/AuthService.swift */,
 				A20000000000000000000020 /* Services/AccountDeletionService.swift */,
@@ -303,6 +308,7 @@
 			children = (
 				B20000000000000000000001 /* LearningProgressTests.swift */,
 				B2000000000000000000000B /* UserFacingErrorTests.swift */,
+				B20000000000000000000E11 /* EmailInputTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
 				B200000000000000000012 /* WordListFiltersTests.swift */,
 				B200000000000000000013 /* WordListViewModelTests.swift */,
@@ -427,6 +433,7 @@
 				A10000000000000000000005 /* Models/LearningProgress.swift in Sources */,
 				A10000000000000000000006 /* Services/SupabaseConfig.swift in Sources */,
 				A1000000000000000000002A /* Services/UserFacingError.swift in Sources */,
+				A10000000000000000000E11 /* Services/EmailInput.swift in Sources */,
 				A10000000000000000000007 /* Services/SupabaseClient.swift in Sources */,
 				A10000000000000000000008 /* Services/AuthService.swift in Sources */,
 				A1000000000000000000000A /* Services/StudyService.swift in Sources */,
@@ -490,6 +497,7 @@
 			files = (
 				B10000000000000000000001 /* LearningProgressTests.swift in Sources */,
 				B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */,
+				B10000000000000000000E11 /* EmailInputTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
 				B100000000000000000012 /* WordListFiltersTests.swift in Sources */,
 				B100000000000000000013 /* WordListViewModelTests.swift in Sources */,

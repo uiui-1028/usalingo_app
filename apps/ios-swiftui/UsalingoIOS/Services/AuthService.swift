@@ -101,6 +101,7 @@ final class AuthService {
     }
 
     func signIn(email: String, password: String) async throws -> AuthSession {
+        let email = try EmailInput.validated(email)
         let session = try await authRequest(path: "token", query: [URLQueryItem(name: "grant_type", value: "password")], email: email, password: password)
         try await ensureCurrentUserRow(session: session)
         try sessionStore.save(session)
@@ -119,6 +120,7 @@ final class AuthService {
     }
 
     func signUp(email: String, password: String) async throws -> SignUpResult {
+        let email = try EmailInput.validated(email)
         guard let session = try await authRequest(
             path: "signup",
             query: [authCallbackRedirect],
@@ -132,6 +134,7 @@ final class AuthService {
     }
 
     func resendSignUpConfirmation(email: String) async throws {
+        let email = try EmailInput.validated(email)
         var components = URLComponents(url: SupabaseConfig.authURL.appendingPathComponent("resend"), resolvingAgainstBaseURL: false)!
         components.queryItems = [authCallbackRedirect]
         var request = URLRequest(url: components.url!)
@@ -201,6 +204,7 @@ final class AuthService {
     }
 
     func requestPasswordRecovery(email: String) async throws {
+        let email = try EmailInput.validated(email)
         try await executeAuthRequest(
             path: "recover",
             queryItems: [URLQueryItem(name: "redirect_to", value: "usalingo://auth/recovery")],
@@ -243,6 +247,7 @@ final class AuthService {
     /// 専用のエラーへ翻訳して、次にどうすればよいかを伝えられるようにする。
     func linkEmailAndPassword(email: String, password: String, accessToken: String) async throws {
         try validatePassword(password)
+        let email = try EmailInput.validated(email)
 
         var components = URLComponents(
             url: SupabaseConfig.authURL.appendingPathComponent("user"),
@@ -272,7 +277,7 @@ final class AuthService {
             if body.contains("over_email_send_rate_limit") || http.statusCode == 429 {
                 throw AuthError.emailSendRateLimited
             }
-            throw SupabaseError.badResponse(body)
+            throw AuthError.fromServer(body: body, statusCode: http.statusCode) ?? SupabaseError.badResponse(body)
         }
     }
 
@@ -289,6 +294,7 @@ final class AuthService {
     }
 
     func updateEmail(_ email: String, currentEmail: String, currentPassword: String, accessToken: String) async throws {
+        let email = try EmailInput.validated(email)
         guard !currentPassword.isEmpty else { throw AuthError.currentPasswordRequired }
         _ = try await authRequest(path: "token", query: [URLQueryItem(name: "grant_type", value: "password")], email: currentEmail, password: currentPassword)
         try await executeAuthRequest(path: "user", method: "PUT", accessToken: accessToken, body: ["email": email])
@@ -343,7 +349,8 @@ final class AuthService {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(["refresh_token": refreshToken])
 
-        let (data, _) = try await perform(request, fallbackMessage: "セッションの復元に失敗しました。")
+        // 復元の失敗は `SupabaseError` のままにする。`restoreSession` がそれを見て保存済みトークンを捨てる。
+        let (data, _) = try await perform(request, fallbackMessage: "セッションの復元に失敗しました。", explainsAuthErrors: false)
 
         let responseBody = try JSONDecoder().decode(AuthResponse.self, from: data)
         guard let accessToken = responseBody.accessToken, let user = responseBody.user else {
@@ -371,7 +378,9 @@ final class AuthService {
         request.httpBody = try JSONEncoder().encode(AnyEncodable(body))
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw SupabaseError.badResponse(String(data: data, encoding: .utf8) ?? "Auth failed")
+            let body = String(data: data, encoding: .utf8) ?? "Auth failed"
+            let status = (response as? HTTPURLResponse)?.statusCode ?? 0
+            throw AuthError.fromServer(body: body, statusCode: status) ?? SupabaseError.badResponse(body)
         }
     }
 
@@ -379,9 +388,18 @@ final class AuthService {
         guard password.count >= 8 else { throw AuthError.weakPassword }
     }
 
-    private func perform(_ request: URLRequest, fallbackMessage: String) async throws -> (Data, URLResponse) {
+    private func perform(
+        _ request: URLRequest,
+        fallbackMessage: String,
+        explainsAuthErrors: Bool = true
+    ) async throws -> (Data, URLResponse) {
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
+            if explainsAuthErrors,
+               let status = (response as? HTTPURLResponse)?.statusCode,
+               let error = AuthError.fromServer(body: String(data: data, encoding: .utf8) ?? "", statusCode: status) {
+                throw error
+            }
             throw SupabaseError.badResponse(fallbackMessage)
         }
         return (data, response)
@@ -409,6 +427,39 @@ enum AuthError: LocalizedError {
     case alreadyRegistered
     case emailAlreadyRegistered
     case emailSendRateLimited
+    case emailRequired
+    case emailContainsSpace
+    case emailInvalidFormat
+    case invalidCredentials
+    case emailInUse
+    case tooManyRequests
+
+    /// Supabase Auth が返した本文から、利用者に説明できる理由を取り出す。
+    /// 説明できないものは nil にして、呼び出し側で `SupabaseError` にする。
+    static func fromServer(body: String, statusCode: Int) -> AuthError? {
+        if body.contains("invalid_credentials") || body.contains("Invalid login credentials") {
+            return .invalidCredentials
+        }
+        if body.contains("email_not_confirmed") || body.contains("Email not confirmed") {
+            return .emailConfirmationRequired
+        }
+        if body.contains("user_already_exists") || body.contains("User already registered") {
+            return .emailInUse
+        }
+        if body.contains("email_address_invalid") {
+            return .emailInvalidFormat
+        }
+        if body.contains("weak_password") {
+            return .weakPassword
+        }
+        if body.contains("over_email_send_rate_limit") {
+            return .emailSendRateLimited
+        }
+        if statusCode == 429 {
+            return .tooManyRequests
+        }
+        return nil
+    }
 
     var errorDescription: String? {
         switch self {
@@ -437,6 +488,18 @@ enum AuthError: LocalizedError {
         case .emailSendRateLimited:
             return "確認メールの送信が続いたため、しばらく送れません。"
                 + "少し時間をおいて、もう一度お試しください。"
+        case .emailRequired:
+            return "メールアドレスを入力してください。"
+        case .emailContainsSpace:
+            return "メールアドレスの途中に空白が入っています。空白を消してください。"
+        case .emailInvalidFormat:
+            return "メールアドレスの形が正しくありません。「@」や「.」の位置を確かめてください。"
+        case .invalidCredentials:
+            return "メールアドレスかパスワードが違います。入力を確かめて、もう一度お試しください。"
+        case .emailInUse:
+            return "このメールアドレスはすでに登録されています。Sign In してください。"
+        case .tooManyRequests:
+            return "試す回数が多すぎたため、しばらく受け付けられません。少し時間をおいて、もう一度お試しください。"
         }
     }
 }

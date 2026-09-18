@@ -993,8 +993,15 @@ private struct AccountSecuritySheet: View {
                             .wireFont(.body)
                         TextField("新しいメールアドレス", text: $newEmail)
                             .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
                             .keyboardType(.emailAddress)
+                            .textContentType(.emailAddress)
                             .textFieldStyle(.wire)
+                        if let suggestion = EmailInput.suggestion(for: newEmail) {
+                            EmailSuggestionButton(suggestion: suggestion) {
+                                newEmail = suggestion
+                            }
+                        }
                         WireFieldBox {
                             SecureField("今のパスワード", text: $currentPassword)
                         }
@@ -1002,7 +1009,7 @@ private struct AccountSecuritySheet: View {
                             Task { await changeEmail() }
                         }
                         .buttonStyle(.wirePrimary)
-                        .disabled(isLoading || currentPassword.isEmpty || newEmail.isEmpty)
+                        .disabled(isLoading || currentPassword.isEmpty || EmailInput.normalized(newEmail).isEmpty)
                         Text("今のメールと新しいメールの両方に届く確認メールを開くと、変更が完了します。")
                             .wireFont(.caption)
                     }
@@ -1080,6 +1087,7 @@ private struct AccountSecuritySheet: View {
         isLoading = true
         defer { isLoading = false }
         do {
+            newEmail = EmailInput.normalized(newEmail)
             try await appState.updateEmail(newEmail, currentPassword: currentPassword)
             message = "2つのメールアドレスに確認メールを送りました。両方を開いてください。"
             newEmail = ""
