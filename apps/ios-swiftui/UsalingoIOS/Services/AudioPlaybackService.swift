@@ -93,15 +93,6 @@ final class AudioPlaybackService: NSObject, ObservableObject {
         self.cache = cache
     }
 
-    /// 同じ音声をもう一度押すと止める。別の音声を押すと、今の音声を止めてから鳴らす。
-    func togglePlayback(url: URL) {
-        let wasPlayingSameURL = playingURL == url
-        stop()
-        guard !wasPlayingSameURL else { return }
-
-        playSequence(urls: [url])
-    }
-
     /// カード表面の音声を指定順に1回ずつ鳴らす。取得や再生に失敗した音声は飛ばす。
     func playSequence(urls: [URL]) {
         stop()

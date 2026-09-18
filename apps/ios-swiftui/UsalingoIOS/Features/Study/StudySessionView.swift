@@ -14,8 +14,8 @@ struct StudySessionView: View {
     @State private var loadErrorMessage: String?
     @State private var saveErrorMessage: String?
     @State private var dragOffset = CGSize.zero
-    @State private var hasCrossedSwipeThreshold = false
-    @State private var revealedAnswerDuringDrag = false
+    @State private var hasCrossedRevealThreshold = false
+    @State private var hasCrossedCommitThreshold = false
     @State private var showAnswer = false
     @State private var isFlipped = false
     /// ドラッグを横（カード送り）と縦（裏面のスクロール）のどちらに割り当てたか。
@@ -168,6 +168,8 @@ struct StudySessionView: View {
                 .rotationEffect(.degrees(Double(dragOffset.width / 24)))
                 // 裏面の ScrollView に横方向のドラッグを食われないよう、同時認識にする。
                 // どちらの操作かは動き出しの向きで決め、決めた後は最後まで変えない。
+                // 横方向は開示ラインで裏面を出し、指を離さずそのまま確定ラインまで
+                // 続ければ、1回のスワイプで回答まで済ませられる。
                 .simultaneousGesture(
                     DragGesture()
                         .onChanged { value in
@@ -177,42 +179,37 @@ struct StudySessionView: View {
 
                             guard dragAxis == .horizontal else { return }
                             dragOffset = value.translation
-                            let threshold: CGFloat = 110
-                            let crossed = abs(value.translation.width) > threshold
-                            if crossed && !hasCrossedSwipeThreshold {
+                            let distance = abs(value.translation.width)
+
+                            let reachedReveal = distance > SwipeThreshold.reveal
+                            if reachedReveal && !hasCrossedRevealThreshold {
                                 HapticFeedbackService.swipeThresholdCrossed()
                                 if !showAnswer {
-                                    revealedAnswerDuringDrag = true
                                     withAnimation(.easeInOut(duration: 0.2)) {
                                         showAnswer = true
                                     }
                                 }
                             }
-                            hasCrossedSwipeThreshold = crossed
+                            hasCrossedRevealThreshold = reachedReveal
+
+                            let reachedCommit = distance > SwipeThreshold.commit
+                            if reachedCommit && !hasCrossedCommitThreshold {
+                                HapticFeedbackService.swipeThresholdCrossed()
+                            }
+                            hasCrossedCommitThreshold = reachedCommit
                         }
                         .onEnded { value in
                             let axis = dragAxis
-                            let revealedAnswer = revealedAnswerDuringDrag
                             dragAxis = nil
-                            hasCrossedSwipeThreshold = false
-                            revealedAnswerDuringDrag = false
+                            hasCrossedRevealThreshold = false
+                            hasCrossedCommitThreshold = false
                             guard axis == .horizontal else { return }
-                            let threshold: CGFloat = 110
-                            if abs(value.translation.width) > threshold, revealedAnswer || !showAnswer {
-                                if !showAnswer {
-                                    HapticFeedbackService.swipeThresholdCrossed()
-                                    withAnimation(.easeInOut(duration: 0.2)) {
-                                        showAnswer = true
-                                    }
-                                }
-                                withAnimation(.spring(response: 0.3, dampingFraction: 0.78)) {
-                                    dragOffset = .zero
-                                }
-                            } else if value.translation.width > threshold {
+                            if value.translation.width > SwipeThreshold.commit {
                                 swipe(isCorrect: true)
-                            } else if value.translation.width < -threshold {
+                            } else if value.translation.width < -SwipeThreshold.commit {
                                 swipe(isCorrect: false)
                             } else {
+                                // 開示ラインを越えて出した裏面は、ここで隠し直さない。
                                 withAnimation(.spring(response: 0.3, dampingFraction: 0.78)) {
                                     dragOffset = .zero
                                 }
@@ -255,12 +252,12 @@ struct StudySessionView: View {
         HStack(spacing: WireMetrics.spacingS) {
             toolbarButton("tag", label: "タグ", action: tagCurrentCard)
             audioButton(
-                url: currentCard?.wordAudioURL,
+                urls: [currentCard?.wordAudioURL, currentCard?.audioURL],
                 symbol: "speaker.wave.2",
-                label: "単語の音声を再生"
+                label: "単語と例文の音声を再生"
             )
             audioButton(
-                url: currentCard?.audioURL,
+                urls: [currentCard?.audioURL],
                 symbol: "text.bubble",
                 label: "例文の音声を再生"
             )
@@ -499,16 +496,23 @@ struct StudySessionView: View {
         )
     }
 
-    /// 鳴っている音声のボタンだけを停止の見た目にする。音声が無いカードでは押せない。
-    private func audioButton(url: URL?, symbol: String, label: String) -> some View {
-        let isPlayingThis = url != nil && audioPlaybackService.playingURL == url
+    /// 渡した順に続けて鳴らす。押し始めの1本が鳴っている間だけ停止の見た目にし、
+    /// もう一度押すと途中でも止める。鳴らせる音声が1本も無いカードでは押せない。
+    private func audioButton(urls: [URL?], symbol: String, label: String) -> some View {
+        let queue = urls.compactMap { $0 }
+        let isPlayingThis = audioPlaybackService.playingURL != nil
+            && audioPlaybackService.playingURL == queue.first
         return toolbarButton(
             isPlayingThis ? "speaker.slash" : symbol,
             label: label,
-            isDisabled: url == nil
+            isDisabled: queue.isEmpty
         ) {
-            guard let url else { return }
-            audioPlaybackService.togglePlayback(url: url)
+            guard !queue.isEmpty else { return }
+            if isPlayingThis {
+                audioPlaybackService.stop()
+            } else {
+                audioPlaybackService.playSequence(urls: queue)
+            }
         }
     }
 
@@ -648,6 +652,13 @@ struct StudyAnswerQueue {
         pending.removeAll()
         isDraining = false
     }
+}
+
+/// 横スワイプの目盛りは2段。開示ラインで裏面を出し、指はそのまま。確定ラインまで
+/// 滑らせて離したときだけ正誤として保存する。
+private enum SwipeThreshold {
+    static let reveal: CGFloat = 60
+    static let commit: CGFloat = 130
 }
 
 /// ドラッグの向き。動き出しの成分が大きいほうへ倒し、その操作だけを通す。
