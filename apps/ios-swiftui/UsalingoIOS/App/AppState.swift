@@ -54,7 +54,19 @@ final class AppState: ObservableObject {
         localStudy: LocalStudyDataSource = LocalStudyDataSource(),
         makeBackupSyncer: @escaping @MainActor (LocalStudyDataSource) -> StudyBackupSyncer = { StudyBackupSyncer(localStudy: $0) }
     ) {
-        self.localStudy = localStudy.forAccount(id: authService.cachedUserId())
+        let cachedUserId = authService.cachedUserId()
+        // 認証保存の直後やファイルコピーの途中で終了した場合も、次の起動で
+        // コピーを完了する。失敗時は元の棚を開き、記録を隠さない。
+        if let anonymousId = authService.cachedAnonymousUserId(), localStudy.hasPendingGuestHandoff {
+            do {
+                try localStudy.adoptPendingGuestStudy(for: anonymousId)
+                self.localStudy = localStudy.forAccount(id: anonymousId)
+            } catch {
+                self.localStudy = localStudy.forAccount(id: nil)
+            }
+        } else {
+            self.localStudy = localStudy.forAccount(id: cachedUserId)
+        }
         self.defaults = defaults
         self.authService = authService
         self.remoteStudy = remoteStudy
@@ -65,6 +77,10 @@ final class AppState: ObservableObject {
             isRestoringSession = false
             return
         }
+        if cachedUserId == nil {
+            do { try self.localStudy.beginGuestHandoffIfPristine() }
+            catch { startupMessage = UserFacingError.message(for: error) }
+        }
         Task { await restoreSession() }
     }
 
@@ -73,6 +89,11 @@ final class AppState: ObservableObject {
     }
 
     func signOut() {
+        do { try localStudy.cancelPendingGuestHandoff() }
+        catch {
+            authMessage = UserFacingError.message(for: error)
+            return
+        }
         try? authService.signOut()
         session = nil
         isResettingPassword = false
@@ -259,7 +280,12 @@ final class AppState: ObservableObject {
         startupMessage = nil
         do {
             if let restored = try await authService.restoreSession() {
-                session = restored
+                do { try acceptSession(restored) }
+                catch {
+                    startupMessage = UserFacingError.message(for: error)
+                    isRestoringSession = false
+                    return
+                }
                 isRestoringSession = false
                 return
             }
@@ -286,7 +312,7 @@ final class AppState: ObservableObject {
         startupMessage = nil
         defer { isRestoringSession = false }
         do {
-            session = try await authService.signInAnonymously()
+            try acceptSession(try await authService.signInAnonymously())
         } catch {
             // 端末側の学習経路へ黙って落とさない。始められない理由を出す。
             session = nil
@@ -301,6 +327,15 @@ final class AppState: ObservableObject {
     func retryStartup() async {
         guard !isRestoringSession, session == nil else { return }
         await restoreSession()
+    }
+
+    private func acceptSession(_ restored: AuthSession) throws {
+        if restored.user.isAnonymousAccount {
+            try localStudy.adoptPendingGuestStudy(for: restored.user.id)
+        } else {
+            try localStudy.cancelPendingGuestHandoff()
+        }
+        session = restored
     }
 
 }

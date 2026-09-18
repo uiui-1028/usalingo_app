@@ -199,6 +199,11 @@ final class AuthService {
         try? sessionStore.load()?.user.id
     }
 
+    func cachedAnonymousUserId() -> String? {
+        guard let user = try? sessionStore.load()?.user, user.isAnonymousAccount else { return nil }
+        return user.id
+    }
+
     func signOut() throws {
         try sessionStore.clear()
     }

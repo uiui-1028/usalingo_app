@@ -83,6 +83,79 @@ final class LocalStudyDataSourceTests: XCTestCase {
         XCTAssertEqual(studied.learning?.nextReviewDate, saved.progress.nextReviewDate)
     }
 
+    func testFirstOfflineGuestAnswerMovesToAnonymousAccountOnce() async throws {
+        let source = makeDataSource()
+        try source.beginGuestHandoffIfPristine()
+        XCTAssertTrue(source.hasPendingGuestHandoff)
+        let deck = try source.importDeck(from: sampleDeckData(cardCount: 2))
+        let offlineCards = try await source.fetchCards(deckId: deck.id)
+        let card = try XCTUnwrap(offlineCards.first)
+        _ = try await source.saveAnswer(card: card, isCorrect: true)
+
+        try source.adoptPendingGuestStudy(for: "new-anonymous-account")
+
+        let account = makeDataSource().forAccount(id: "new-anonymous-account")
+        let migrated = try await account.fetchCards(deckId: deck.id)
+        XCTAssertEqual(migrated.first?.learning?.repetitions, 1)
+        XCTAssertFalse(source.hasPendingGuestHandoff)
+        XCTAssertFalse(makeDataSource().hasStudyRecord)
+        XCTAssertFalse(makeDataSource().forAccount(id: "other-account").hasStudyRecord)
+        try source.adoptPendingGuestStudy(for: "new-anonymous-account")
+        let repeated = try await account.fetchCards(deckId: deck.id)
+        XCTAssertEqual(repeated.first?.learning?.repetitions, 1)
+    }
+
+    func testGuestHandoffDoesNotOverwriteExistingAccountOrClaimLegacyData() async throws {
+        let source = makeDataSource()
+        let deck = try source.importDeck(from: sampleDeckData(cardCount: 1))
+        let legacyCards = try await source.fetchCards(deckId: deck.id)
+        let card = try XCTUnwrap(legacyCards.first)
+        _ = try await source.saveAnswer(card: card, isCorrect: true)
+        try source.beginGuestHandoffIfPristine()
+        XCTAssertFalse(source.hasPendingGuestHandoff) // 持ち主不明の古い記録は取得しない。
+
+        let freshRoot = LocalStudyDataSource(directoryURL: directoryURL.appendingPathComponent("fresh"))
+        try freshRoot.beginGuestHandoffIfPristine()
+        let freshDeck = try freshRoot.importDeck(from: sampleDeckData(cardCount: 1))
+        let freshCards = try await freshRoot.fetchCards(deckId: freshDeck.id)
+        let freshCard = try XCTUnwrap(freshCards.first)
+        _ = try await freshRoot.saveAnswer(card: freshCard, isCorrect: true)
+        let destination = freshRoot.forAccount(id: "existing-account")
+        let existingDeck = try destination.importDeck(from: sampleDeckData(cardCount: 1))
+        let existingCards = try await destination.fetchCards(deckId: existingDeck.id)
+        let existingCard = try XCTUnwrap(existingCards.first)
+        _ = try await destination.saveAnswer(card: existingCard, isCorrect: false)
+
+        XCTAssertThrowsError(try freshRoot.adoptPendingGuestStudy(for: "existing-account"))
+        XCTAssertTrue(freshRoot.hasPendingGuestHandoff)
+        XCTAssertTrue(makeDataSource().hasStudyRecord)
+        let remaining = try await destination.fetchCards(deckId: existingDeck.id)
+        XCTAssertEqual(remaining.first?.learning?.incorrectCount, 1)
+    }
+
+    @MainActor
+    func testRestartFinishesHandoffAfterAnonymousSessionWasSaved() async throws {
+        let source = makeDataSource()
+        try source.beginGuestHandoffIfPristine()
+        let deck = try source.importDeck(from: sampleDeckData(cardCount: 1))
+        let cards = try await source.fetchCards(deckId: deck.id)
+        _ = try await source.saveAnswer(card: try XCTUnwrap(cards.first), isCorrect: true)
+        let savedSession = AuthSession(
+            accessToken: "test", refreshToken: nil, expiresAt: nil,
+            user: AuthUser(id: "new-anonymous-account", email: nil, isAnonymous: true)
+        )
+
+        let restarted = AppState(
+            restoresSession: false,
+            authService: AuthService(sessionStore: TestStudySessionStore(stored: savedSession)),
+            localStudy: makeDataSource()
+        )
+
+        let restored = try await restarted.studyDataSource.fetchCards(deckId: deck.id)
+        XCTAssertEqual(restored.first?.learning?.repetitions, 1)
+        XCTAssertFalse(makeDataSource().hasPendingGuestHandoff)
+    }
+
     func testUndoRemovesFirstAnswer() async throws {
         let dataSource = makeDataSource()
         let deck = try dataSource.importDeck(from: sampleDeckData(cardCount: 2))
@@ -470,9 +543,11 @@ final class LocalStudyDataSourceTests: XCTestCase {
 }
 
 private final class TestStudySessionStore: SessionStoring {
-    func save(_ session: AuthSession) throws {}
-    func load() throws -> AuthSession? { nil }
-    func clear() throws {}
+    private var stored: AuthSession?
+    init(stored: AuthSession? = nil) { self.stored = stored }
+    func save(_ session: AuthSession) throws { stored = session }
+    func load() throws -> AuthSession? { stored }
+    func clear() throws { stored = nil }
 }
 
 private final class TestRemoteStudyImporter: RemoteStudyImporting {
