@@ -218,13 +218,32 @@ private final class FakeSessionStore: SessionStoring {
 }
 
 final class StudyFlowTests: XCTestCase {
-    func testAuthenticatedDecksAreFetchedFromRemoteCatalog() async throws {
+    func testStudyListShowsStarterAddedAndOwnDecksOnly() async throws {
         let service = StudyService(client: FakeStudySupabaseClient())
 
         let decks = try await service.fetchDecks(session: Self.session)
 
-        XCTAssertEqual(decks.map(\.id), [1, 2])
-        XCTAssertEqual(decks.map(\.deckName), ["基礎", "発展"])
+        XCTAssertEqual(decks.map(\.id), [1, 2, 4])
+        XCTAssertEqual(decks.map(\.deckName), ["基礎", "発展", "自分のデッキ"])
+    }
+
+    func testGalleryListsEveryOfficialDeckWithAddedState() async throws {
+        let service = StudyService(client: FakeStudySupabaseClient())
+
+        let decks = try await service.fetchOfficialDecks(session: Self.session)
+
+        XCTAssertEqual(decks.map(\.id), [1, 2, 3])
+        XCTAssertEqual(decks.map(\.isAdded), [true, true, false])
+    }
+
+    func testAddingOfficialDeckRecordsItForTheSignedInUser() async throws {
+        let client = FakeStudySupabaseClient()
+        let service = StudyService(client: client)
+
+        try await service.addOfficialDeck(id: 3, session: Self.session)
+
+        XCTAssertEqual(client.addedDecks, [["user_id": Self.session.user.id, "deck_id": "3"]])
+        XCTAssertEqual(client.addedDeckPrefer, "resolution=ignore-duplicates,return=minimal")
     }
 
     func testLargeDeckIsFetchedInPagesWithoutLosingCards() async throws {
@@ -431,6 +450,8 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
     private var remainingSaveFailures: Int
     private(set) var savedCardIds: [Int] = []
     private(set) var cardPageRequestCount = 0
+    private(set) var addedDecks: [[String: String]] = []
+    private(set) var addedDeckPrefer: String?
 
     init(deckCardCount: Int = 2, saveFailures: Int = 0) {
         cards = (0..<deckCardCount).map { index in
@@ -461,8 +482,14 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
         switch (path, method) {
         case ("decks", .get):
             return try decodeJSONObject([
-                ["id": 1, "deck_name": "基礎", "description": "最初のデッキ"],
-                ["id": 2, "deck_name": "発展", "description": NSNull()]
+                ["id": 1, "deck_name": "基礎", "description": "最初のデッキ", "owner_id": NSNull(),
+                 "is_starter": true, "user_added_decks": []],
+                ["id": 2, "deck_name": "発展", "description": NSNull(), "owner_id": NSNull(),
+                 "is_starter": false, "user_added_decks": [["deck_id": 2]]],
+                ["id": 3, "deck_name": "応用", "description": NSNull(), "owner_id": NSNull(),
+                 "is_starter": false, "user_added_decks": []],
+                ["id": 4, "deck_name": "自分のデッキ", "description": NSNull(), "owner_id": "user-1",
+                 "is_starter": false, "user_added_decks": []]
             ])
         case ("cards", .get):
             return try decodeCardResponse(queryItems: queryItems)
@@ -494,6 +521,13 @@ private final class FakeStudySupabaseClient: SupabaseRequesting {
         body: Encodable?,
         prefer: String?
     ) async throws {
+        if path == "user_added_decks", method == .post, let body {
+            let data = try JSONEncoder().encode(AnyEncodable(body))
+            let rows = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [[String: Any]])
+            addedDecks += rows.map { $0.mapValues { "\($0)" } }
+            addedDeckPrefer = prefer
+            return
+        }
         guard path == "user_card_progress", method == .delete,
               let cardId = equalIntValue("card_id", in: queryItems) else {
             throw SupabaseError.badResponse("Unexpected test execute: \(method.rawValue) \(path)")

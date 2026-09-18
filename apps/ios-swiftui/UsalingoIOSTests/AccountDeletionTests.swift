@@ -39,7 +39,7 @@ final class AccountDeletionTests: XCTestCase {
         defer { defaults.removePersistentDomain(forName: defaultsSuiteName) }
         let directory = temporaryStudyDirectory()
         defer { try? FileManager.default.removeItem(at: directory) }
-        let localStudy = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+        let localStudy = LocalStudyDataSource(directoryURL: directory)
         let sessionStore = DeletionSessionStore()
         let authService = AuthService(
             sessionStore: sessionStore,
@@ -57,8 +57,7 @@ final class AccountDeletionTests: XCTestCase {
         try sessionStore.save(session)
         appState.setSession(session)
         let activeStudy = appState.localStudy
-        let decks = try await activeStudy.fetchDecks()
-        let deck = try XCTUnwrap(decks.first)
+        let deck = try activeStudy.importDeck(from: Self.deckData)
         let cards = try await activeStudy.fetchCards(deckId: deck.id)
         let card = try XCTUnwrap(cards.first)
         _ = try await activeStudy.saveAnswer(card: card, isCorrect: true)
@@ -78,8 +77,8 @@ final class AccountDeletionTests: XCTestCase {
         XCTAssertEqual(appState.designSettings.cardCornerRadius, 18)
         XCTAssertNotNil(appState.accountDeletionNotice)
         XCTAssertFalse(activeStudy.hasStudyRecord)
-        XCTAssertEqual(appState.localStudy.decks().map(\.key), ["toeic-basic"])
-        let reopened = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+        XCTAssertTrue(appState.localStudy.decks().isEmpty)
+        let reopened = LocalStudyDataSource(directoryURL: directory)
         reopened.selectAccount(id: session.user.id)
         XCTAssertFalse(reopened.hasStudyRecord)
     }
@@ -97,7 +96,7 @@ final class AccountDeletionTests: XCTestCase {
             )
             let directory = temporaryStudyDirectory()
             defer { try? FileManager.default.removeItem(at: directory) }
-            let localStudy = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+            let localStudy = LocalStudyDataSource(directoryURL: directory)
             let appState = AppState(
                 restoresSession: false,
                 defaults: defaults,
@@ -108,8 +107,7 @@ final class AccountDeletionTests: XCTestCase {
             try store.save(testSession)
             appState.setSession(testSession)
             let activeStudy = appState.localStudy
-            let decks = try await activeStudy.fetchDecks()
-            let deck = try XCTUnwrap(decks.first)
+            let deck = try activeStudy.importDeck(from: Self.deckData)
             let cards = try await activeStudy.fetchCards(deckId: deck.id)
             let card = try XCTUnwrap(cards.first)
             _ = try await activeStudy.saveAnswer(card: card, isCorrect: true)
@@ -123,7 +121,7 @@ final class AccountDeletionTests: XCTestCase {
             XCTAssertNotNil(appState.session)
             XCTAssertNotNil(store.savedSession)
             XCTAssertTrue(activeStudy.hasStudyRecord)
-            let reopened = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+            let reopened = LocalStudyDataSource(directoryURL: directory)
             reopened.selectAccount(id: testSession.user.id)
             XCTAssertTrue(reopened.hasStudyRecord)
         }
@@ -200,6 +198,11 @@ final class AccountDeletionTests: XCTestCase {
         defaults.removePersistentDomain(forName: name)
         return defaults
     }
+
+    private static let deckData = Data("""
+    {"formatVersion": 1, "deckId": "deletion-test", "deckName": "退会テスト",
+     "cards": [{"id": 1, "text": "word", "meaning": "意味"}]}
+    """.utf8)
 
     private func temporaryStudyDirectory() -> URL {
         FileManager.default.temporaryDirectory

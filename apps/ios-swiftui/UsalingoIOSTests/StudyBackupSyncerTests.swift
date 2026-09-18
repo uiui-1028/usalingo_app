@@ -75,7 +75,7 @@ final class StudyBackupSyncerTests: XCTestCase {
     }
 
     private func makeDataSource() -> LocalStudyDataSource {
-        LocalStudyDataSource(directoryURL: directoryURL, bundle: Bundle(for: Self.self))
+        LocalStudyDataSource(directoryURL: directoryURL)
     }
 
     /// 学習記録を1件だけ作る。`hasStudyRecord` を true にするためだけに使う。
@@ -91,7 +91,7 @@ final class StudyBackupSyncerTests: XCTestCase {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("StudyBackupSyncerTests-source-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let source = LocalStudyDataSource(directoryURL: directory, bundle: Bundle(for: Self.self))
+        let source = LocalStudyDataSource(directoryURL: directory)
         _ = try source.importDeck(from: sampleDeckData(deckKey: deckKey))
         return try source.snapshot()
     }
