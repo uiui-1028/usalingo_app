@@ -37,8 +37,6 @@ struct StudySessionView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
-
             ZStack {
                 if isLoading {
                     ProgressView()
@@ -116,37 +114,6 @@ struct StudySessionView: View {
                 .presentationDetents([.medium])
         }
         .task { await load() }
-    }
-
-    private var header: some View {
-        HStack(spacing: WireMetrics.spacingL) {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-            }
-            .buttonStyle(.wireIcon(diameter: 44))
-            .accessibilityLabel("学習を終える")
-            .backSwipeProtectedRegion()
-
-            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-                // 進み具合は色ではなく「枠の中がどれだけ塗られたか」で示す。
-                GeometryReader { proxy in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair)
-                        Capsule()
-                            .fill(WireColor.ink)
-                            .frame(width: proxy.size.width * progress)
-                    }
-                }
-                .frame(height: 10)
-                .accessibilityHidden(true)
-            }
-        }
-        .padding(.horizontal, WireMetrics.screenPadding)
-        .padding(.top, WireMetrics.spacingM)
-        .padding(.bottom, WireMetrics.spacingM)
     }
 
     /// 束の中のカードはすべて同じ寸法・同じ位置に重ねる。順位による拡大縮小も位置差も
@@ -309,11 +276,6 @@ struct StudySessionView: View {
         .buttonStyle(.wireIcon(diameter: 40))
         .disabled(isDisabled)
         .accessibilityLabel(label)
-    }
-
-    private var progress: CGFloat {
-        guard !cards.isEmpty else { return 0 }
-        return CGFloat(min(index + 1, cards.count)) / CGFloat(cards.count)
     }
 
     private func load() async {
