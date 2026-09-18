@@ -7,8 +7,10 @@ final class AuthTransportTests: XCTestCase {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("OfflineGuestHandoff-\(UUID().uuidString)", isDirectory: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let local = LocalStudyDataSource(directoryURL: directory, bundle: .main)
+        let local = LocalStudyDataSource(directoryURL: directory)
         try local.beginGuestHandoffIfPristine()
+        // 同梱デッキは本番の導線から外れたため、未接続で答えられる教材を取りこむ。
+        _ = try local.importDeck(from: sampleDeckData())
         let network = RecoveringAnonymousNetworkSession()
         let store = FakeSessionStore()
         let state = AppState(
@@ -298,8 +300,35 @@ private final class RecoveringAnonymousNetworkSession: NetworkSession {
     }
 }
 
+private func sampleDeckData() -> Data {
+    let json = """
+    {
+        "formatVersion": 1,
+        "deckId": "offline-guest",
+        "deckName": "テストデッキ",
+        "description": null,
+        "cards": [
+            {
+                "id": 1,
+                "text": "word-1",
+                "meaning": "意味1",
+                "partOfSpeech": null,
+                "sentenceEnglish": null,
+                "sentenceJapanese": null,
+                "imageAssetPath": null,
+                "audioAssetPath": null,
+                "tags": null
+            }
+        ]
+    }
+    """
+    return Data(json.utf8)
+}
+
 private final class OfflineRemoteStudyImporter: RemoteStudyImporting {
     func fetchDecks(session: AuthSession) async throws -> [Deck] { throw URLError(.notConnectedToInternet) }
+    func fetchOfficialDecks(session: AuthSession) async throws -> [OfficialDeck] { throw URLError(.notConnectedToInternet) }
+    func addOfficialDeck(id: Int, session: AuthSession) async throws { throw URLError(.notConnectedToInternet) }
     func fetchCards(deckId: Int, session: AuthSession) async throws -> [WordCard] { throw URLError(.notConnectedToInternet) }
     func fetchAllLearningProgress(session: AuthSession) async throws -> [LearningProgress] { throw URLError(.notConnectedToInternet) }
 }

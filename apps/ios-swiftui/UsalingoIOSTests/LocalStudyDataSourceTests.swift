@@ -114,7 +114,7 @@ final class LocalStudyDataSourceTests: XCTestCase {
         try source.beginGuestHandoffIfPristine()
         XCTAssertFalse(source.hasPendingGuestHandoff) // 持ち主不明の古い記録は取得しない。
 
-        let freshRoot = LocalStudyDataSource(directoryURL: directoryURL.appendingPathComponent("fresh"), bundle: Bundle(for: Self.self))
+        let freshRoot = LocalStudyDataSource(directoryURL: directoryURL.appendingPathComponent("fresh"))
         try freshRoot.beginGuestHandoffIfPristine()
         let freshDeck = try freshRoot.importDeck(from: sampleDeckData(cardCount: 1))
         let freshCards = try await freshRoot.fetchCards(deckId: freshDeck.id)
