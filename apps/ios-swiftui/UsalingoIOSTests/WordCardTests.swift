@@ -32,29 +32,6 @@ final class WordCardTests: XCTestCase {
         XCTAssertTrue(state.studyDataSource is LocalStudyDataSource)
     }
 
-    @MainActor
-    func testSwipeTutorialCompletionIsSavedAndCanBeShownAgain() {
-        let suiteName = "usalingo-swipe-tutorial-tests"
-        let defaults = UserDefaults(suiteName: suiteName)!
-        defaults.removePersistentDomain(forName: suiteName)
-        defer { defaults.removePersistentDomain(forName: suiteName) }
-
-        let state = AppState(restoresSession: false, defaults: defaults)
-        XCTAssertTrue(state.isSwipeTutorialPresented)
-
-        state.dismissSwipeTutorial()
-        XCTAssertFalse(state.isSwipeTutorialPresented)
-
-        state.showSwipeTutorial()
-        state.completeSwipeTutorial()
-        XCTAssertFalse(state.isSwipeTutorialPresented)
-
-        let restoredState = AppState(restoresSession: false, defaults: defaults)
-        XCTAssertFalse(restoredState.isSwipeTutorialPresented)
-        restoredState.showSwipeTutorial()
-        XCTAssertTrue(restoredState.isSwipeTutorialPresented)
-    }
-
     func testWordRecordMapsOperatorProvidedAudioAsset() throws {
         let json = """
         {

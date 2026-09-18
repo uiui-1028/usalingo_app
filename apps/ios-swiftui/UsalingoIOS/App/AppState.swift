@@ -2,10 +2,6 @@ import Foundation
 
 @MainActor
 final class AppState: ObservableObject {
-    private enum TutorialKey {
-        static let hasCompletedSwipeTutorial = "hasCompletedSwipeTutorial"
-    }
-
     @Published var session: AuthSession? {
         didSet {
             guard session?.user.id != oldValue?.user.id
@@ -16,7 +12,6 @@ final class AppState: ObservableObject {
     @Published var isRestoringSession = true
     @Published var isResettingPassword = false
     @Published var isShellChromeHidden = false
-    @Published private(set) var isSwipeTutorialPresented: Bool
     @Published var authMessage = ""
     @Published private(set) var studyDataVersion = 0
     /// 単語リストのバナーで最後に選んだデッキ。画面を出入りしても同じデッキを開く。
@@ -66,7 +61,6 @@ final class AppState: ObservableObject {
         self.accountDeletionService = accountDeletionService
         self.makeBackupSyncer = makeBackupSyncer
         designSettings = DesignSettings(defaults: defaults)
-        isSwipeTutorialPresented = !defaults.bool(forKey: TutorialKey.hasCompletedSwipeTutorial)
         guard restoresSession else {
             isRestoringSession = false
             return
@@ -155,10 +149,8 @@ final class AppState: ObservableObject {
         } catch {
             resetError = error
         }
-        defaults.removeObject(forKey: TutorialKey.hasCompletedSwipeTutorial)
         designSettings.reset()
         self.session = nil
-        isSwipeTutorialPresented = true
         isResettingPassword = false
         isShellChromeHidden = false
         studyDataVersion = 0
@@ -261,19 +253,6 @@ final class AppState: ObservableObject {
             throw SupabaseError.badResponse("サーバーに接続できないため、デッキを読み込めませんでした。")
         }
         return session
-    }
-
-    func showSwipeTutorial() {
-        isSwipeTutorialPresented = true
-    }
-
-    func dismissSwipeTutorial() {
-        isSwipeTutorialPresented = false
-    }
-
-    func completeSwipeTutorial() {
-        defaults.set(true, forKey: TutorialKey.hasCompletedSwipeTutorial)
-        isSwipeTutorialPresented = false
     }
 
     private func restoreSession() async {
