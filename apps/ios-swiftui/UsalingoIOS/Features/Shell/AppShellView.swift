@@ -65,8 +65,7 @@ struct AppShellView: View {
                 ProfileDashboardView()
             default:
                 LearningDashboardView(
-                    bottomActionBarClearance: isTabBarPresented ? tabBarScrollClearance : 0,
-                    setActionBarHidden: { isTabBarHiddenByScroll = $0 }
+                    bottomActionBarClearance: isTabBarPresented ? tabBarScrollClearance : 0
                 )
             }
         }
@@ -82,6 +81,9 @@ struct AppShellView: View {
     }
 
     private func updateTabBarVisibility(_ value: DragGesture.Value) {
+        // 学習タブは縦スクロールではなくデッキを回す操作なので、バーを隠さない。
+        // 隠すと下に固定した進捗が動いてしまう。
+        guard selectedTab != 1 else { return }
         // 横スクロール（保存済みコンセプトなど）の僅かな縦ブレでは反応しない。
         guard abs(value.translation.height) > abs(value.translation.width) else {
             previousVerticalDragTranslation = nil
