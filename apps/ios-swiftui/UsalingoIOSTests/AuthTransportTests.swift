@@ -193,6 +193,41 @@ private final class LostAnswerResponseClient: SupabaseRequesting {
     func execute(path: String, method: HTTPMethod, queryItems: [URLQueryItem], accessToken: String?, body: Encodable?, prefer: String?) async throws {
         stored = nil
     }
+
+    // MARK: - メールアドレスの入力を整える
+
+    func testSignInSendsTheCleanedAddressAndExplainsWrongPassword() async {
+        let transport = StubNetworkSession(
+            data: Data(#"{"error_code":"invalid_credentials","msg":"Invalid login credentials"}"#.utf8),
+            statusCode: 400
+        )
+        let service = AuthService(sessionStore: FakeSessionStore(), client: FakeAuthSupabaseClient(), session: transport)
+
+        do {
+            _ = try await service.signIn(email: "Sample@Gmail.com ", password: " pass word ")
+            XCTFail("Expected wrong password to fail")
+        } catch {
+            XCTAssertEqual(error as? AuthError, .invalidCredentials)
+        }
+
+        let body = try? JSONSerialization.jsonObject(with: transport.requests.first?.httpBody ?? Data()) as? [String: String]
+        XCTAssertEqual(body?["email"], "sample@gmail.com")
+        // パスワードの空白は削らない。
+        XCTAssertEqual(body?["password"], " pass word ")
+    }
+
+    func testInvalidAddressIsRejectedBeforeAnyRequest() async {
+        let transport = StubNetworkSession(data: Data(), statusCode: 200)
+        let service = AuthService(sessionStore: FakeSessionStore(), client: FakeAuthSupabaseClient(), session: transport)
+
+        do {
+            try await service.requestPasswordRecovery(email: "sample @gmail.com")
+            XCTFail("Expected invalid address to fail")
+        } catch {
+            XCTAssertEqual(error as? AuthError, .emailContainsSpace)
+        }
+        XCTAssertTrue(transport.requests.isEmpty)
+    }
 }
 
 private final class StubNetworkSession: NetworkSession {

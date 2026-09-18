@@ -11,6 +11,9 @@ struct AuthView: View {
     @State private var isRequestingRecovery = false
     @State private var pendingConfirmationEmail: String?
     @State private var resendAvailableAt = Date.distantPast
+    /// 打ち間違いの候補を一度見せたアドレス。同じアドレスでもう一度押されたら、そのまま進める。
+    @State private var acknowledgedTypoEmail: String?
+    @FocusState private var isEmailFocused: Bool
 
     private let authService = AuthService()
 
@@ -57,13 +60,26 @@ struct AuthView: View {
 
     private var fields: some View {
         VStack(spacing: WireMetrics.spacingM) {
-            TextField("Email", text: $email)
-                .textInputAutocapitalization(.never)
-                .keyboardType(.emailAddress)
-                .textFieldStyle(.wire)
+            VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
+                TextField("Email", text: $email)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .keyboardType(.emailAddress)
+                    .textContentType(.username)
+                    .focused($isEmailFocused)
+                    .textFieldStyle(.wire)
+
+                if !isEmailFocused, let suggestion = EmailInput.suggestion(for: email) {
+                    EmailSuggestionButton(suggestion: suggestion) {
+                        email = suggestion
+                    }
+                }
+            }
 
             WireFieldBox {
+                // パスワードは空白も中身の一部なので、整えずにそのまま送る。
                 SecureField("Password", text: $password)
+                    .textContentType(.password)
             }
         }
     }
@@ -96,7 +112,7 @@ struct AuthView: View {
 
     private var tertiaryActions: some View {
         VStack(spacing: WireMetrics.spacingXS) {
-            tertiaryButton("パスワードを忘れた場合", isDisabled: isLoading || email.isEmpty) {
+            tertiaryButton("パスワードを忘れた場合", isDisabled: isLoading || EmailInput.normalized(email).isEmpty) {
                 Task { await requestRecovery() }
             }
 
@@ -165,10 +181,26 @@ struct AuthView: View {
         appState.authMessage.isEmpty ? isLocalMessageError : false
     }
 
+    /// 入力欄を整えた形へ置き換える。打ち間違いらしければ、一度だけ止めて知らせる。
+    /// 送ってよければ整えたアドレスを返す。
+    private func preparedEmail() -> String? {
+        email = EmailInput.normalized(email)
+        if EmailInput.suggestion(for: email) != nil, acknowledgedTypoEmail != email {
+            acknowledgedTypoEmail = email
+            isEmailFocused = false
+            message = "メールアドレスの打ち間違いかもしれません。候補を確かめてください。"
+                + "このままでよければ、もう一度押してください。"
+            isLocalMessageError = true
+            return nil
+        }
+        return email
+    }
+
     private func submit(signUp: Bool) async {
-        isLoading = true
         message = ""
         isLocalMessageError = false
+        guard let email = preparedEmail() else { return }
+        isLoading = true
         do {
             if signUp {
                 if appState.isGuest {
@@ -199,6 +231,7 @@ struct AuthView: View {
     }
 
     private func requestRecovery() async {
+        guard let email = preparedEmail() else { return }
         isLoading = true
         defer { isLoading = false }
         do {
@@ -228,6 +261,24 @@ struct AuthView: View {
 
     private func secondsUntilResend(from date: Date) -> Int {
         max(1, Int(ceil(resendAvailableAt.timeIntervalSince(date))))
+    }
+}
+
+/// ドメインの打ち間違いらしいときに、直した候補を出す。押したときだけ直す。
+struct EmailSuggestionButton: View {
+    let suggestion: String
+    let apply: () -> Void
+
+    var body: some View {
+        Button(action: apply) {
+            Text("もしかして \(suggestion) ？ 押すと直します")
+                .wireFont(.caption)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("メールアドレスをこの候補に置き換えます")
     }
 }
 
