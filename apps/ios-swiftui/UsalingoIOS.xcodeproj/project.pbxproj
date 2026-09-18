@@ -62,6 +62,8 @@
 		A10000000000000000000041 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C2 /* NukeUI */; };
 		A1000000000000000000076 /* Features/Learning/LearningConcept.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000076 /* Features/Learning/LearningConcept.swift */; };
 		A1000000000000000000077 /* Features/Learning/DeckSummaryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */; };
+		A1000000000000000000901 /* Features/Learning/DeckCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000901 /* Features/Learning/DeckCarouselView.swift */; };
+		A1000000000000000000902 /* Features/Learning/DeckCoverStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000902 /* Features/Learning/DeckCoverStore.swift */; };
 		A1000000000000000000078 /* Features/Learning/DeckConceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */; };
 		A10000000000000000000F02 /* Features/Design/DesignPreviewStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000F02 /* Features/Design/DesignPreviewStage.swift */; };
 		A10000000000000000000FA1 /* Features/Study/WordCardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */; };
@@ -84,6 +86,7 @@
 		B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000000B /* UserFacingErrorTests.swift */; };
 		B10000000000000000000E11 /* EmailInputTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000E11 /* EmailInputTests.swift */; };
 		B10000000000000000000E12 /* DeckProgressSummaryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000E12 /* DeckProgressSummaryTests.swift */; };
+		B10000000000000000000E90 /* DeckCarouselTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000E90 /* DeckCarouselTests.swift */; };
 		B1000000000000000000002A /* LegalDocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000002A /* LegalDocumentTests.swift */; };
 		B1000000000000000000009B /* StudyBackupSyncerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009B /* StudyBackupSyncerTests.swift */; };
 		B1000000000000000000009C /* CardImageCacheTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000009C /* CardImageCacheTests.swift */; };
@@ -158,6 +161,8 @@
 		A2000000000000000000003E /* Services/HapticFeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HapticFeedbackService.swift; sourceTree = "<group>"; };
 		A2000000000000000000076 /* Features/Learning/LearningConcept.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningConcept.swift; sourceTree = "<group>"; };
 		A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckSummaryViews.swift; sourceTree = "<group>"; };
+		A2000000000000000000901 /* Features/Learning/DeckCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckCarouselView.swift; sourceTree = "<group>"; };
+		A2000000000000000000902 /* Features/Learning/DeckCoverStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckCoverStore.swift; sourceTree = "<group>"; };
 		A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckConceptView.swift; sourceTree = "<group>"; };
 		A20000000000000000000F02 /* Features/Design/DesignPreviewStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignPreviewStage.swift; sourceTree = "<group>"; };
 		A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/WordCardContent.swift; sourceTree = "<group>"; };
@@ -181,6 +186,7 @@
 		B2000000000000000000000B /* UserFacingErrorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserFacingErrorTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000E11 /* EmailInputTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailInputTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000E12 /* DeckProgressSummaryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckProgressSummaryTests.swift; sourceTree = "<group>"; };
+		B20000000000000000000E90 /* DeckCarouselTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeckCarouselTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000002A /* LegalDocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009B /* StudyBackupSyncerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StudyBackupSyncerTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000009C /* CardImageCacheTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardImageCacheTests.swift; sourceTree = "<group>"; };
@@ -265,6 +271,8 @@
 				A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */,
 				A2000000000000000000076 /* Features/Learning/LearningConcept.swift */,
 				A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */,
+				A2000000000000000000901 /* Features/Learning/DeckCarouselView.swift */,
+				A2000000000000000000902 /* Features/Learning/DeckCoverStore.swift */,
 				A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */,
 				A20000000000000000000029 /* Services/StudyBackupSyncer.swift */,
 				A20000000000000000000028 /* Services/GuestStudyBackupService.swift */,
@@ -306,6 +314,7 @@
 				B2000000000000000000000B /* UserFacingErrorTests.swift */,
 				B20000000000000000000E11 /* EmailInputTests.swift */,
 				B20000000000000000000E12 /* DeckProgressSummaryTests.swift */,
+				B20000000000000000000E90 /* DeckCarouselTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
 				B200000000000000000012 /* WordListFiltersTests.swift */,
 				B200000000000000000013 /* WordListViewModelTests.swift */,
@@ -459,6 +468,8 @@
 				A10000000000000000000026 /* Features/Learning/DeckLibraryView.swift in Sources */,
 				A1000000000000000000076 /* Features/Learning/LearningConcept.swift in Sources */,
 				A1000000000000000000077 /* Features/Learning/DeckSummaryViews.swift in Sources */,
+				A1000000000000000000901 /* Features/Learning/DeckCarouselView.swift in Sources */,
+				A1000000000000000000902 /* Features/Learning/DeckCoverStore.swift in Sources */,
 				A1000000000000000000078 /* Features/Learning/DeckConceptView.swift in Sources */,
 				A10000000000000000000029 /* Services/StudyBackupSyncer.swift in Sources */,
 				A10000000000000000000028 /* Services/GuestStudyBackupService.swift in Sources */,
@@ -494,6 +505,7 @@
 				B1000000000000000000000B /* UserFacingErrorTests.swift in Sources */,
 				B10000000000000000000E11 /* EmailInputTests.swift in Sources */,
 				B10000000000000000000E12 /* DeckProgressSummaryTests.swift in Sources */,
+				B10000000000000000000E90 /* DeckCarouselTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
 				B100000000000000000012 /* WordListFiltersTests.swift in Sources */,
 				B100000000000000000013 /* WordListViewModelTests.swift in Sources */,

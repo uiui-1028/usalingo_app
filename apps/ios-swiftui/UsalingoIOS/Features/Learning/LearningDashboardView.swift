@@ -20,42 +20,34 @@ enum DeckPlayStyle: String, CaseIterable, Identifiable {
     }
 }
 
-/// 学習タブ。デッキをタップすると、選んだ遊び方でそのデッキを開く。
+/// 学習タブ。表紙・名前・進み具合をまとめたカードを上下に回して選び、中央のカードを
+/// タップすると、選んだ遊び方でそのデッキを開く。
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
-    /// シェルの浮動アクションバーが見えている間だけ、List の末尾へ確保する余白。
+    /// シェルの浮動アクションバーが見えている間だけ、下へ確保する余白。
     private let bottomActionBarClearance: CGFloat
-    private let setActionBarHidden: (Bool) -> Void
 
     @State private var decks: [Deck] = []
     /// デッキごとの進み具合。カードを読み終えるまでは空のまま出す。
     @State private var summaries: [Int: DeckProgressSummary] = [:]
+    /// デッキごとの表紙画像。選んだ1枚は `DeckCoverStore` が端末へ覚えている。
+    @State private var covers: [Int: URL] = [:]
     @State private var studyLaunch: StudyLaunch?
-    /// 並べ替えモード。`.constant` で渡すと `List` 側から抜けられなくなるので、
-    /// 書き戻せる状態として持つ。
-    @State private var editMode: EditMode = .inactive
     @State private var isShowingLibrary = false
     @State private var wordListDeck: Deck?
     @AppStorage(DeckPlayStyle.storageKey) private var playStyle: DeckPlayStyle = .card
     @State private var errorMessage: String?
     @State private var exportDocument: DeckDocument?
     @State private var exportFileName = "deck"
-    @State private var previousVerticalDragTranslation: CGFloat?
 
-    init(
-        bottomActionBarClearance: CGFloat = 0,
-        setActionBarHidden: @escaping (Bool) -> Void = { _ in }
-    ) {
+    init(bottomActionBarClearance: CGFloat = 0) {
         self.bottomActionBarClearance = bottomActionBarClearance
-        self.setActionBarHidden = setActionBarHidden
     }
-
-    private var isEditing: Bool { editMode.isEditing }
 
     var body: some View {
         NavigationStack {
-            list
+            content
                 .navigationDestination(item: $studyLaunch) { launch in
                     StudySessionView(deck: launch.deck, studyMode: launch.mode)
                 }
@@ -73,6 +65,7 @@ struct LearningDashboardView: View {
             isShowingLibrary = false
             wordListDeck = nil
             decks = []
+            covers = [:]
         }
         // 詳細へのpushでも表示状態は変わらないため、画面ごとの出入りで競合させない。
         .onChange(of: isShowingLibrary) { _, isPresented in
@@ -80,72 +73,22 @@ struct LearningDashboardView: View {
         }
     }
 
-    /// デッキだけを縦に並べ、エラーがあるときだけ末尾に通知を出す。
-    private var list: some View {
-        List {
-            Section {
-                if decks.isEmpty {
-                    emptyState
-                        .wireListRow()
-                } else {
-                    ForEach(decks) { deck in
-                        deckRow(deck)
-                            .wireListRow(vertical: WireMetrics.spacingXS)
-                            .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                                if canExport(deck) {
-                                    Button("書き出す") { prepareExport(deck) }
-                                }
-                            }
-                    }
-                    .onMove(perform: moveHandler)
-                    .onDelete(perform: deleteHandler)
-                }
+    /// デッキのカードを上下に回すカルーセル。お知らせがあるときだけ下に足す。
+    private var content: some View {
+        VStack(spacing: WireMetrics.spacingM) {
+            if decks.isEmpty {
+                emptyState
+                Spacer(minLength: 0)
+            } else {
+                carousel
             }
-
-            // 通知。エラーがなければグループごと出さない。
-            if let errorMessage {
-                Section {
-                    BentoGroup(title: "通知", tone: .l3) {
-                        // 色相を使わずに異常を示す（破線 + 文言）。
-                        Text(errorMessage)
-                            .wireFont(.caption)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(WireMetrics.spacingM)
-                            .outlineSurface(
-                                radius: WireMetrics.radiusControl,
-                                shadow: nil,
-                                dashed: true,
-                                fill: BentoTone.l3.fill
-                            )
-                    }
-                    .endsDeckEditingOnTap(isEditing) { endEditing() }
-                    .wireListRow()
-                }
-            }
+            notice
         }
-        .listStyle(.plain)
-        // 行の隙間や余白など、どの行も受け取らなかったタップ。
-        // `gesture` は行の中身に負けるので、デッキ行の操作は邪魔しない。
-        .gesture(TapGesture().onEnded { endEditing() }, including: isEditing ? .all : .none)
-        .scrollContentBackground(.hidden)
-        // 右上に固定した「デッキ追加」ボタンの下から並べ始める。
-        .contentMargins(.top, addDeckButtonClearance, for: .scrollContent)
-        // NavigationStack の内側にある List では、外側の safeAreaInset だけでは
-        // 最後の行が避けない。末尾をバー高ぶんだけ追加でスクロールできるようにする。
-        .contentMargins(.bottom, bottomActionBarClearance, for: .scrollContent)
-        // 並べ替え側は双方向 Binding が必要。constant にすると終了操作が反映されない。
-        .environment(\.editMode, $editMode)
-        .overlay(alignment: .topTrailing) {
-            if !isEditing {
-                addDeckButton
-            }
-        }
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 1)
-                .onChanged(updateActionBarVisibility)
-                .onEnded { _ in previousVerticalDragTranslation = nil },
-            including: .subviews
-        )
+        .padding(.horizontal, WireMetrics.screenPadding)
+        .padding(.top, addDeckButtonClearance)
+        .padding(.bottom, bottomActionBarClearance)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .overlay(alignment: .topTrailing) { addDeckButton }
         .fileExporter(
             isPresented: Binding(
                 get: { exportDocument != nil },
@@ -161,65 +104,49 @@ struct LearningDashboardView: View {
         }
     }
 
-    private func updateActionBarVisibility(_ value: DragGesture.Value) {
-        guard abs(value.translation.height) > abs(value.translation.width) else {
-            previousVerticalDragTranslation = nil
-            return
-        }
-
-        defer { previousVerticalDragTranslation = value.translation.height }
-        guard let previousVerticalDragTranslation else { return }
-
-        let verticalMovement = value.translation.height - previousVerticalDragTranslation
-        guard abs(verticalMovement) > 0.5 else { return }
-        setActionBarHidden(verticalMovement < 0)
-    }
-
-    /// デッキ全体を学習開始の入口にする。長押しによる並べ替えは維持する。
-    private func deckRow(_ deck: Deck) -> some View {
-        Button {
-            guard !isEditing else { return }
-            switch playStyle {
-            // ponytail: 5択はまだ無いのでカードと同じ学習を開く。5択画面ができたらここで分ける。
-            case .card, .choice:
-                studyLaunch = StudyLaunch(deck: deck, mode: .all)
-            case .list:
-                wordListDeck = deck
-            }
-        } label: {
-            VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-                HStack(alignment: .top, spacing: WireMetrics.spacingM) {
-                    DeckCoverMark(symbol: DeckCoverSymbol.forDeck(id: deck.id))
-                    VStack(alignment: .leading, spacing: WireMetrics.spacingXS) {
-                        Text(deck.deckName)
-                            .wireFont(.titleS)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
-                DeckMasteryBar(
-                    masteredCount: summary(for: deck).masteredCount,
-                    totalCount: summary(for: deck).totalCount,
-                    ratio: summary(for: deck).masteryRatio,
-                    percentText: summary(for: deck).masteryPercentText
-                )
-                DeckStatusChips(summary: summary(for: deck))
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(WireMetrics.spacingL)
-        }
-        // デッキは1件ずつ枠で囲う。どこからどこまでが1つのデッキか、
-        // 区切り線だけだと分かりにくかったため（外枠より細い線と1段濃い面）。
-        .buttonStyle(.bentoCard(tone: deckCardTone))
-        .accessibilityHint(playStyle == .list ? "単語リストを開きます" : "学習を始めます")
-        .simultaneousGesture(
-            LongPressGesture(minimumDuration: 0.45).onEnded { _ in
-                guard appState.studyDataSource.supportsDeckReordering, !isEditing else { return }
-                withAnimation(.easeInOut(duration: 0.2)) { editMode = .active }
-            }
+    private var carousel: some View {
+        DeckCarouselView(
+            decks: decks,
+            coverURL: { covers[$0.id] },
+            summary: summary(for:),
+            onOpen: open,
+            onExport: prepareExport,
+            onDelete: delete,
+            canExport: canExport,
+            canDelete: { appState.studyDataSource.canManage($0) }
         )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    /// 並べ替え中は行が動くので、追加ボタンは隠す。
+    /// 読み込みや削除に失敗したときだけ出すお知らせ。
+    @ViewBuilder
+    private var notice: some View {
+        if let errorMessage {
+            // 色相を使わずに異常を示す（破線 + 文言）。
+            Text(errorMessage)
+                .wireFont(.caption)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(WireMetrics.spacingM)
+                .outlineSurface(
+                    radius: WireMetrics.radiusControl,
+                    shadow: nil,
+                    dashed: true,
+                    fill: BentoTone.l3.fill
+                )
+        }
+    }
+
+    /// デッキ全体を学習開始の入口にする。
+    private func open(_ deck: Deck) {
+        switch playStyle {
+        // ponytail: 5択はまだ無いのでカードと同じ学習を開く。5択画面ができたらここで分ける。
+        case .card, .choice:
+            studyLaunch = StudyLaunch(deck: deck, mode: .all)
+        case .list:
+            wordListDeck = deck
+        }
+    }
+
     /// ログインの有無では出し分けない。デッキを増やせることは、どちらでも同じにする。
     private var addDeckButton: some View {
         Button {
@@ -257,9 +184,6 @@ struct LearningDashboardView: View {
         .padding(WireMetrics.spacingL)
     }
 
-    /// デッキカードは背景より1段濃くして、1件ずつの囲いを見せる。
-    private var deckCardTone: BentoTone { .l2 }
-
     /// そのデッキの進み具合。まだ読めていないデッキは 0 枚として出す。
     private func summary(for deck: Deck) -> DeckProgressSummary {
         summaries[deck.id] ?? .empty
@@ -276,46 +200,35 @@ struct LearningDashboardView: View {
             guard appState.localStudy === dataSource else { return }
             decks = fetched
             errorMessage = nil
-            await loadSummaries(for: fetched, from: dataSource)
+            await loadDeckDetails(for: fetched, from: dataSource)
         } catch {
             guard appState.localStudy === dataSource else { return }
             decks = []
             summaries = [:]
+            covers = [:]
             errorMessage = UserFacingError.message(for: error)
-            editMode = .inactive
-            return
-        }
-        if decks.isEmpty {
-            editMode = .inactive
         }
     }
 
-    /// デッキごとの進み具合を数える。1件が読めなくても残りの行は出す。
+    /// デッキごとの進み具合と表紙を、同じカード一覧から一度に作る。
+    /// 1件が読めなくても残りのデッキは出す。
     ///
     /// ponytail: 数え方はデッキのカードを全部読む素直なやり方。デッキが増えるか
     /// 1デッキが大きくなって一覧の表示が遅れたら、データ層に件数だけを返す
     /// 問い合わせ（`fetchDeckCounts` と同じ置き場所）を足して置き換える。
-    private func loadSummaries(for decks: [Deck], from dataSource: LocalStudyDataSource) async {
-        var loaded: [Int: DeckProgressSummary] = [:]
+    private func loadDeckDetails(for decks: [Deck], from dataSource: LocalStudyDataSource) async {
+        let store = DeckCoverStore()
+        var loadedSummaries: [Int: DeckProgressSummary] = [:]
+        var loadedCovers: [Int: URL] = [:]
         for deck in decks {
             guard let cards = try? await dataSource.fetchCards(deckId: deck.id) else { continue }
-            loaded[deck.id] = DeckProgressSummary(cards: cards)
+            loadedSummaries[deck.id] = DeckProgressSummary(cards: cards)
+            loadedCovers[deck.id] = store.coverURL(deckId: deck.id, cards: cards)
         }
+        // 利用者が切り替わっていたら、前の人の結果は捨てる。
         guard appState.localStudy === dataSource else { return }
-        summaries = loaded
-    }
-
-    /// 並べ替えモードを抜ける。出口はここ1か所にまとめる。
-    private func endEditing() {
-        withAnimation(.easeInOut(duration: 0.2)) { editMode = .inactive }
-    }
-
-    private var moveHandler: ((IndexSet, Int) -> Void)? {
-        isEditing && appState.studyDataSource.supportsDeckReordering ? move : nil
-    }
-
-    private var deleteHandler: ((IndexSet) -> Void)? {
-        isEditing ? delete : nil
+        summaries = loadedSummaries
+        covers = loadedCovers
     }
 
     /// 書き出しは端末のデッキファイルが元になる。公式デッキには出さない。
@@ -336,33 +249,17 @@ struct LearningDashboardView: View {
         }
     }
 
-    private func move(fromOffsets source: IndexSet, toOffset destination: Int) {
-        do {
-            try appState.localStudy.moveDecks(fromOffsets: source, toOffset: destination)
-            Task { await reload() }
-        } catch {
-            errorMessage = "並び順を保存できませんでした。"
-        }
-    }
-
-    private func delete(atOffsets offsets: IndexSet) {
-        let targets = offsets.compactMap { decks.indices.contains($0) ? decks[$0] : nil }
+    private func delete(_ deck: Deck) {
         let dataSource = appState.studyDataSource
-        let managed = targets.filter { dataSource.canManage($0) }
-
-        guard !managed.isEmpty else {
+        guard dataSource.canManage(deck) else {
             errorMessage = "配信中のデッキは削除できません。"
             return
         }
 
         Task {
             do {
-                for deck in managed {
-                    try await dataSource.deleteDeck(id: deck.id)
-                }
-                errorMessage = managed.count == targets.count
-                    ? nil
-                    : "配信中のデッキは削除していません。"
+                try await dataSource.deleteDeck(id: deck.id)
+                errorMessage = nil
                 await reload()
             } catch {
                 errorMessage = "デッキを削除できませんでした。\(UserFacingError.advice(for: error))"
@@ -378,15 +275,3 @@ struct LearningDashboardView: View {
         .environmentObject(DesignSettings())
 }
 #endif
-
-private extension View {
-    /// デッキ一覧の外側をタップしたら並べ替えを終える。
-    /// 画面下のアクションバーはこの `List` の外にあるので、ここでは反応しない。
-    func endsDeckEditingOnTap(_ isEditing: Bool, action: @escaping () -> Void) -> some View {
-        contentShape(Rectangle())
-            .simultaneousGesture(
-                TapGesture().onEnded { action() },
-                including: isEditing ? .all : .none
-            )
-    }
-}
