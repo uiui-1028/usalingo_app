@@ -10,6 +10,8 @@ import SwiftUI
 struct DeckConceptView: View {
     let deck: Deck
     let counts: StudyDeckCounts?
+    /// そのデッキの実際のカードから数えた進み具合。
+    let summary: DeckProgressSummary
     /// 開始ボタンが面の外にあるので、選択結果は呼び出し側が持つ。
     @Binding var selectedMode: StudyMode
 
@@ -18,8 +20,6 @@ struct DeckConceptView: View {
     @State private var selectedNarrowings: Set<ConceptNarrowing> = []
     @State private var selectedTone: ConceptSentenceTone = .simple
     @State private var selectedStyle: ConceptIllustrationStyle = .realistic
-
-    private var sample: DeckDisplaySample { DeckDisplaySample.forDeck(id: deck.id) }
 
     var body: some View {
         ScrollView {
@@ -48,17 +48,17 @@ struct DeckConceptView: View {
     private var summaryGroup: some View {
         BentoGroup(tone: .l1) {
             HStack(alignment: .top, spacing: WireMetrics.spacingM) {
-                DeckCoverMark(symbol: sample.coverSymbol)
+                DeckCoverMark(symbol: DeckCoverSymbol.forDeck(id: deck.id))
 
                 VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
                     DeckMasteryBar(
-                        masteredCount: sample.masteredCount,
-                        totalCount: sample.totalCount,
-                        ratio: sample.masteryRatio,
-                        percentText: sample.masteryPercentText
+                        masteredCount: summary.masteredCount,
+                        totalCount: summary.totalCount,
+                        ratio: summary.masteryRatio,
+                        percentText: summary.masteryPercentText
                     )
 
-                    DeckStatusChips(sample: sample)
+                    DeckStatusChips(summary: summary)
                 }
             }
         }
@@ -69,10 +69,10 @@ struct DeckConceptView: View {
     private var previewGroup: some View {
         BentoGroup(title: "収録されている語", tone: .l1) {
             VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-                chipScroller(sample.previewWords) { word in
+                chipScroller(summary.previewWords) { word in
                     WirePill(title: word, font: .caption)
                 }
-                Text("ほか \(max(0, sample.totalCount - sample.previewWords.count)) 語")
+                Text("ほか \(max(0, summary.totalCount - summary.previewWords.count)) 語")
                     .wireFont(.caption)
             }
         }
@@ -97,7 +97,7 @@ struct DeckConceptView: View {
                     .accessibilityAddTraits(selectedMode == mode ? .isSelected : [])
                 }
 
-                // 上の枚数は仮の数字なので、いま本当に出せる枚数をここで断る。
+                // 上の枚数はデッキ全体の枚数。1回に出せる上限は別なので、ここで断る。
                 WireframeNotice(text: actualCountText)
             }
         }
@@ -238,20 +238,20 @@ struct DeckConceptView: View {
         }
     }
 
-    /// 枚数はすべて同じ仮データから引く。合計が総枚数と合うようにするため。
+    /// 枚数はすべて同じ集計から引く。合計が総枚数と合うようにするため。
     private func cardCountText(for mode: StudyMode) -> String {
         switch mode {
-        case .newOnly: return "\(sample.untouchedCount)枚"
-        case .reviewOnly: return "\(sample.learningCount)枚"
-        case .all: return "\(sample.totalCount)枚"
-        case .weakOnly: return "\(sample.weakCount)枚"
+        case .newOnly: return "\(summary.untouchedCount)枚"
+        case .reviewOnly: return "\(summary.learningCount)枚"
+        case .all: return "\(summary.totalCount)枚"
+        case .weakOnly: return "\(summary.weakCount)枚"
         }
     }
 
-    /// 実データで出せる枚数。仮の数字との食い違いをここで説明する。
+    /// 1回の学習で出せる枚数。デッキ全体の枚数との違いをここで説明する。
     private var actualCountText: String {
         guard let counts else { return "いま出せる枚数はまだ読み込めていません。" }
-        return "上の枚数は仮の数字です。いま実際に出せるのは 新規 \(counts.newCount)枚・復習 \(counts.dueCount)枚 です。"
+        return "いま実際に出せるのは 新規 \(counts.newCount)枚・復習 \(counts.dueCount)枚 です。"
     }
 }
 
@@ -265,6 +265,7 @@ struct DeckConceptView: View {
 struct DeckConceptSheet: View {
     let deck: Deck
     let counts: StudyDeckCounts?
+    let summary: DeckProgressSummary
     @Binding var selectedMode: StudyMode
     let onStart: (StudyMode) -> Void
     let onClose: () -> Void
@@ -351,7 +352,7 @@ struct DeckConceptSheet: View {
 
     /// シートに見せる面。背景はシート側ではなくここで描く。
     private var panel: some View {
-        DeckConceptView(deck: deck, counts: counts, selectedMode: $selectedMode)
+        DeckConceptView(deck: deck, counts: counts, summary: summary, selectedMode: $selectedMode)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             // 中身（DeckConceptView）が自分で四角い背景を敷くので、背景を丸く
             // 塗るだけでは上の角がその四角に隠れてしまう。形で切り抜いて、
@@ -428,6 +429,7 @@ private struct ConceptOptionRow: View {
         DeckConceptView(
             deck: Deck(id: 1, deckName: "TOEIC 基礎 600", description: "頻出600語。Part5 の土台をつくる。"),
             counts: StudyDeckCounts(newCount: 12, dueCount: 8),
+            summary: .empty,
             selectedMode: .constant(.all)
         )
     }
