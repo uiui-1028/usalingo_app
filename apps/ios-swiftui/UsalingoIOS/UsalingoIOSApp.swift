@@ -47,14 +47,6 @@ struct RootView: View {
                         }
                     }
             }
-
-            if appState.isSwipeTutorialPresented, !appState.isRestoringSession {
-                SwipeTutorialView(
-                    complete: appState.completeSwipeTutorial,
-                    dismiss: appState.dismissSwipeTutorial
-                )
-                .zIndex(1)
-            }
         }
         .alert("アカウントを削除しました", isPresented: Binding(
             get: { appState.accountDeletionNotice != nil },

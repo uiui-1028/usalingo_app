@@ -29,7 +29,6 @@
 		A1000000000000000000001A /* Features/Words/WordEditSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* Features/Words/WordEditSheet.swift */; };
 		A1000000000000000000001B /* Features/Words/TagSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001B /* Features/Words/TagSheet.swift */; };
 		A1000000000000000000001C /* Models/DesignSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* Models/DesignSettings.swift */; };
-		A1000000000000000000001F /* Features/Study/SwipeTutorialView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001F /* Features/Study/SwipeTutorialView.swift */; };
 		A10000000000000000000020 /* Services/AccountDeletionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* Services/AccountDeletionService.swift */; };
 		A10000000000000000000021 /* Services/AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000021 /* Services/AppInfo.swift */; };
 		A10000000000000000000022 /* Resources/Licenses in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* Resources/Licenses */; };
@@ -127,7 +126,6 @@
 		A2000000000000000000001A /* Features/Words/WordEditSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordEditSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000001B /* Features/Words/TagSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/TagSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000001C /* Models/DesignSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DesignSettings.swift; sourceTree = "<group>"; };
-		A2000000000000000000001F /* Features/Study/SwipeTutorialView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/SwipeTutorialView.swift; sourceTree = "<group>"; };
 		A20000000000000000000020 /* Services/AccountDeletionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AccountDeletionService.swift; sourceTree = "<group>"; };
 		A20000000000000000000021 /* Services/AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/AppInfo.swift; sourceTree = "<group>"; };
 		A20000000000000000000022 /* Resources/Licenses */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Licenses; sourceTree = "<group>"; };
@@ -282,7 +280,6 @@
 				A200000000000000000075 /* Features/Words/WordDetailSheet.swift */,
 				A2000000000000000000001A /* Features/Words/WordEditSheet.swift */,
 				A2000000000000000000001B /* Features/Words/TagSheet.swift */,
-				A2000000000000000000001F /* Features/Study/SwipeTutorialView.swift */,
 				A20000000000000000000022 /* Resources/Licenses */,
 				A2000000000000000000002B /* Resources/Assets.xcassets */,
 				A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */,
@@ -481,7 +478,6 @@
 				A1000000000000000000001A /* Features/Words/WordEditSheet.swift in Sources */,
 				A1000000000000000000001B /* Features/Words/TagSheet.swift in Sources */,
 				A1000000000000000000001C /* Models/DesignSettings.swift in Sources */,
-				A1000000000000000000001F /* Features/Study/SwipeTutorialView.swift in Sources */,
 				A10000000000000000000020 /* Services/AccountDeletionService.swift in Sources */,
 				A10000000000000000000021 /* Services/AppInfo.swift in Sources */,
 			);

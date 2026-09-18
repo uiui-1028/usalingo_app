@@ -61,7 +61,6 @@ final class AccountDeletionTests: XCTestCase {
         let cards = try await activeStudy.fetchCards(deckId: deck.id)
         let card = try XCTUnwrap(cards.first)
         _ = try await activeStudy.saveAnswer(card: card, isCorrect: true)
-        appState.completeSwipeTutorial()
         appState.designSettings.accentName = "orange"
         appState.designSettings.cardCornerRadius = 30
 
@@ -72,7 +71,6 @@ final class AccountDeletionTests: XCTestCase {
 
         XCTAssertNil(appState.session)
         XCTAssertNil(sessionStore.savedSession)
-        XCTAssertTrue(appState.isSwipeTutorialPresented)
         XCTAssertEqual(appState.designSettings.accentName, "green")
         XCTAssertEqual(appState.designSettings.cardCornerRadius, 18)
         XCTAssertNotNil(appState.accountDeletionNotice)

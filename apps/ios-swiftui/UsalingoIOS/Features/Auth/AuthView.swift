@@ -115,10 +115,6 @@ struct AuthView: View {
             tertiaryButton("パスワードを忘れた場合", isDisabled: isLoading || EmailInput.normalized(email).isEmpty) {
                 Task { await requestRecovery() }
             }
-
-            tertiaryButton("操作ガイドをもう一度見る", isDisabled: isLoading) {
-                appState.showSwipeTutorial()
-            }
         }
     }
 
