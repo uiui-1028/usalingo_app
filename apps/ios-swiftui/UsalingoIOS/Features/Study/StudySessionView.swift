@@ -252,12 +252,12 @@ struct StudySessionView: View {
         HStack(spacing: WireMetrics.spacingS) {
             toolbarButton("tag", label: "タグ", action: tagCurrentCard)
             audioButton(
-                url: currentCard?.wordAudioURL,
+                urls: [currentCard?.wordAudioURL, currentCard?.audioURL],
                 symbol: "speaker.wave.2",
-                label: "単語の音声を再生"
+                label: "単語と例文の音声を再生"
             )
             audioButton(
-                url: currentCard?.audioURL,
+                urls: [currentCard?.audioURL],
                 symbol: "text.bubble",
                 label: "例文の音声を再生"
             )
@@ -496,16 +496,23 @@ struct StudySessionView: View {
         )
     }
 
-    /// 鳴っている音声のボタンだけを停止の見た目にする。音声が無いカードでは押せない。
-    private func audioButton(url: URL?, symbol: String, label: String) -> some View {
-        let isPlayingThis = url != nil && audioPlaybackService.playingURL == url
+    /// 渡した順に続けて鳴らす。押し始めの1本が鳴っている間だけ停止の見た目にし、
+    /// もう一度押すと途中でも止める。鳴らせる音声が1本も無いカードでは押せない。
+    private func audioButton(urls: [URL?], symbol: String, label: String) -> some View {
+        let queue = urls.compactMap { $0 }
+        let isPlayingThis = audioPlaybackService.playingURL != nil
+            && audioPlaybackService.playingURL == queue.first
         return toolbarButton(
             isPlayingThis ? "speaker.slash" : symbol,
             label: label,
-            isDisabled: url == nil
+            isDisabled: queue.isEmpty
         ) {
-            guard let url else { return }
-            audioPlaybackService.togglePlayback(url: url)
+            guard !queue.isEmpty else { return }
+            if isPlayingThis {
+                audioPlaybackService.stop()
+            } else {
+                audioPlaybackService.playSequence(urls: queue)
+            }
         }
     }
 
