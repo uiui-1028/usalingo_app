@@ -42,6 +42,7 @@
 		A10000000000000000000E11 /* Services/EmailInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000E11 /* Services/EmailInput.swift */; };
 		A1000000000000000000002B /* Resources/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002B /* Resources/Assets.xcassets */; };
 		A1000000000000000000002C /* Resources/PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */; };
+		A1000000000000000000002E /* Resources/StarterDeck.json in Resources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002E /* Resources/StarterDeck.json */; };
 		A10000000000000000000030 /* DesignSystem/Tokens/WireColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000030 /* DesignSystem/Tokens/WireColor.swift */; };
 		A10000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift */; };
 		A10000000000000000000032 /* DesignSystem/Tokens/WireTypography.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000032 /* DesignSystem/Tokens/WireTypography.swift */; };
@@ -143,6 +144,7 @@
 		A20000000000000000000E11 /* Services/EmailInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/EmailInput.swift; sourceTree = "<group>"; };
 		A2000000000000000000002B /* Resources/Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
 		A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Resources/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		A2000000000000000000002E /* Resources/StarterDeck.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Resources/StarterDeck.json; sourceTree = "<group>"; };
 		A2000000000000000000002D /* Services/ImageLoading/CardImageLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/ImageLoading/CardImageLoader.swift; sourceTree = "<group>"; };
 		A20000000000000000000030 /* DesignSystem/Tokens/WireColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireColor.swift; sourceTree = "<group>"; };
 		A20000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Tokens/WireMetrics.swift; sourceTree = "<group>"; };
@@ -293,6 +295,7 @@
 				A20000000000000000000022 /* Resources/Licenses */,
 				A2000000000000000000002B /* Resources/Assets.xcassets */,
 				A2000000000000000000002C /* Resources/PrivacyInfo.xcprivacy */,
+				A2000000000000000000002E /* Resources/StarterDeck.json */,
 				A20000000000000000000012 /* Info.plist */,
 			);
 			path = UsalingoIOS;
@@ -421,6 +424,7 @@
 				A10000000000000000000022 /* Resources/Licenses in Resources */,
 				A1000000000000000000002B /* Resources/Assets.xcassets in Resources */,
 				A1000000000000000000002C /* Resources/PrivacyInfo.xcprivacy in Resources */,
+				A1000000000000000000002E /* Resources/StarterDeck.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

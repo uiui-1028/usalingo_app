@@ -23,8 +23,34 @@ final class LocalStudyDataSourceTests: XCTestCase {
 
         XCTAssertTrue(source.decks().isEmpty)
         let words = try await source.fetchWordList()
-        XCTAssertTrue(words.isEmpty)
+        // 残るのは同梱デッキのカードだけ。控えのカードIDは負の値になる。
+        XCTAssertTrue(words.allSatisfy { ($0.cardId ?? 0) < 0 })
         XCTAssertTrue(LocalStudyDataSource(directoryURL: directoryURL).decks().isEmpty)
+    }
+
+    func testStarterDeckIsReadyBeforeAnyServerContent() async throws {
+        let source = makeDataSource()
+
+        let decks = try await source.fetchDecks()
+        let starter = try XCTUnwrap(decks.first)
+
+        XCTAssertEqual(starter.deckName, "大学受験1000語A")
+        XCTAssertFalse(source.canManage(starter))
+        let cards = try await source.fetchCards(deckId: starter.id)
+        XCTAssertEqual(cards.count, 100)
+        XCTAssertFalse(try XCTUnwrap(cards.first).senses.isEmpty)
+    }
+
+    func testServerContentReplacesTheBundledStarterDeck() async throws {
+        let source = makeDataSource()
+        source.selectAccount(id: "account-a")
+        let deck = Deck(id: 1, deckName: "大学受験1000語A", description: "配信版")
+
+        try source.cacheRemoteDecks([deck], cardsByDeck: [1: [remoteCard()]], progress: [], userId: "account-a")
+
+        let decks = try await source.fetchDecks()
+        XCTAssertEqual(decks.map(\.deckName), ["大学受験1000語A"])
+        XCTAssertEqual(decks.first?.description, "配信版")
     }
 
     @MainActor
