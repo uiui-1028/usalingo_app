@@ -6,6 +6,8 @@ enum DeckPlayStyle: String, CaseIterable, Identifiable {
     case card
     case choice
     case list
+    case audio
+    case match
 
     static let storageKey = "learning.deckPlayStyle"
 
@@ -16,6 +18,19 @@ enum DeckPlayStyle: String, CaseIterable, Identifiable {
         case .card: return "カード"
         case .choice: return "5択"
         case .list: return "リスト"
+        case .audio: return "音声"
+        case .match: return "ペア"
+        }
+    }
+
+    /// バーに並べるアイコン。5つを1行に収めるため、名前は選んだものだけ出す。
+    var symbol: String {
+        switch self {
+        case .card: return "rectangle.on.rectangle"
+        case .choice: return "checklist"
+        case .list: return "list.bullet"
+        case .audio: return "waveform"
+        case .match: return "square.grid.3x2"
         }
     }
 }
@@ -36,6 +51,8 @@ struct LearningDashboardView: View {
     @State private var studyLaunch: StudyLaunch?
     @State private var isShowingLibrary = false
     @State private var wordListDeck: Deck?
+    @State private var radioDeck: Deck?
+    @State private var matchingDeck: Deck?
     @AppStorage(DeckPlayStyle.storageKey) private var playStyle: DeckPlayStyle = .card
     @State private var errorMessage: String?
     @State private var exportDocument: DeckDocument?
@@ -57,6 +74,12 @@ struct LearningDashboardView: View {
                 .navigationDestination(item: $wordListDeck) { deck in
                     WordListView(deck: deck)
                 }
+                .navigationDestination(item: $radioDeck) { deck in
+                    AudioRadioView(deck: deck)
+                }
+                .navigationDestination(item: $matchingDeck) { deck in
+                    MatchingGameView(deck: deck)
+                }
         }
         .task(id: reloadKey) { await reload() }
         .onChange(of: appState.session?.user.id) { _, _ in
@@ -64,6 +87,8 @@ struct LearningDashboardView: View {
             studyLaunch = nil
             isShowingLibrary = false
             wordListDeck = nil
+            radioDeck = nil
+            matchingDeck = nil
             decks = []
             covers = [:]
         }
@@ -144,6 +169,10 @@ struct LearningDashboardView: View {
             studyLaunch = StudyLaunch(deck: deck, mode: .all)
         case .list:
             wordListDeck = deck
+        case .audio:
+            radioDeck = deck
+        case .match:
+            matchingDeck = deck
         }
     }
 

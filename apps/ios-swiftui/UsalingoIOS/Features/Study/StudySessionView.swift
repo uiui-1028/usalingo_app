@@ -676,7 +676,8 @@ private struct AnswerCheckpoint {
     let previousProgress: LearningProgress?
 }
 
-private struct StudyStatusView: View {
+/// 読み込み失敗・カードなしなど、学習系の画面で共通に出す案内。
+struct StudyStatusView: View {
     let symbol: String
     let title: String
     let message: String
@@ -703,7 +704,8 @@ private struct StudyStatusView: View {
     }
 }
 
-private struct StudyCompletionView: View {
+/// 学習を終えたときのまとめ。カード・神経衰弱のどちらからも出す。
+struct StudyCompletionView: View {
     let correctCount: Int
     let incorrectCount: Int
     let studiedCount: Int

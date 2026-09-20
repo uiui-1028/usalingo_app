@@ -116,6 +116,8 @@ struct AppShellView: View {
         }
     }
 
+    /// 遊び方は5つあるので、タブバーと同じく普段はアイコンだけにし、
+    /// 選んだものにだけ名前を出す。1行に収めたまま、いまの選択が読めるようにする。
     private var playStyleBar: some View {
         HStack(spacing: WireMetrics.spacingXS) {
             ForEach(DeckPlayStyle.allCases) { style in
@@ -123,14 +125,26 @@ struct AppShellView: View {
                 Button {
                     playStyle = style
                 } label: {
-                    Text(style.title)
-                        .wireFont(.label, color: isSelected ? WireColor.surface : WireColor.ink)
-                        .frame(maxWidth: .infinity, minHeight: 44)
-                        .background(Capsule().fill(isSelected ? WireColor.ink : WireColor.surface))
-                        .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair))
-                        .contentShape(Capsule())
+                    HStack(spacing: WireMetrics.spacingXS) {
+                        Image(systemName: style.symbol)
+
+                        if isSelected {
+                            Text(style.title)
+                                .wireFont(.label, color: WireColor.surface)
+                                .lineLimit(1)
+                                .fixedSize()
+                                .transition(.opacity.combined(with: .move(edge: .leading)))
+                        }
+                    }
+                    .foregroundStyle(isSelected ? WireColor.surface : WireColor.ink)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .padding(.horizontal, isSelected ? WireMetrics.spacingM : 0)
+                    .background(Capsule().fill(isSelected ? WireColor.ink : WireColor.surface))
+                    .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair))
+                    .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .accessibilityLabel(style.title)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }

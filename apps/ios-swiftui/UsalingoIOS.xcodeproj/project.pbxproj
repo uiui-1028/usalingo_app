@@ -18,6 +18,13 @@
 		A1000000000000000000000A /* Services/StudyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* Services/StudyService.swift */; };
 		A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* Features/Auth/AuthView.swift */; };
 		A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* Features/Study/StudySessionView.swift */; };
+		A1000000000000000000A101 /* Features/Study/MatchingGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000A101 /* Features/Study/MatchingGame.swift */; };
+		A1000000000000000000A102 /* Features/Study/MatchingGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000A102 /* Features/Study/MatchingGameView.swift */; };
+		A1000000000000000000A103 /* Features/Study/RadioQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000A103 /* Features/Study/RadioQueue.swift */; };
+		A1000000000000000000A104 /* Features/Study/AudioRadioView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000A104 /* Features/Study/AudioRadioView.swift */; };
+		A1000000000000000000A105 /* Services/RadioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000A105 /* Services/RadioPlayer.swift */; };
+		B1000000000000000000A201 /* MatchingGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000A201 /* MatchingGameTests.swift */; };
+		B1000000000000000000A202 /* RadioQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000A202 /* RadioQueueTests.swift */; };
 		A1000000000000000000000F /* Features/Study/StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* Features/Study/StudyCardView.swift */; };
 		A10000000000000000000013 /* Features/Shell/AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* Features/Shell/AppShellView.swift */; };
 		A10000000000000000000014 /* Features/Learning/LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */; };
@@ -117,6 +124,13 @@
 		A2000000000000000000000A /* Services/StudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyService.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* Features/Auth/AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* Features/Study/StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
+		A2000000000000000000A101 /* Features/Study/MatchingGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/MatchingGame.swift; sourceTree = "<group>"; };
+		A2000000000000000000A102 /* Features/Study/MatchingGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/MatchingGameView.swift; sourceTree = "<group>"; };
+		A2000000000000000000A103 /* Features/Study/RadioQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/RadioQueue.swift; sourceTree = "<group>"; };
+		A2000000000000000000A104 /* Features/Study/AudioRadioView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/AudioRadioView.swift; sourceTree = "<group>"; };
+		A2000000000000000000A105 /* Services/RadioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/RadioPlayer.swift; sourceTree = "<group>"; };
+		B2000000000000000000A201 /* MatchingGameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchingGameTests.swift; sourceTree = "<group>"; };
+		B2000000000000000000A202 /* RadioQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioQueueTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000000F /* Features/Study/StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* UsalingoIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UsalingoIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000011 /* Config/Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Local.xcconfig; sourceTree = "<group>"; };
@@ -268,6 +282,11 @@
 				A2000000000000000000000E /* Features/Study/StudySessionView.swift */,
 				A2000000000000000000000F /* Features/Study/StudyCardView.swift */,
 				A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */,
+				A2000000000000000000A101 /* Features/Study/MatchingGame.swift */,
+				A2000000000000000000A102 /* Features/Study/MatchingGameView.swift */,
+				A2000000000000000000A103 /* Features/Study/RadioQueue.swift */,
+				A2000000000000000000A104 /* Features/Study/AudioRadioView.swift */,
+				A2000000000000000000A105 /* Services/RadioPlayer.swift */,
 				A20000000000000000000013 /* Features/Shell/AppShellView.swift */,
 				A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */,
 				A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */,
@@ -318,6 +337,8 @@
 				B20000000000000000000E11 /* EmailInputTests.swift */,
 				B20000000000000000000E12 /* DeckProgressSummaryTests.swift */,
 				B20000000000000000000E90 /* DeckCarouselTests.swift */,
+				B2000000000000000000A201 /* MatchingGameTests.swift */,
+				B2000000000000000000A202 /* RadioQueueTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
 				B200000000000000000012 /* WordListFiltersTests.swift */,
 				B200000000000000000013 /* WordListViewModelTests.swift */,
@@ -466,6 +487,11 @@
 				A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */,
 				A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */,
 				A1000000000000000000000F /* Features/Study/StudyCardView.swift in Sources */,
+				A1000000000000000000A101 /* Features/Study/MatchingGame.swift in Sources */,
+				A1000000000000000000A102 /* Features/Study/MatchingGameView.swift in Sources */,
+				A1000000000000000000A103 /* Features/Study/RadioQueue.swift in Sources */,
+				A1000000000000000000A104 /* Features/Study/AudioRadioView.swift in Sources */,
+				A1000000000000000000A105 /* Services/RadioPlayer.swift in Sources */,
 				A10000000000000000000FA1 /* Features/Study/WordCardContent.swift in Sources */,
 				A10000000000000000000013 /* Features/Shell/AppShellView.swift in Sources */,
 				A10000000000000000000014 /* Features/Learning/LearningDashboardView.swift in Sources */,
@@ -510,6 +536,8 @@
 				B10000000000000000000E11 /* EmailInputTests.swift in Sources */,
 				B10000000000000000000E12 /* DeckProgressSummaryTests.swift in Sources */,
 				B10000000000000000000E90 /* DeckCarouselTests.swift in Sources */,
+				B1000000000000000000A201 /* MatchingGameTests.swift in Sources */,
+				B1000000000000000000A202 /* RadioQueueTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
 				B100000000000000000012 /* WordListFiltersTests.swift in Sources */,
 				B100000000000000000013 /* WordListViewModelTests.swift in Sources */,
