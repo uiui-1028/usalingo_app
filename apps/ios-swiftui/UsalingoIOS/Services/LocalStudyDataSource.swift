@@ -55,6 +55,19 @@ private struct CachedRemoteDeck: Codable {
     let cards: [WordCard]
 }
 
+/// アプリに同梱した最初のデッキ（サーバーの `is_starter`）。
+/// サーバーの応答と同じ形で持ち、通信前でも同じカードで学習を始められるようにする。
+private struct StarterDeckFile: Decodable {
+    let deck: Deck
+    let cards: [StudyCardRecord]
+
+    var cached: CachedRemoteDeck? {
+        let cards = cards.compactMap { $0.toCard() }
+        guard !cards.isEmpty else { return nil }
+        return CachedRemoteDeck(deck: deck, cards: cards)
+    }
+}
+
 enum LocalStudyError: LocalizedError, Equatable {
     case deckNotFound
     case deckFileMissing(String)
@@ -112,8 +125,14 @@ final class LocalStudyDataSource: StudyDataSource {
     }
 
     private let fileManager: FileManager
+    private let bundle: Bundle
     private let rootDirectoryURL: URL
     private var directoryURL: URL
+
+    /// 同梱している最初のデッキ。読み込めないときは nil のまま進める。
+    private let starterDeck: CachedRemoteDeck?
+    /// いま棚にある公式デッキが同梱分だけか。端末に控えが無いのと同じ扱いにする判断に使う。
+    private var isStarterDeckOnly = false
 
     private var library: LocalStudyLibrary
     private var progressByCardId: [String: LearningProgress]
@@ -121,8 +140,10 @@ final class LocalStudyDataSource: StudyDataSource {
     private var overridesByWordId: [String: UserWordOverride]
     private var cachedRemoteDecks: [CachedRemoteDeck]
 
-    init(directoryURL: URL? = nil, accountId: String? = nil, fileManager: FileManager = .default) {
+    init(directoryURL: URL? = nil, accountId: String? = nil, fileManager: FileManager = .default, bundle: Bundle = .main) {
         self.fileManager = fileManager
+        self.bundle = bundle
+        starterDeck = Self.loadStarterDeck(from: bundle)
         self.rootDirectoryURL = directoryURL ?? Self.defaultDirectoryURL(fileManager: fileManager)
         self.directoryURL = Self.accountDirectory(root: rootDirectoryURL, id: accountId)
         library = Self.loadJSON(LocalStudyLibrary.self, from: self.directoryURL.appendingPathComponent(FileName.library)) ?? LocalStudyLibrary()
@@ -131,11 +152,12 @@ final class LocalStudyDataSource: StudyDataSource {
         overridesByWordId = Self.loadJSON([String: UserWordOverride].self, from: self.directoryURL.appendingPathComponent(FileName.overrides)) ?? [:]
         cachedRemoteDecks = Self.loadJSON([CachedRemoteDeck].self, from: self.directoryURL.appendingPathComponent(FileName.remoteDecks)) ?? []
         dropBundledDecks()
+        seedStarterDeckIfNeeded()
     }
 
     /// 古い画面が持つデータ層を変えず、新しいアカウント用の実体を作る。
     func forAccount(id: String?) -> LocalStudyDataSource {
-        LocalStudyDataSource(directoryURL: rootDirectoryURL, accountId: id, fileManager: fileManager)
+        LocalStudyDataSource(directoryURL: rootDirectoryURL, accountId: id, fileManager: fileManager, bundle: bundle)
     }
 
     var hasPendingGuestHandoff: Bool {
@@ -148,7 +170,7 @@ final class LocalStudyDataSource: StudyDataSource {
         guard !hasPendingGuestHandoff,
               progressByCardId.isEmpty, tagsByWordId.isEmpty, overridesByWordId.isEmpty,
               library.decks.allSatisfy(\.isBundled), library.removedBundledKeys.isEmpty,
-              cachedRemoteDecks.isEmpty else { return }
+              cachedRemoteDecks.isEmpty || isStarterDeckOnly else { return }
         try ensureDirectory(rootDirectoryURL)
         try Data().write(to: rootDirectoryURL.appendingPathComponent(FileName.pendingGuestHandoff), options: .atomic)
     }
@@ -206,6 +228,24 @@ final class LocalStudyDataSource: StudyDataSource {
         overridesByWordId = Self.loadJSON([String: UserWordOverride].self, from: directoryURL.appendingPathComponent(FileName.overrides)) ?? [:]
         cachedRemoteDecks = Self.loadJSON([CachedRemoteDeck].self, from: directoryURL.appendingPathComponent(FileName.remoteDecks)) ?? []
         dropBundledDecks()
+        seedStarterDeckIfNeeded()
+    }
+
+    /// 端末に控えが無いときだけ、同梱デッキを棚へ出す。控えではないのでファイルには書かない。
+    private func seedStarterDeckIfNeeded() {
+        guard cachedRemoteDecks.isEmpty, let starterDeck else {
+            isStarterDeckOnly = false
+            return
+        }
+        cachedRemoteDecks = [starterDeck]
+        isStarterDeckOnly = true
+    }
+
+    private static func loadStarterDeck(from bundle: Bundle) -> CachedRemoteDeck? {
+        guard let url = bundle.url(forResource: "StarterDeck", withExtension: "json"),
+              let data = try? Data(contentsOf: url),
+              let file = try? JSONDecoder().decode(StarterDeckFile.self, from: data) else { return nil }
+        return file.cached
     }
 
     /// 全件取得が成功してから更新。通信失敗時は前回の端末版を残す。
@@ -244,6 +284,7 @@ final class LocalStudyDataSource: StudyDataSource {
         try persist(updated, to: FileName.remoteDecks)
         progressByCardId = mergedProgress
         cachedRemoteDecks = updated
+        isStarterDeckOnly = false
     }
 
     // MARK: - デッキ一覧（学習タブ用）
@@ -444,7 +485,7 @@ final class LocalStudyDataSource: StudyDataSource {
     /// サーバーから読んだ教材はキャッシュであり、オフラインでは編集・削除しない。
     func canManage(_ deck: Deck) -> Bool { deck.id > 0 }
 
-    var supportsDeckReordering: Bool { cachedRemoteDecks.isEmpty }
+    var supportsDeckReordering: Bool { cachedRemoteDecks.isEmpty || isStarterDeckOnly }
 
     var supportsDeckFileTransfer: Bool { true }
 
@@ -535,6 +576,7 @@ final class LocalStudyDataSource: StudyDataSource {
         overridesByWordId = [:]
         cachedRemoteDecks = []
         dropBundledDecks()
+        seedStarterDeckIfNeeded()
         try persistLibrary()
     }
 
