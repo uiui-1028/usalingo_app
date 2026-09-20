@@ -2,90 +2,137 @@ import XCTest
 @testable import UsalingoIOS
 
 final class MatchingGameTests: XCTestCase {
-    func testBoardStartsWithSixPairsInTwelveSlots() {
+    func testBoardStartsWithFivePairsSplitIntoTwoColumns() {
         let game = MatchingGame(words: makeWords(count: 20), shufflesOrder: false)
-        let tiles = game.slots.compactMap { $0 }
-        XCTAssertEqual(tiles.count, 12)
-        XCTAssertEqual(Set(tiles.map(\.cardId)).count, 6)
-        XCTAssertEqual(tiles.filter { $0.face == .english }.count, 6)
-        XCTAssertEqual(tiles.filter { $0.face == .japanese }.count, 6)
+        XCTAssertEqual(game.tiles.count, 10)
+        XCTAssertEqual(game.tiles(in: .japanese).compactMap { $0 }.count, 5)
+        XCTAssertEqual(game.tiles(in: .english).compactMap { $0 }.count, 5)
+        XCTAssertEqual(Set(game.tiles.map(\.cardId)).count, 5)
+        XCTAssertTrue(game.tiles.allSatisfy { !$0.isCleared }, "札は最初から全部読める")
+    }
+
+    func testEachColumnShowsTheMatchingSideOfTheWord() {
+        let game = MatchingGame(words: makeWords(count: 5), shufflesOrder: false)
+        XCTAssertEqual(Set(game.tiles(in: .english).compactMap { $0?.text }), Set((1...5).map { "word\($0)" }))
+        XCTAssertEqual(Set(game.tiles(in: .japanese).compactMap { $0?.text }), Set((1...5).map { "意味\($0)" }))
     }
 
     func testSmallDeckFillsOnlyWhatItHas() {
         let game = MatchingGame(words: makeWords(count: 2), shufflesOrder: false)
-        XCTAssertEqual(game.slots.compactMap { $0 }.count, 4)
+        XCTAssertEqual(game.tiles.count, 4)
         XCTAssertFalse(game.isFinished)
     }
 
     func testFirstTryMatchIsCorrectAndMissedWordIsNot() {
-        var game = MatchingGame(words: makeWords(count: 6), shufflesOrder: false)
-        XCTAssertEqual(game.flip(tileId: tileId(game, cardId: 1, face: .english)), .revealed)
-        XCTAssertEqual(game.flip(tileId: tileId(game, cardId: 1, face: .japanese)), .matched(cardId: 1, isCorrect: true))
+        var game = MatchingGame(words: makeWords(count: 5), shufflesOrder: false)
+        XCTAssertEqual(game.tap(tileId: tileId(game, cardId: 1, column: .japanese)), .selected)
+        XCTAssertEqual(
+            game.tap(tileId: tileId(game, cardId: 1, column: .english)),
+            .matched(
+                cardId: 1,
+                isCorrect: true,
+                tileIds: [tileId(game, cardId: 1, column: .japanese), tileId(game, cardId: 1, column: .english)]
+            )
+        )
 
         // 2 と 3 を取り違える。どちらも「一度ミスした語」になる。
-        XCTAssertEqual(game.flip(tileId: tileId(game, cardId: 2, face: .english)), .revealed)
-        XCTAssertEqual(game.flip(tileId: tileId(game, cardId: 3, face: .japanese)), .mismatched)
-        game.hideRevealed()
-
-        XCTAssertEqual(game.flip(tileId: tileId(game, cardId: 2, face: .english)), .revealed)
-        XCTAssertEqual(game.flip(tileId: tileId(game, cardId: 2, face: .japanese)), .matched(cardId: 2, isCorrect: false))
-    }
-
-    func testTapsAreIgnoredWhileMismatchedTilesAreShown() {
-        var game = MatchingGame(words: makeWords(count: 6), shufflesOrder: false)
-        _ = game.flip(tileId: tileId(game, cardId: 1, face: .english))
-        _ = game.flip(tileId: tileId(game, cardId: 2, face: .japanese))
-        XCTAssertTrue(game.isAwaitingHide)
-        XCTAssertEqual(game.flip(tileId: tileId(game, cardId: 3, face: .english)), .ignored)
-    }
-
-    func testFourClearedPairsRefillEmptySlotsWithoutMovingRemainingTiles() {
-        var game = MatchingGame(words: makeWords(count: 20), shufflesOrder: false)
-        // 消さずに残る 5 と 6 が、補充のあとも同じマスに居ることを確かめる。
-        let keptBefore = game.slots.enumerated().compactMap { slot, tile -> (Int, Int)? in
-            guard let tile, tile.cardId == 5 || tile.cardId == 6 else { return nil }
-            return (slot, tile.id)
+        _ = game.tap(tileId: tileId(game, cardId: 2, column: .japanese))
+        guard case .mismatched = game.tap(tileId: tileId(game, cardId: 3, column: .english)) else {
+            return XCTFail("違う組は mismatched になる")
         }
+
+        _ = game.tap(tileId: tileId(game, cardId: 2, column: .japanese))
+        guard case .matched(_, let isCorrect, _) = game.tap(tileId: tileId(game, cardId: 2, column: .english)) else {
+            return XCTFail("同じ組は matched になる")
+        }
+        XCTAssertFalse(isCorrect, "一度ミスした語は不正解として記録する")
+    }
+
+    func testTappingTheSameColumnTwiceMovesTheSelection() {
+        var game = MatchingGame(words: makeWords(count: 5), shufflesOrder: false)
+        let first = tileId(game, cardId: 1, column: .japanese)
+        let second = tileId(game, cardId: 2, column: .japanese)
+        _ = game.tap(tileId: first)
+        XCTAssertEqual(game.tap(tileId: second), .selected)
+        XCTAssertEqual(game.selectedTileId, second, "同じ列をもう一度押したら選び直しになる")
+    }
+
+    func testTappingTheSelectedTileClearsTheSelection() {
+        var game = MatchingGame(words: makeWords(count: 5), shufflesOrder: false)
+        let first = tileId(game, cardId: 1, column: .japanese)
+        _ = game.tap(tileId: first)
+        _ = game.tap(tileId: first)
+        XCTAssertNil(game.selectedTileId)
+    }
+
+    func testMatchedTilesStayOnTheBoardFadedAndCannotBeTappedAgain() {
+        var game = MatchingGame(words: makeWords(count: 5), shufflesOrder: false)
+        let japanese = tileId(game, cardId: 1, column: .japanese)
+        matchPairs(1...1, in: &game)
+
+        XCTAssertEqual(game.tiles.count, 10, "消した札も場所に残す")
+        XCTAssertEqual(game.tiles.filter(\.isCleared).count, 2)
+        XCTAssertEqual(game.tap(tileId: japanese), .ignored)
+    }
+
+    func testThreeClearedPairsRefillTheFadedSlotsWithoutMovingTheRest() {
+        var game = MatchingGame(words: makeWords(count: 20), shufflesOrder: false)
+        // 消さずに残る 4 と 5 が、補充のあとも同じ場所に居ることを確かめる。
+        let keptBefore = keptPositions(in: game, cardIds: [4, 5])
         XCTAssertEqual(keptBefore.count, 4)
 
-        clearPairs(1...4, in: &game)
+        matchPairs(1...3, in: &game)
+        XCTAssertTrue(game.needsRefill)
+        game.refill()
 
-        let filled = game.slots.compactMap { $0 }
-        XCTAssertEqual(filled.count, 12, "4ペア消えたら空いた8マスがまとめて埋まる")
-        XCTAssertEqual(Set(filled.map(\.cardId)).count, 6)
-        for (slot, tileId) in keptBefore {
-            XCTAssertEqual(game.slots[slot]?.id, tileId, "残っている札の位置は動かさない")
+        XCTAssertFalse(game.needsRefill)
+        XCTAssertEqual(game.tiles.filter { !$0.isCleared }.count, 10, "消えた場所へ新しい3組が入る")
+        XCTAssertEqual(Set(game.tiles.map(\.cardId)).count, 5)
+        for (column, slot, tileId) in keptBefore {
+            XCTAssertEqual(game.tiles(in: column)[slot]?.id, tileId, "消えていない札は動かさない")
         }
     }
 
-    func testBoardDoesNotRefillBeforeFourPairsAreCleared() {
+    func testBoardDoesNotRefillBeforeThreePairsAreCleared() {
         var game = MatchingGame(words: makeWords(count: 20), shufflesOrder: false)
-        clearPairs(1...3, in: &game)
-        XCTAssertEqual(game.slots.compactMap { $0 }.count, 6, "3ペアまでは空きマスのまま")
+        matchPairs(1...2, in: &game)
+        XCTAssertFalse(game.needsRefill)
+        game.refill()
+        XCTAssertEqual(game.tiles.filter(\.isCleared).count, 4, "2組までは薄いまま残る")
     }
 
     func testGameFinishesAfterEveryWordHasBeenCleared() {
         var game = MatchingGame(words: makeWords(count: 8), shufflesOrder: false)
-        for cardId in 1...8 {
-            _ = game.flip(tileId: tileId(game, cardId: cardId, face: .english))
-            _ = game.flip(tileId: tileId(game, cardId: cardId, face: .japanese))
-        }
+        matchPairs(1...3, in: &game)
+        game.refill()
+        matchPairs(4...8, in: &game)
         XCTAssertTrue(game.isFinished)
-        XCTAssertEqual(game.flip(tileId: 0), .ignored)
     }
 
     // MARK: - ヘルパー
 
-    private func clearPairs(_ cardIds: ClosedRange<Int>, in game: inout MatchingGame) {
+    private func matchPairs(_ cardIds: ClosedRange<Int>, in game: inout MatchingGame) {
         for cardId in cardIds {
-            _ = game.flip(tileId: tileId(game, cardId: cardId, face: .english))
-            _ = game.flip(tileId: tileId(game, cardId: cardId, face: .japanese))
+            _ = game.tap(tileId: tileId(game, cardId: cardId, column: .japanese))
+            _ = game.tap(tileId: tileId(game, cardId: cardId, column: .english))
         }
     }
 
-    private func tileId(_ game: MatchingGame, cardId: Int, face: MatchingGame.Face) -> Int {
-        let tile = game.slots.compactMap { $0 }.first { $0.cardId == cardId && $0.face == face }
-        XCTAssertNotNil(tile, "盤に card \(cardId) の \(face) がない")
+    private func keptPositions(
+        in game: MatchingGame,
+        cardIds: Set<Int>
+    ) -> [(MatchingGame.Column, Int, Int)] {
+        [MatchingGame.Column.japanese, .english].flatMap { column in
+            game.tiles(in: column).enumerated().compactMap { slot, tile -> (MatchingGame.Column, Int, Int)? in
+                guard let tile, cardIds.contains(tile.cardId) else { return nil }
+                return (column, slot, tile.id)
+            }
+        }
+    }
+
+    private func tileId(_ game: MatchingGame, cardId: Int, column: MatchingGame.Column) -> Int {
+        let tile = game.tiles.first { $0.cardId == cardId && $0.column == column }
+        XCTAssertNotNil(tile, "盤に card \(cardId) の \(column) がない")
         return tile?.id ?? -1
     }
 

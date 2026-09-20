@@ -1,144 +1,179 @@
 import Foundation
 
-/// 神経衰弱の盤。12マスに英単語6枚と日本語訳6枚を裏向きで並べる。
+/// マッチングの盤。左に日本語、右に英語を5枚ずつ表向きで並べ、同じ語の2枚を選んで消す。
 ///
-/// 4ペア消えるたびに、空いた8マスへ新しい4ペアをまとめて入れる。盤に残っている札は
-/// 動かさないので、覚えた位置が補充で無駄にならない。デッキの語を出し切り、盤が空に
-/// なったところで終わる。
+/// 裏返して覚える遊びではなく、並んだ語の中から意味の組を選ぶ遊びにしてある。記憶力では
+/// なく語彙そのものを問うため、札は最初から全部読める。
 ///
-/// 画面を持たない値型にしてあるのは、めくり・判定・補充の規則をテストで確かめるため。
+/// 3組消えるたび、消えた場所へ新しい3組をまとめて入れる。消えていない札は動かさない。
+/// 消した札はすぐ取り除かず、薄いまま場所に残す。並びが崩れず、どこまで進んだかも見える。
+///
+/// 画面を持たない値型にしてあるのは、選択・判定・補充の規則をテストで確かめるため。
 struct MatchingGame {
-    /// 盤のマス数。3×4で並べる。
-    static let slotCount = 12
-    /// 何ペア消えたら補充するか。
-    static let refillPairCount = 4
+    /// 盤に出す組数。左右あわせて10枚になる。
+    static let pairsOnBoard = 5
+    /// 何組消えたら補充するか。
+    static let refillPairCount = 3
 
-    /// 札の面。同じ語の英語と日本語が1組になる。
-    enum Face {
-        case english
+    /// 札を置く列。組は必ず左右ひとつずつになる。
+    enum Column {
         case japanese
+        case english
     }
 
     struct Tile: Identifiable, Equatable {
         /// 補充で入れ替わっても重ならない通し番号。SwiftUI の差分描画はこれで見る。
         let id: Int
         let cardId: Int
-        let face: Face
+        let column: Column
         let text: String
+        /// 揃って薄く残っている札。もう選べない。
+        var isCleared: Bool
     }
 
-    /// 1回めくった結果。
-    enum Flip: Equatable {
-        /// 何も起きなかった（空きマス、すでに表、判定待ちの最中）。
+    /// 1回タップした結果。
+    enum Tap: Equatable {
+        /// 何も起きなかった（空きマス、消した札）。
         case ignored
-        /// 1枚目が表になった。
-        case revealed
-        /// 2枚が揃った。`isCorrect` は、その語で一度もミスしていないかどうか。
-        case matched(cardId: Int, isCorrect: Bool)
-        /// 2枚が違った。呼ぶ側が少し見せてから `hideRevealed()` を呼ぶ。
-        case mismatched
+        /// 選んだ札が変わった。相手待ち、または選び直し。
+        case selected
+        /// 組が揃った。`isCorrect` は、その語で一度もミスしていないかどうか。
+        case matched(cardId: Int, isCorrect: Bool, tileIds: [Int])
+        /// 組が違った。呼ぶ側が短く揺らして知らせる。
+        case mismatched(tileIds: [Int])
     }
 
-    /// マスの中身。`nil` は空きマス。補充までそのまま空けておく。
-    private(set) var slots: [Tile?]
-    /// いま表にしている札。2枚になった時点で判定する。
-    private(set) var revealed: [Int] = []
+    /// 左の列（日本語）。`nil` は、出す語が尽きた空きマス。
+    private(set) var japanese: [Tile?]
+    /// 右の列（英語）。
+    private(set) var english: [Tile?]
+    /// いま選んでいる札。相手を選ぶまで持ち続ける。
+    private(set) var selectedTileId: Int?
 
     /// まだ盤に出していない語。
     private var pool: [WordCard]
     /// 一度でもミスした語。揃ったときに不正解として記録する。
     private var missedCardIds: Set<Int> = []
-    /// 前の補充から消したペア数。
+    /// 前の補充から消した組数。
     private var clearedSinceRefill = 0
     private var nextTileId = 0
     private let shufflesOrder: Bool
 
-    /// - Parameter shufflesOrder: 語の順と札の置き場所を混ぜるか。テストだけ `false` にする。
+    /// - Parameter shufflesOrder: 語の順と置き場所を混ぜるか。テストだけ `false` にする。
     init(words: [WordCard], shufflesOrder: Bool = true) {
         self.shufflesOrder = shufflesOrder
         pool = shufflesOrder ? words.shuffled() : words
-        slots = Array(repeating: nil, count: Self.slotCount)
-        fillEmptySlots(pairLimit: Self.slotCount / 2)
+        japanese = Array(repeating: nil, count: Self.pairsOnBoard)
+        english = Array(repeating: nil, count: Self.pairsOnBoard)
+        placeNewPairs(limit: Self.pairsOnBoard)
     }
 
-    /// デッキを一周した。盤も空で、もう出す語がない。
+    /// デッキを一周した。出す語がなく、盤の札も消し終えている。
     var isFinished: Bool {
-        pool.isEmpty && slots.allSatisfy { $0 == nil }
+        pool.isEmpty && tiles.allSatisfy(\.isCleared)
     }
 
-    /// 判定待ちで札を見せている最中か。この間のタップは受け付けない。
-    var isAwaitingHide: Bool {
-        revealed.count == 2
+    /// 消えた組が溜まり、補充できる状態か。呼ぶ側は消える演出を見せてから `refill()` する。
+    var needsRefill: Bool {
+        clearedSinceRefill >= Self.refillPairCount
     }
 
-    func tile(at slot: Int) -> Tile? {
-        slots.indices.contains(slot) ? slots[slot] : nil
+    var tiles: [Tile] {
+        (japanese + english).compactMap { $0 }
     }
 
-    func isRevealed(_ tile: Tile) -> Bool {
-        revealed.contains(tile.id)
+    func tiles(in column: Column) -> [Tile?] {
+        column == .japanese ? japanese : english
     }
 
-    mutating func flip(tileId: Int) -> Flip {
-        guard !isAwaitingHide, !revealed.contains(tileId) else { return .ignored }
-        guard let slot = slots.firstIndex(where: { $0?.id == tileId }), let second = slots[slot] else {
-            return .ignored
+    mutating func tap(tileId: Int) -> Tap {
+        guard let tapped = tile(withId: tileId), !tapped.isCleared else { return .ignored }
+
+        // 1枚目、選び直し、同じ札の取り消しは、どれも「選んだ札が変わった」で返す。
+        guard let selectedTileId, let first = tile(withId: selectedTileId), first.id != tapped.id else {
+            self.selectedTileId = self.selectedTileId == tapped.id ? nil : tapped.id
+            return .selected
+        }
+        guard first.column != tapped.column else {
+            self.selectedTileId = tapped.id
+            return .selected
         }
 
-        revealed.append(tileId)
-        guard revealed.count == 2, let first = tile(withId: revealed[0]) else { return .revealed }
-
-        guard first.cardId == second.cardId else {
+        self.selectedTileId = nil
+        guard first.cardId == tapped.cardId else {
             // 違った2枚は、次に出会ったときのために「一度ミスした語」として控える。
             missedCardIds.insert(first.cardId)
-            missedCardIds.insert(second.cardId)
-            return .mismatched
+            missedCardIds.insert(tapped.cardId)
+            return .mismatched(tileIds: [first.id, tapped.id])
         }
 
-        let isCorrect = !missedCardIds.contains(second.cardId)
-        removeTiles(cardId: second.cardId)
-        revealed.removeAll()
+        let isCorrect = !missedCardIds.contains(tapped.cardId)
+        markCleared(cardId: tapped.cardId)
         clearedSinceRefill += 1
-        if clearedSinceRefill >= Self.refillPairCount {
-            clearedSinceRefill = 0
-            fillEmptySlots(pairLimit: Self.refillPairCount)
-        }
-        return .matched(cardId: second.cardId, isCorrect: isCorrect)
+        return .matched(cardId: tapped.cardId, isCorrect: isCorrect, tileIds: [first.id, tapped.id])
     }
 
-    /// 違った2枚を裏に戻す。
-    mutating func hideRevealed() {
-        revealed.removeAll()
+    /// 消えた場所へ新しい組を入れる。出す語が足りなければ、余った場所は空きマスにする。
+    mutating func refill() {
+        guard needsRefill else { return }
+        clearedSinceRefill = 0
+        let placed = placeNewPairs(limit: Self.refillPairCount)
+        guard placed == 0 else { return }
+        // もう出す語がない。薄いまま残していた札を片付け、終わりにする。
+        clearClearedSlots()
     }
 
     private func tile(withId id: Int) -> Tile? {
-        slots.compactMap { $0 }.first { $0.id == id }
+        tiles.first { $0.id == id }
     }
 
-    private mutating func removeTiles(cardId: Int) {
-        for slot in slots.indices where slots[slot]?.cardId == cardId {
-            slots[slot] = nil
+    private mutating func markCleared(cardId: Int) {
+        for index in japanese.indices where japanese[index]?.cardId == cardId {
+            japanese[index]?.isCleared = true
+        }
+        for index in english.indices where english[index]?.cardId == cardId {
+            english[index]?.isCleared = true
         }
     }
 
-    /// 空きマスへ、出していない語から最大 `pairLimit` ペアを入れる。
-    /// 語が足りないときは入る分だけ入れる。
-    private mutating func fillEmptySlots(pairLimit: Int) {
-        let emptySlots = slots.indices.filter { slots[$0] == nil }
-        let pairCount = min(pairLimit, pool.count, emptySlots.count / 2)
-        guard pairCount > 0 else { return }
+    /// 空きマスと、消して薄くなっているマスへ、最大 `limit` 組を入れる。入れた組数を返す。
+    @discardableResult
+    private mutating func placeNewPairs(limit: Int) -> Int {
+        let japaneseSlots = openSlots(in: japanese)
+        let englishSlots = openSlots(in: english)
+        let pairCount = min(limit, pool.count, japaneseSlots.count, englishSlots.count)
+        guard pairCount > 0 else { return 0 }
 
-        let words = pool.prefix(pairCount)
+        let words = Array(pool.prefix(pairCount))
         pool.removeFirst(pairCount)
 
-        var tiles: [Tile] = []
-        for word in words {
-            tiles.append(Tile(id: takeTileId(), cardId: word.id, face: .english, text: word.text))
-            tiles.append(Tile(id: takeTileId(), cardId: word.id, face: .japanese, text: word.primaryMeaning))
+        let japaneseTiles = words.map {
+            Tile(id: takeTileId(), cardId: $0.id, column: .japanese, text: $0.primaryMeaning, isCleared: false)
+        }
+        let englishTiles = words.map {
+            Tile(id: takeTileId(), cardId: $0.id, column: .english, text: $0.text, isCleared: false)
         }
 
-        for (slot, tile) in zip(emptySlots, shufflesOrder ? tiles.shuffled() : tiles) {
-            slots[slot] = tile
+        // 左右は別々に混ぜる。同じ行に組が並んで答えが見えてしまわないようにする。
+        for (slot, tile) in zip(japaneseSlots, shufflesOrder ? japaneseTiles.shuffled() : japaneseTiles) {
+            japanese[slot] = tile
+        }
+        for (slot, tile) in zip(englishSlots, shufflesOrder ? englishTiles.shuffled() : englishTiles) {
+            english[slot] = tile
+        }
+        return pairCount
+    }
+
+    private func openSlots(in column: [Tile?]) -> [Int] {
+        column.indices.filter { column[$0] == nil || column[$0]?.isCleared == true }
+    }
+
+    private mutating func clearClearedSlots() {
+        for index in japanese.indices where japanese[index]?.isCleared == true {
+            japanese[index] = nil
+        }
+        for index in english.indices where english[index]?.isCleared == true {
+            english[index] = nil
         }
     }
 
