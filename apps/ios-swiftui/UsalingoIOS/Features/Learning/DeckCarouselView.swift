@@ -28,8 +28,12 @@ struct DeckCarouselView: View {
 
         /// カードの高さが測れるまで使う見込みの値。
         static let estimatedCardHeight: CGFloat = 180
-        /// 1回のスワイプで進める最大枚数。勢いがあっても行き過ぎない。
-        static let maxStepsPerSwipe = 4
+        /// 指を離したあと滑り続ける時間の目安（秒）。この長さぶんの勢いで先へ進む。
+        static let glideSeconds: Double = 0.24
+        /// 1回のスワイプで進める最大枚数。勢いの読み取りが跳ねても飛びすぎないための保険。
+        static let maxStepsPerSwipe = 12
+        /// 端をはみ出して引ける最大の枚数。ゴムのように、引くほど伸びにくくなる。
+        static let overscrollLimit: Double = 0.45
         /// これ以上動いたらタップではなくスワイプとして扱う。
         static let dragThreshold: CGFloat = 8
     }
@@ -45,9 +49,11 @@ struct DeckCarouselView: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// 中央に来ているデッキの位置。
-    @State private var center = 0
-    @State private var dragOffset: CGFloat = 0
+    /// いま中央に来ている位置。整数がちょうど中央で、指で動かしている間も滑っている間も
+    /// この1つの値が動く。端をはみ出した値も一度そのまま持ち、表示のときにゴムで縮める。
+    @State private var position: Double = 0
+    /// ドラッグを始めたときの位置。指の移動量はここからの差として足す。
+    @State private var dragStartPosition: Double?
     /// 実際に組み上がったカードの高さ。文字を大きくしても重なり方が崩れないよう、
     /// 決め打ちにせず測った値を使う。
     @State private var cardHeight = Metrics.estimatedCardHeight
@@ -57,7 +63,7 @@ struct DeckCarouselView: View {
             let slotHeight = cardHeight * Metrics.slotRatio
 
             ZStack {
-                ForEach(slots(stepHeight: slotHeight)) { slot in
+                ForEach(slots()) { slot in
                     card(slot, width: proxy.size.width)
                         .rotation3DEffect(
                             .degrees(tilt(for: slot.offset)),
@@ -78,10 +84,10 @@ struct DeckCarouselView: View {
         .onPreferenceChange(DeckCardHeightKey.self) { height in
             if height > 0 { cardHeight = height }
         }
-        .onAppear { center = layout.clamp(center) }
+        .onAppear { position = Double(centerIndex) }
         .onChange(of: decks.map(\.id)) { _, _ in
-            center = layout.clamp(center)
-            dragOffset = 0
+            dragStartPosition = nil
+            position = Double(centerIndex)
         }
     }
 
@@ -128,7 +134,7 @@ struct DeckCarouselView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(deck.deckName)
         .accessibilityValue(
-            "\(center + 1) 件目、全 \(decks.count) 件。"
+            "\(centerIndex + 1) 件目、全 \(decks.count) 件。"
                 + "\(progress.totalCount) 語のうち \(progress.masteredCount) 語を習得"
         )
         .accessibilityHint("上下にはじくと別のデッキへ移ります")
@@ -171,20 +177,20 @@ struct DeckCarouselView: View {
     // MARK: - 並べ方
 
     /// 画面に出す分だけのカード。
-    private func slots(stepHeight: CGFloat) -> [Slot] {
-        layout.placements(position: position(stepHeight: stepHeight)).map {
+    private func slots() -> [Slot] {
+        layout.placements(position: displayPosition).map {
             Slot(deck: decks[$0.index], offset: $0.offset)
         }
     }
 
     private var layout: DeckCarouselLayout { DeckCarouselLayout(count: decks.count) }
 
-    /// いま中央に何枚目が来ているか。指で動かしている途中は小数になる。
-    /// 端より先へは行かないので、先頭の上と最後の下に空きが出ない。
-    private func position(stepHeight: CGFloat) -> Double {
-        guard stepHeight > 0 else { return Double(center) }
-        let dragged = Double(center) - Double(dragOffset / stepHeight)
-        return min(max(dragged, 0), Double(max(decks.count - 1, 0)))
+    /// いちばん近いデッキの位置。
+    private var centerIndex: Int { layout.clamp(Int(position.rounded())) }
+
+    /// 実際に描く位置。端をはみ出したぶんはゴムのように縮めて、引っぱった手ごたえを出す。
+    private var displayPosition: Double {
+        layout.rubberBanded(position, limit: Metrics.overscrollLimit)
     }
 
     /// 中央からの縦の位置。遠いほど詰めるので、倒れて薄くなったカードが離れて浮かない。
@@ -214,36 +220,49 @@ struct DeckCarouselView: View {
     private func dragGesture(stepHeight: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: Metrics.dragThreshold)
             .onChanged { value in
-                guard decks.count > 1 else { return }
-                dragOffset = value.translation.height
+                guard decks.count > 1, stepHeight > 0 else { return }
+                let start = dragStartPosition ?? position
+                dragStartPosition = start
+                position = start - Double(value.translation.height / stepHeight)
             }
             .onEnded { value in
+                dragStartPosition = nil
                 guard decks.count > 1, stepHeight > 0 else {
-                    dragOffset = 0
+                    position = Double(centerIndex)
                     return
                 }
-                // 勢いのぶんも含めて、いちばん近いカードまで進める。
-                let predicted = Double(value.predictedEndTranslation.height / stepHeight)
-                let steps = Int((-predicted).rounded())
-                    .clamped(to: -Metrics.maxStepsPerSwipe...Metrics.maxStepsPerSwipe)
-                withAnimation(snapAnimation) {
-                    dragOffset = 0
-                    center = layout.clamp(center + steps)
-                }
+                // 指を離したあとも勢いのぶんだけ滑らせ、いちばん近いカードで止める。
+                let velocity = Double(value.velocity.height / stepHeight)
+                let glide = -velocity * Metrics.glideSeconds
+                let steps = Int((position + glide).rounded()) - centerIndex
+                let target = layout.clamp(
+                    centerIndex + steps.clamped(
+                        to: -Metrics.maxStepsPerSwipe...Metrics.maxStepsPerSwipe
+                    )
+                )
+                settle(to: target)
             }
     }
 
     private func move(by steps: Int) {
-        let next = layout.clamp(center + steps)
-        guard next != center else { return }
-        withAnimation(snapAnimation) { center = next }
+        let next = layout.clamp(centerIndex + steps)
+        guard next != centerIndex else { return }
+        settle(to: next)
     }
 
+    /// 目的のカードまで滑らせて止める。遠いほど長くかけて減速する。
+    private func settle(to index: Int) {
+        let distance = abs(Double(index) - position)
+        withAnimation(scrollAnimation(distance: distance)) {
+            position = Double(index)
+        }
+    }
+
+    /// 慣性で滑るときの動き。距離が長いほどゆっくり減速させる。
     /// 「視差効果を減らす」ときは弾みを付けず、まっすぐ止める。
-    private var snapAnimation: Animation {
-        reduceMotion
-            ? .easeOut(duration: 0.25)
-            : .interpolatingSpring(stiffness: 170, damping: 22)
+    private func scrollAnimation(distance: Double) -> Animation {
+        guard !reduceMotion else { return .easeOut(duration: 0.25) }
+        return .spring(response: min(0.34 + 0.09 * distance, 0.95), dampingFraction: 0.86)
     }
 
     /// 画面に出す1枚ぶんの位置。
@@ -290,6 +309,22 @@ struct DeckCarouselLayout {
     func clamp(_ index: Int) -> Int {
         guard count > 0 else { return 0 }
         return min(max(index, 0), count - 1)
+    }
+
+    /// 端をはみ出した位置を、ゴムのように縮めて返す。
+    ///
+    /// 引くほど伸びにくくなり、どれだけ引いても `limit` 枚より先へは出ない。範囲の中では
+    /// 何も変えないので、指の動きにそのまま付いてくる。
+    func rubberBanded(_ position: Double, limit: Double) -> Double {
+        let last = Double(max(count - 1, 0))
+        guard limit > 0 else { return min(max(position, 0), last) }
+        if position < 0 { return -stretched(-position, limit: limit) }
+        if position > last { return last + stretched(position - last, limit: limit) }
+        return position
+    }
+
+    private func stretched(_ distance: Double, limit: Double) -> Double {
+        (1 - 1 / (distance / limit + 1)) * limit
     }
 }
 

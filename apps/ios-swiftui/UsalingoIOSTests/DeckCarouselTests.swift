@@ -55,6 +55,51 @@ final class DeckCarouselLayoutTests: XCTestCase {
         XCTAssertEqual(byIndex[5], 2)
     }
 
+    /// 範囲の中では、指の動きをそのまま通す。
+    func testRubberBandDoesNothingInsideTheRange() {
+        let layout = DeckCarouselLayout(count: 5)
+
+        for position in [0.0, 0.5, 2.0, 3.7, 4.0] {
+            XCTAssertEqual(layout.rubberBanded(position, limit: 0.45), position, accuracy: 0.0001)
+        }
+    }
+
+    /// 端をはみ出すと、引くほど伸びにくくなり、上限より先へは出ない。
+    func testRubberBandStretchesLessTheHarderYouPull() {
+        let layout = DeckCarouselLayout(count: 5)
+        let limit = 0.45
+
+        let gentle = layout.rubberBanded(-0.5, limit: limit)
+        let hard = layout.rubberBanded(-3.0, limit: limit)
+
+        XCTAssertLessThan(gentle, 0)
+        XCTAssertLessThan(hard, gentle)
+        XCTAssertGreaterThan(hard, -limit)
+        // 指の移動の6倍でも、伸びは2倍に満たない。
+        XCTAssertLessThan(abs(hard), abs(gentle) * 2)
+        XCTAssertGreaterThan(layout.rubberBanded(-100, limit: limit), -limit)
+    }
+
+    /// 最後のデッキの先でも同じように縮める。
+    func testRubberBandWorksAtTheLastDeck() {
+        let layout = DeckCarouselLayout(count: 5)
+        let limit = 0.45
+
+        let pulled = layout.rubberBanded(6.0, limit: limit)
+
+        XCTAssertGreaterThan(pulled, 4)
+        XCTAssertLessThan(pulled, 4 + limit)
+    }
+
+    /// デッキが1件のときは、どちらへ引いても同じ1枚のまわりで縮める。
+    func testRubberBandWithASingleDeck() {
+        let layout = DeckCarouselLayout(count: 1)
+        let limit = 0.45
+
+        XCTAssertGreaterThan(layout.rubberBanded(-2, limit: limit), -limit)
+        XCTAssertLessThan(layout.rubberBanded(2, limit: limit), limit)
+    }
+
     /// 端より先へは進めない。
     func testClampStopsAtBothEnds() {
         let layout = DeckCarouselLayout(count: 5)
