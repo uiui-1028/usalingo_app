@@ -100,6 +100,19 @@ final class DeckCarouselLayoutTests: XCTestCase {
         XCTAssertLessThan(layout.rubberBanded(2, limit: limit), limit)
     }
 
+    /// 画面端を通過してもカードの上下順が逆転しない。
+    func testSpacingRemainsOrderedAcrossVisibleRange() {
+        let offsets = (-250...250).map { Double($0) / 100 }
+        let positions = offsets.map(DeckCarouselLayout.compressedOffset)
+        for (previous, next) in zip(positions, positions.dropFirst()) {
+            XCTAssertLessThan(previous, next)
+        }
+        for offset in offsets {
+            XCTAssertEqual(DeckCarouselLayout.compressedOffset(-offset),
+                           -DeckCarouselLayout.compressedOffset(offset), accuracy: 0.0001)
+        }
+    }
+
     /// 端より先へは進めない。
     func testClampStopsAtBothEnds() {
         let layout = DeckCarouselLayout(count: 5)

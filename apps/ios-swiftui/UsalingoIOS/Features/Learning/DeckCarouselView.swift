@@ -17,8 +17,6 @@ struct DeckCarouselView: View {
         /// 倒したカードは縦に薄く見えるので、その薄くなった高さのぶんは空ける。ここを
         /// 詰めすぎると隣のカードが中央のカードへ深く差し込まれ、突き抜けて見える。
         static let slotRatio: CGFloat = 0.9
-        /// 遠いカードほど間隔を詰める割合。倒れて薄くなったカードが離れて浮かないようにする。
-        static let spacingCompression: Double = 0.21
         /// いちばん端のカードの傾き。90度まで倒すと裏返ってしまうので、ここで頭打ちにする。
         static let tiltDegrees: Double = 75
         static let perspective: CGFloat = 0.65
@@ -54,6 +52,7 @@ struct DeckCarouselView: View {
     @State private var position: Double = 0
     /// ドラッグを始めたときの位置。指の移動量はここからの差として足す。
     @State private var dragStartPosition: Double?
+    @State private var suppressTapUntil = Date.distantPast
     /// 実際に組み上がったカードの高さ。文字を大きくしても重なり方が崩れないよう、
     /// 決め打ちにせず測った値を使う。
     @State private var cardHeight = Metrics.estimatedCardHeight
@@ -62,23 +61,27 @@ struct DeckCarouselView: View {
         GeometryReader { proxy in
             let slotHeight = cardHeight * Metrics.slotRatio
 
-            ZStack {
-                ForEach(slots()) { slot in
-                    card(slot, width: proxy.size.width)
-                        .rotation3DEffect(
-                            .degrees(tilt(for: slot.offset)),
-                            axis: (x: 1, y: 0, z: 0),
-                            anchor: .center,
-                            perspective: Metrics.perspective
-                        )
-                        .scaleEffect(scale(for: slot.offset))
-                        .opacity(opacity(for: slot.offset))
-                        .offset(y: verticalOffset(for: slot.offset, slotHeight: slotHeight))
-                        .zIndex(-abs(slot.offset))
+            DeckCarouselStage(position: displayPosition) { position in
+                ZStack {
+                    ForEach(slots(position: position)) { slot in
+                        card(slot, width: proxy.size.width)
+                            .rotation3DEffect(
+                                .degrees(reduceMotion ? 0 : tilt(for: slot.offset)),
+                                axis: (x: 1, y: 0, z: 0),
+                                anchor: .center,
+                                perspective: Metrics.perspective
+                            )
+                            .scaleEffect(reduceMotion ? 1 : scale(for: slot.offset))
+                            .opacity(opacity(for: slot.offset))
+                            .offset(y: verticalOffset(for: slot.offset, slotHeight: slotHeight))
+                            .zIndex(-abs(slot.offset))
+                    }
                 }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
             .contentShape(Rectangle())
+            .coordinateSpace(name: "deckCarousel")
             .gesture(dragGesture(stepHeight: slotHeight))
         }
         .onPreferenceChange(DeckCardHeightKey.self) { height in
@@ -162,6 +165,7 @@ struct DeckCarouselView: View {
 
     /// 端のカードは中央へ寄せるだけ。中央のカードだけがデッキを開く。
     private func activate(_ slot: Slot) {
+        guard Date.now >= suppressTapUntil else { return }
         if slot.step == 0 {
             onOpen(slot.deck)
         } else {
@@ -177,8 +181,8 @@ struct DeckCarouselView: View {
     // MARK: - 並べ方
 
     /// 画面に出す分だけのカード。
-    private func slots() -> [Slot] {
-        layout.placements(position: displayPosition).map {
+    private func slots(position: Double) -> [Slot] {
+        layout.placements(position: position).map {
             Slot(deck: decks[$0.index], offset: $0.offset)
         }
     }
@@ -195,7 +199,7 @@ struct DeckCarouselView: View {
 
     /// 中央からの縦の位置。遠いほど詰めるので、倒れて薄くなったカードが離れて浮かない。
     private func verticalOffset(for offset: Double, slotHeight: CGFloat) -> CGFloat {
-        let compressed = offset - Metrics.spacingCompression * offset * abs(offset)
+        let compressed = DeckCarouselLayout.compressedOffset(offset)
         return CGFloat(compressed) * slotHeight
     }
 
@@ -212,20 +216,23 @@ struct DeckCarouselView: View {
     }
 
     private func opacity(for offset: Double) -> Double {
-        max(0, 1 - Metrics.opacityFalloff * abs(offset))
+        let edgeFade = ((2.5 - abs(offset)) / 0.5).clamped(to: 0...1)
+        return max(0, 1 - Metrics.opacityFalloff * abs(offset)) * edgeFade
     }
 
     // MARK: - 動かす
 
     private func dragGesture(stepHeight: CGFloat) -> some Gesture {
-        DragGesture(minimumDistance: Metrics.dragThreshold)
+        DragGesture(minimumDistance: Metrics.dragThreshold, coordinateSpace: .named("deckCarousel"))
             .onChanged { value in
                 guard decks.count > 1, stepHeight > 0 else { return }
+                suppressTapUntil = .now.addingTimeInterval(0.35)
                 let start = dragStartPosition ?? position
                 dragStartPosition = start
                 position = start - Double(value.translation.height / stepHeight)
             }
             .onEnded { value in
+                suppressTapUntil = .now.addingTimeInterval(0.35)
                 dragStartPosition = nil
                 guard decks.count > 1, stepHeight > 0 else {
                     position = Double(centerIndex)
@@ -277,6 +284,23 @@ struct DeckCarouselView: View {
     }
 }
 
+/// 位置そのものを補間し、カードの出入り・奥行き順も毎フレーム同じ位置から計算する。
+/// 各カードの変形だけを個別にアニメーションすると、途中の並び順が最終位置へ飛ぶ。
+private struct DeckCarouselStage<Content: View>: View, Animatable {
+    var position: Double
+    @ViewBuilder var content: (Double) -> Content
+
+    var animatableData: Double {
+        get { position }
+        set { position = newValue }
+    }
+
+    var body: some View {
+        content(position)
+            .transaction { $0.animation = nil }
+    }
+}
+
 /// カルーセルの並び計算。見た目と切り離してあるので、単体で確かめられる。
 ///
 /// 一周はしない。先頭のデッキの上と、最後のデッキの下には何も出さない。
@@ -303,6 +327,11 @@ struct DeckCarouselLayout {
             guard abs(offset) <= limit else { return nil }
             return (index, offset)
         }
+    }
+
+    /// 距離が増えても順序が逆転しない圧縮曲線。
+    static func compressedOffset(_ offset: Double) -> Double {
+        offset / (1 + 0.21 * abs(offset))
     }
 
     /// 端で止める。先頭より上と、最後より下へは進まない。
