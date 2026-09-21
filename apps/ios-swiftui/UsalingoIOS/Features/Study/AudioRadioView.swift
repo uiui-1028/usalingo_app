@@ -48,6 +48,9 @@ struct AudioRadioView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(WireColor.background)
+        .background {
+            BackSwipeEnabler()
+        }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .task { await load() }
