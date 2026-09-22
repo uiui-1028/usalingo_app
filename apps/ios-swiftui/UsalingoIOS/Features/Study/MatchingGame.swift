@@ -113,6 +113,24 @@ struct MatchingGame {
         return .matched(cardId: tapped.cardId, isCorrect: isCorrect, tileIds: [first.id, tapped.id])
     }
 
+    /// 残っている札の置き場所だけを混ぜる。語の中身も、消した札も、進み具合も変えない。
+    /// 目で追う場所が変わるだけなので、記録には何も起きない。
+    mutating func shuffleBoard() {
+        selectedTileId = nil
+        shuffleRemaining(in: &japanese)
+        shuffleRemaining(in: &english)
+    }
+
+    /// まだ消えていない札を、いま使っているマスの中で置き換える。
+    private func shuffleRemaining(in column: inout [Tile?]) {
+        let slots = column.indices.filter { column[$0]?.isCleared == false }
+        guard slots.count > 1 else { return }
+        let tiles = slots.compactMap { column[$0] }
+        for (slot, tile) in zip(slots, shufflesOrder ? tiles.shuffled() : tiles.reversed()) {
+            column[slot] = tile
+        }
+    }
+
     /// 消えた場所へ新しい組を入れる。出す語が足りなければ、余った場所は空きマスにする。
     mutating func refill() {
         guard needsRefill else { return }

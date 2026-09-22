@@ -66,16 +66,3 @@ extension ButtonStyle where Self == WireIconButtonStyle {
         )
     }
 }
-
-/// アバター。円に頭文字などを載せる。
-struct WireAvatar: View {
-    var initials: String = ""
-    var diameter: CGFloat = 44
-
-    var body: some View {
-        Text(initials)
-            .wireFont(.label)
-            .frame(width: diameter, height: diameter)
-            .outlineCircleSurface(stroke: WireMetrics.strokeBase)
-    }
-}

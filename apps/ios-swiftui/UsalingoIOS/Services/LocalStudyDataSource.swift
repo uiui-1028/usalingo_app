@@ -96,8 +96,7 @@ enum LocalStudyError: LocalizedError, Equatable {
 
 /// 端末側の学習データ。公式デッキはサーバーから読んだ控え、個人のデッキは読み込んだJSONを使い、
 /// 進捗は端末のファイルへ保存する。
-/// キューの組み立ては既存 StudyService の limitedStudyQueue / isDue /
-/// sortByNextReviewDateThenId をそのまま移植したもので、SM-2 の計算は
+/// キューの組み立ては `StudyQueueRules` に任せ、SM-2 の計算は
 /// `LearningProgress.marking(isCorrect:)` に委ねる。
 final class LocalStudyDataSource: StudyDataSource {
     static let guestUserId = "guest"
@@ -113,15 +112,6 @@ final class LocalStudyDataSource: StudyDataSource {
         static let remoteDecks = "remote-decks.json"
         static let importedDirectory = "imported"
         static let pendingGuestHandoff = "pending-guest-handoff"
-    }
-
-    // StudyService と同じ上限を移植する。
-    private enum QueueLimit {
-        // ponytail: 一時的に実質無制限。元は review 20 / new 10 / futureReview 20 / weak 20。
-        static let review = 9999
-        static let new = 9999
-        static let futureReview = 9999
-        static let weak = 9999
     }
 
     private let fileManager: FileManager
@@ -302,7 +292,7 @@ final class LocalStudyDataSource: StudyDataSource {
         let now = Date()
         return LocalDeckCounts(
             newCount: cards.filter { $0.learning == nil }.count,
-            dueCount: cards.filter { isDue($0, now: now) }.count
+            dueCount: cards.filter { StudyQueueRules.isDue($0, now: now) }.count
         )
     }
 
@@ -369,16 +359,16 @@ final class LocalStudyDataSource: StudyDataSource {
             return Array(
                 cards.filter { $0.learning == nil }
                     .sorted { $0.id < $1.id }
-                    .prefix(QueueLimit.new)
+                    .prefix(StudyQueueLimit.new)
             )
         case .reviewOnly:
             return Array(
-                cards.filter { isDue($0, now: now) }
-                    .sorted(by: sortByNextReviewDateThenId)
-                    .prefix(QueueLimit.review)
+                cards.filter { StudyQueueRules.isDue($0, now: now) }
+                    .sorted(by: StudyQueueRules.sortByNextReviewDateThenId)
+                    .prefix(StudyQueueLimit.review)
             )
         case .all:
-            return limitedStudyQueue(cards)
+            return StudyQueueRules.limitedStudyQueue(cards)
         case .weakOnly:
             return Array(
                 cards.filter { $0.learning?.isWeak == true }
@@ -388,7 +378,7 @@ final class LocalStudyDataSource: StudyDataSource {
                         }
                         return $0.id < $1.id
                     }
-                    .prefix(QueueLimit.weak)
+                    .prefix(StudyQueueLimit.weak)
             )
         }
     }
@@ -397,14 +387,14 @@ final class LocalStudyDataSource: StudyDataSource {
         let rows = Array(progressByCardId.values)
         let now = Date()
         let reviewedDates = rows.compactMap { progress in
-            progress.lastReviewedAt.flatMap(Self.parseDate)
+            progress.lastReviewedAt.flatMap(StudyQueueRules.parseDate)
         }
         let reviewedDays = Array(Set(reviewedDates.map { Calendar.current.startOfDay(for: $0) })).sorted()
         return StudyStats(
             studiedCount: rows.count,
-            dueCount: rows.filter { Self.parseDate($0.nextReviewDate).map { $0 <= now } ?? false }.count,
+            dueCount: rows.filter { StudyQueueRules.parseDate($0.nextReviewDate).map { $0 <= now } ?? false }.count,
             masteredCount: rows.filter { $0.status == "mastered" }.count,
-            currentStreak: Self.currentStreak(from: reviewedDates),
+            currentStreak: StudyQueueRules.currentStreak(from: reviewedDates),
             totalReviews: rows.reduce(0) { $0 + $1.repetitions },
             reviewedDays: reviewedDays
         )
@@ -694,80 +684,6 @@ final class LocalStudyDataSource: StudyDataSource {
             throw LocalStudyError.deckFileMissing(deck.key)
         }
         return try DeckFile.decode(from: data)
-    }
-
-    // MARK: - キュー組み立て（StudyService から移植）
-
-    private func limitedStudyQueue(_ cards: [WordCard]) -> [WordCard] {
-        let now = Date()
-        let dueCards = Array(
-            cards.filter { isDue($0, now: now) }
-                .sorted(by: sortByNextReviewDateThenId)
-                .prefix(QueueLimit.review)
-        )
-        let newCards = Array(
-            cards.filter { $0.learning == nil }
-                .sorted { $0.id < $1.id }
-                .prefix(QueueLimit.new)
-        )
-        let futureReviewCards = Array(
-            cards.filter { card in
-                guard card.learning != nil else { return false }
-                return !isDue(card, now: now)
-            }
-            .sorted(by: sortByNextReviewDateThenId)
-            .prefix(QueueLimit.futureReview)
-        )
-
-        return dueCards + newCards + futureReviewCards
-    }
-
-    private func nextReviewDate(for card: WordCard) -> Date? {
-        guard let value = card.learning?.nextReviewDate else { return nil }
-        return Self.parseDate(value)
-    }
-
-    private func isDue(_ card: WordCard, now: Date) -> Bool {
-        guard let dueDate = nextReviewDate(for: card) else { return false }
-        return dueDate <= now
-    }
-
-    private func sortByNextReviewDateThenId(_ left: WordCard, _ right: WordCard) -> Bool {
-        let leftDate = nextReviewDate(for: left)
-        let rightDate = nextReviewDate(for: right)
-        switch (leftDate, rightDate) {
-        case let (leftDate?, rightDate?):
-            if leftDate != rightDate { return leftDate < rightDate }
-        case (_?, nil):
-            return true
-        case (nil, _?):
-            return false
-        case (nil, nil):
-            break
-        }
-        return left.id < right.id
-    }
-
-    private static func parseDate(_ value: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: value) {
-            return date
-        }
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.date(from: value)
-    }
-
-    private static func currentStreak(from dates: [Date]) -> Int {
-        let calendar = Calendar.current
-        let reviewedDays = Set(dates.map { calendar.startOfDay(for: $0) })
-        var day = calendar.startOfDay(for: Date())
-        var streak = 0
-        while reviewedDays.contains(day) {
-            streak += 1
-            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
-            day = previous
-        }
-        return streak
     }
 
     // MARK: - 永続化
