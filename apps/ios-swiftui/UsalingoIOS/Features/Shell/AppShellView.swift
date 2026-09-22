@@ -33,7 +33,8 @@ struct AppShellView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: appState.isShellChromeHidden)
+        // isShellChromeHidden の出し入れは書き手が withAnimation で決める。ここで
+        // 暗黙のアニメーションを足すと、戻るときも必ず滑って浮き上がってしまう。
         .animation(.spring(response: 0.28, dampingFraction: 0.86), value: isTabBarHiddenByScroll)
         // ScrollView / List を各画面ごとに実装し直さず、Body 配下の縦ドラッグを同時に
         // 見る。下方向へ動いたら隠し、折り返して少しでも上方向へ動いた時点で戻す。
@@ -53,7 +54,11 @@ struct AppShellView: View {
                 isTabBarHiddenByScroll = false
             }
         }
-        .onPreferenceChange(ShellTabBarHeightKey.self) { tabBarHeight = $0 }
+        // バーを外している間は実測値が来ないので、最後に測った高さを持ち続ける。
+        .onPreferenceChange(ShellTabBarHeightKey.self) { height in
+            guard height > 0 else { return }
+            tabBarHeight = height
+        }
     }
 
     private var shellBody: some View {
@@ -64,9 +69,9 @@ struct AppShellView: View {
             case 2:
                 ProfileDashboardView()
             default:
-                LearningDashboardView(
-                    bottomActionBarClearance: isTabBarPresented ? tabBarScrollClearance : 0
-                )
+                // バーを隠している間も同じだけ空ける。ここを 0 に戻すと、学習モードへ
+                // 出入りするたびにデッキが画面の中央へ動いてしまう。
+                LearningDashboardView(bottomActionBarClearance: tabBarScrollClearance)
             }
         }
     }

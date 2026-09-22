@@ -88,14 +88,10 @@ struct StudySessionView: View {
                 audioPlaybackService.stop()
             }
         }
-        .onAppear {
-            appState.isShellChromeHidden = true
-        }
         .onDisappear {
             audioPlaybackService.stop()
             CardImageCache.stopPrefetching()
             Task { await CardAudioCache.shared.stopPrefetching() }
-            appState.isShellChromeHidden = false
         }
         .sheet(item: $editingWord) { word in
             WordEditSheet(word: word) { savedWord in

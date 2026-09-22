@@ -65,11 +65,7 @@ struct AudioRadioView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .task { await load() }
-        .onAppear { appState.isShellChromeHidden = true }
-        .onDisappear {
-            player.stop()
-            appState.isShellChromeHidden = false
-        }
+        .onDisappear { player.stop() }
     }
 
     // MARK: - カード
