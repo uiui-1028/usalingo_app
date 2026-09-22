@@ -19,8 +19,6 @@ struct AudioRadioView: View {
     @State private var isLoading = true
     @State private var loadErrorMessage: String?
     @State private var openPanel: SettingPanel?
-    /// 指で引っぱっている途中の量。離したときに送るか戻すかを決める。
-    @GestureState private var dragOffset: CGFloat = 0
 
     var body: some View {
         // 単語カードを下、道具の帯を上に重ねる。スライダーを開いて帯が伸びても、
@@ -77,37 +75,10 @@ struct AudioRadioView: View {
     /// 1枚の高さ。前後の札をどれだけ見せるかもこの高さで決まる。
     private var cardHeight: CGFloat { 150 }
 
-    /// 上下に前後の札を並べたカルーセル。上へ払うと次、下へ払うと前の音源へ移る。
-    ///
-    /// 前後の札は薄くして、いま鳴っている札だけがはっきり見えるようにする。
     private var carousel: some View {
-        VStack(spacing: WireMetrics.spacingM) {
-            card(player.previousCard, isCurrent: false)
-            card(player.currentCard, isCurrent: true)
-            card(player.nextCard, isCurrent: false)
+        AudioCoverflowCarousel(player: player, cardHeight: cardHeight) { word, isCurrent in
+            card(word, isCurrent: isCurrent)
         }
-        .padding(.horizontal, WireMetrics.screenPadding)
-        .offset(y: dragOffset)
-        .gesture(
-            DragGesture(minimumDistance: 12)
-                .updating($dragOffset) { value, state, _ in
-                    // 端まで引っぱれてしまうと送り過ぎるので、1枚ぶんの半分で止める。
-                    state = max(min(value.translation.height, cardHeight / 2), -cardHeight / 2)
-                }
-                .onEnded { value in
-                    guard abs(value.translation.height) > 40 else { return }
-                    withAnimation(.easeOut(duration: 0.2)) {
-                        if value.translation.height < 0 {
-                            player.next()
-                        } else {
-                            player.previous()
-                        }
-                    }
-                }
-        )
-        .accessibilityElement(children: .contain)
-        .accessibilityAction(named: "次の単語へ") { player.next() }
-        .accessibilityAction(named: "前の単語へ") { player.previous() }
     }
 
     /// 1枚の札。左に絵、右に単語と訳。いま鳴っている札だけ濃く出す。
@@ -141,8 +112,6 @@ struct AudioRadioView: View {
         .padding(WireMetrics.spacingM)
         .frame(height: cardHeight)
         .outlineSurface(radius: WireMetrics.radiusLarge, shadow: isCurrent ? .card : nil)
-        .opacity(card == nil ? 0 : (isCurrent ? 1 : 0.35))
-        .scaleEffect(isCurrent ? 1 : 0.94)
         .accessibilityElement(children: isCurrent ? .combine : .ignore)
         .accessibilityHidden(!isCurrent)
     }
@@ -357,5 +326,207 @@ struct AudioRadioView: View {
             loadErrorMessage = UserFacingError.message(for: error)
         }
         isLoading = false
+    }
+}
+
+/// 中央の札を大きく、上下の札を重ねて見せる音声モード専用のCover Flow。
+///
+/// 画面外にも前後2枚を置き、1枚が中央へ来る間にその次の札も外側から入ってくる。
+/// 3枚しかない場合だけは同じ札を二重表示せず、出ていく札を消してから反対側へ戻す。
+private struct AudioCoverflowCarousel<CardContent: View>: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
+
+    @ObservedObject var player: RadioPlayer
+    let cardHeight: CGFloat
+    private let cardContent: (WordCard, Bool) -> CardContent
+
+    /// カード間隔を1とした現在のドラッグ位置。負なら次、正なら前へ流れる。
+    @State private var position: CGFloat = 0
+    @State private var isDragging = false
+    @State private var isSettling = false
+    @State private var pendingAutomaticAdvance = false
+    @State private var reappearingCardID: WordCard.ID?
+    @State private var reappearingOpacity: CGFloat = 1
+
+    init(
+        player: RadioPlayer,
+        cardHeight: CGFloat,
+        @ViewBuilder cardContent: @escaping (WordCard, Bool) -> CardContent
+    ) {
+        self.player = player
+        self.cardHeight = cardHeight
+        self.cardContent = cardContent
+    }
+
+    private var cardStride: CGFloat { cardHeight * 0.72 }
+
+    var body: some View {
+        ZStack {
+            ForEach(renderOffsets, id: \.self) { offset in
+                if let word = player.carouselCard(relativeOffset: offset) {
+                    let relative = CGFloat(offset) + position
+                    let distance = abs(relative)
+                    cardContent(word, distance < 0.5)
+                        .padding(.horizontal, WireMetrics.screenPadding)
+                        .scaleEffect(scale(for: distance))
+                        .opacity(opacity(for: word, distance: distance))
+                        .offset(y: relative * cardStride)
+                        .zIndex(10 - Double(distance))
+                        .allowsHitTesting(!isSettling && distance > 0.45 && distance < 1.45)
+                        .onTapGesture { select(offset: relative < 0 ? -1 : 1) }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: cardHeight + cardStride * 2)
+        .contentShape(Rectangle())
+        .clipped()
+        .gesture(dragGesture)
+        .accessibilityElement(children: .contain)
+        .accessibilityAction(named: "次の単語へ") { select(offset: 1) }
+        .accessibilityAction(named: "前の単語へ") { select(offset: -1) }
+        .onChange(of: player.automaticAdvanceRequest) { _, _ in
+            requestAutomaticAdvance()
+        }
+    }
+
+    private var renderOffsets: [Int] {
+        switch player.playableCardCount {
+        case 0: return []
+        case 1: return [0]
+        case 2: return position > 0.01 ? [-1, 0] : [0, 1]
+        case 3: return [-1, 0, 1]
+        default: return [-2, -1, 0, 1, 2]
+        }
+    }
+
+    private func scale(for distance: CGFloat) -> CGFloat {
+        1 - min(distance, 1) * 0.2
+    }
+
+    private func opacity(for word: WordCard, distance: CGFloat) -> CGFloat {
+        let base = distance <= 1
+            ? 1 - distance * 0.4
+            : max(0, (2 - distance) * 0.6)
+        return word.id == reappearingCardID ? base * reappearingOpacity : base
+    }
+
+    private var dragGesture: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onChanged { value in
+                guard !isSettling, player.playableCardCount > 1 else { return }
+                isDragging = true
+                let raw = value.translation.height / cardStride
+                let limit = CGFloat(maximumFlingSteps) + 0.35
+                position = max(min(raw, limit), -limit)
+            }
+            .onEnded { value in
+                guard isDragging else { return }
+                isDragging = false
+                let steps = targetSteps(for: value)
+                if steps == 0 {
+                    withAnimation(.easeOut(duration: 0.16)) { position = 0 }
+                    if pendingAutomaticAdvance {
+                        pendingAutomaticAdvance = false
+                        settle(steps: 1, shouldPlay: true)
+                    }
+                } else {
+                    // 指で選んだ行き先を優先し、自動送りの予約は捨てる。
+                    pendingAutomaticAdvance = false
+                    let shouldPlay = player.pauseForCarouselTransition()
+                    settle(steps: steps, shouldPlay: shouldPlay)
+                }
+            }
+    }
+
+    private var maximumFlingSteps: Int {
+        min(3, max(1, player.playableCardCount - 1))
+    }
+
+    private func targetSteps(for value: DragGesture.Value) -> Int {
+        let projected = -value.predictedEndTranslation.height / cardStride
+        var steps = Int(projected.rounded())
+        if steps == 0, abs(value.translation.height) >= 36 {
+            steps = value.translation.height < 0 ? 1 : -1
+        }
+        return max(-maximumFlingSteps, min(steps, maximumFlingSteps))
+    }
+
+    private func select(offset: Int) {
+        guard !isSettling, player.playableCardCount > 1 else { return }
+        pendingAutomaticAdvance = false
+        let shouldPlay = player.pauseForCarouselTransition()
+        settle(steps: offset, shouldPlay: shouldPlay)
+    }
+
+    private func requestAutomaticAdvance() {
+        // バックグラウンドではアニメーション完了を待たず、ロック画面の再生を止めない。
+        guard scenePhase == .active else {
+            player.moveCarousel(by: 1, shouldPlay: true)
+            return
+        }
+        guard player.playableCardCount > 1 else {
+            player.moveCarousel(by: 1, shouldPlay: true)
+            return
+        }
+        guard !isDragging, !isSettling else {
+            pendingAutomaticAdvance = true
+            return
+        }
+        settle(steps: 1, shouldPlay: true)
+    }
+
+    private func settle(steps: Int, shouldPlay: Bool) {
+        guard steps != 0 else { return }
+        isSettling = true
+        let direction = steps > 0 ? 1 : -1
+        let count = abs(steps)
+        if reduceMotion {
+            player.moveCarousel(by: steps, shouldPlay: shouldPlay)
+            position = 0
+            isSettling = false
+            finishPendingAdvanceIfNeeded()
+        } else {
+            animateOneCard(remaining: count, direction: direction, shouldPlay: shouldPlay)
+        }
+    }
+
+    private func animateOneCard(remaining: Int, direction: Int, shouldPlay: Bool) {
+        let reappearingID = player.playableCardCount == 3
+            ? player.carouselCard(relativeOffset: -direction)?.id
+            : nil
+
+        withAnimation(.easeOut(duration: 0.22), completionCriteria: .logicallyComplete) {
+            position = -CGFloat(direction)
+        } completion: {
+            let isLast = remaining == 1
+            player.moveCarousel(by: direction, shouldPlay: isLast && shouldPlay)
+
+            var transaction = Transaction(animation: nil)
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                position = 0
+                reappearingCardID = reappearingID
+                reappearingOpacity = reappearingID == nil ? 1 : 0
+            }
+
+            if reappearingID != nil {
+                withAnimation(.easeOut(duration: 0.14)) { reappearingOpacity = 1 }
+            }
+
+            if isLast {
+                isSettling = false
+                finishPendingAdvanceIfNeeded()
+            } else {
+                animateOneCard(remaining: remaining - 1, direction: direction, shouldPlay: shouldPlay)
+            }
+        }
+    }
+
+    private func finishPendingAdvanceIfNeeded() {
+        guard pendingAutomaticAdvance else { return }
+        pendingAutomaticAdvance = false
+        settle(steps: 1, shouldPlay: true)
     }
 }

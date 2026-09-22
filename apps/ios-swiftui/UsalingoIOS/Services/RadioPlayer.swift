@@ -41,6 +41,8 @@ final class RadioPlayer: NSObject, ObservableObject {
     @Published private(set) var sleepDeadline: Date?
     /// 流せるカードが1枚も無かった。画面で案内を出す。
     @Published private(set) var hasNoPlayableCard = false
+    /// 1語ぶんの音声が終わり、画面へ次のカード送りを頼む番号。
+    @Published private(set) var automaticAdvanceRequest = 0
 
     private let cache: CardAudioCache
     private let synthesizer = AVSpeechSynthesizer()
@@ -94,6 +96,35 @@ final class RadioPlayer: NSObject, ObservableObject {
         }
         queue.rewind()
         beginCurrentCard()
+    }
+
+    var playableCardCount: Int { queue.cards.count }
+
+    func carouselCard(relativeOffset: Int) -> WordCard? {
+        queue.card(relativeOffset: relativeOffset)
+    }
+
+    /// 手でカードを送る直前に音を止め、移動後に再開すべきだったかを返す。
+    @discardableResult
+    func pauseForCarouselTransition() -> Bool {
+        let shouldResume = isPlaying
+        if shouldResume { pause() }
+        return shouldResume
+    }
+
+    /// 途中の札は鳴らさず、最後に止まった札だけを再生する。
+    func moveCarousel(by offset: Int, shouldPlay: Bool) {
+        guard offset != 0, !queue.isEmpty else { return }
+        guard queue.cards.count > 1 else {
+            beginCurrentCard(shouldPlay: shouldPlay)
+            return
+        }
+        if offset > 0 {
+            for _ in 0..<offset { queue.advance() }
+        } else {
+            for _ in 0..<(-offset) { queue.rewind() }
+        }
+        beginCurrentCard(shouldPlay: shouldPlay)
     }
 
     /// 速さを変える。指を滑らせている最中に読み直すと落ち着かないので、
@@ -158,14 +189,20 @@ final class RadioPlayer: NSObject, ObservableObject {
 
     // MARK: - 再生
 
-    private func beginCurrentCard() {
+    private func beginCurrentCard(shouldPlay: Bool = true) {
         currentCard = queue.current
         previousCard = queue.previous
         nextCard = queue.next
         steps = queue.currentSteps
         stepIndex = 0
         prefetchNextCard()
-        playCurrentStep()
+        if shouldPlay {
+            playCurrentStep()
+        } else {
+            stopCurrentSound()
+            isPlaying = false
+            updateNowPlaying()
+        }
     }
 
     private func playCurrentStep() {
@@ -179,8 +216,7 @@ final class RadioPlayer: NSObject, ObservableObject {
         synthesizer.stopSpeaking(at: .immediate)
 
         guard stepIndex < steps.count else {
-            queue.advance()
-            beginCurrentCard()
+            automaticAdvanceRequest += 1
             return
         }
 
@@ -255,6 +291,16 @@ final class RadioPlayer: NSObject, ObservableObject {
             synthesizer.pauseSpeaking(at: .word)
         }
         updateNowPlaying()
+    }
+
+    private func stopCurrentSound() {
+        generation += 1
+        stepTask?.cancel()
+        stepTask = nil
+        player?.stop()
+        player = nil
+        speakingUtterance = nil
+        synthesizer.stopSpeaking(at: .immediate)
     }
 
     private func resume() {
