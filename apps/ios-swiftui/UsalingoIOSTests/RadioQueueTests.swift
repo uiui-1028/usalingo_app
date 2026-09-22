@@ -34,6 +34,22 @@ final class RadioQueueTests: XCTestCase {
         )
     }
 
+    func testPreviousAndNextWrapAroundTheLap() {
+        var queue = RadioQueue(cards: [makeCard(id: 1), makeCard(id: 2), makeCard(id: 3)], shufflesEachLap: false)
+        XCTAssertEqual(queue.previous?.id, 3)
+        XCTAssertEqual(queue.next?.id, 2)
+
+        queue.advance()
+        XCTAssertEqual(queue.previous?.id, 1)
+        XCTAssertEqual(queue.next?.id, 3)
+    }
+
+    func testPreviousAndNextAreNilWhenNothingIsPlayable() {
+        let queue = RadioQueue(cards: [makeCard(id: 1, wordAudio: nil)], shufflesEachLap: false)
+        XCTAssertNil(queue.previous)
+        XCTAssertNil(queue.next)
+    }
+
     func testMeaningIsSkippedWhenTheCardHasNoJapanese() {
         let queue = RadioQueue(cards: [makeCard(id: 1, meaning: "  ")], shufflesEachLap: false)
         XCTAssertEqual(queue.currentSteps.count, 2)
