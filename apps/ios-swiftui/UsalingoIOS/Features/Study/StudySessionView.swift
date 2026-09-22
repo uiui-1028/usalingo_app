@@ -550,8 +550,8 @@ struct StudyAnswerActionBar<Toolbar: View>: View {
 /// 横スワイプの目盛りは2段。開示ラインで裏面を出し、指はそのまま。確定ラインまで
 /// 滑らせて離したときだけ正誤として保存する。
 private enum SwipeThreshold {
-    static let reveal: CGFloat = 60
-    static let commit: CGFloat = 130
+    static let reveal: CGFloat = 30
+    static let commit: CGFloat = 100
 }
 
 /// ドラッグの向き。動き出しの成分が大きいほうへ倒し、その操作だけを通す。
