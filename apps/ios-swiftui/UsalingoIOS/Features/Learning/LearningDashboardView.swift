@@ -304,3 +304,11 @@ struct LearningDashboardView: View {
         .environmentObject(DesignSettings())
 }
 #endif
+
+/// 学習画面へ渡す組み合わせ。`navigationDestination(item:)` に載せるためだけの入れ物。
+struct StudyLaunch: Identifiable, Hashable {
+    let deck: Deck
+    let mode: StudyMode
+
+    var id: String { "\(deck.id)-\(mode.rawValue)" }
+}

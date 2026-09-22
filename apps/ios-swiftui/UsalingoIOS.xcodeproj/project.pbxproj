@@ -59,22 +59,18 @@
 		A10000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift */; };
 		A10000000000000000000035 /* DesignSystem/Components/WireCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000035 /* DesignSystem/Components/WireCard.swift */; };
 		A10000000000000000000036 /* DesignSystem/Components/WireButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000036 /* DesignSystem/Components/WireButton.swift */; };
+		A100000000000000000000F3 /* DesignSystem/Components/WireIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000F3 /* DesignSystem/Components/WireIconButton.swift */; };
 		A10000000000000000000037 /* DesignSystem/Components/WireTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000037 /* DesignSystem/Components/WireTextField.swift */; };
 		A10000000000000000000038 /* DesignSystem/Components/WirePill.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000038 /* DesignSystem/Components/WirePill.swift */; };
-		A10000000000000000000039 /* DesignSystem/Components/WireIconButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000039 /* DesignSystem/Components/WireIconButton.swift */; };
 		A1000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift */; };
-		A1000000000000000000003B /* DesignSystem/Components/WireTimeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003B /* DesignSystem/Components/WireTimeline.swift */; };
-		A1000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift */; };
 		A1000000000000000000003D /* DesignSystem/Components/BentoGroup.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003D /* DesignSystem/Components/BentoGroup.swift */; };
 		A1000000000000000000003E /* Services/HapticFeedbackService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000003E /* Services/HapticFeedbackService.swift */; };
 		A1000000000000000000003F /* Services/ImageLoading/CardImageLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002D /* Services/ImageLoading/CardImageLoader.swift */; };
 		A10000000000000000000040 /* Nuke in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C1 /* Nuke */; };
 		A10000000000000000000041 /* NukeUI in Frameworks */ = {isa = PBXBuildFile; productRef = A100000000000000000000C2 /* NukeUI */; };
-		A1000000000000000000076 /* Features/Learning/LearningConcept.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000076 /* Features/Learning/LearningConcept.swift */; };
 		A1000000000000000000077 /* Features/Learning/DeckSummaryViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */; };
 		A1000000000000000000901 /* Features/Learning/DeckCarouselView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000901 /* Features/Learning/DeckCarouselView.swift */; };
 		A1000000000000000000902 /* Features/Learning/DeckCoverStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000902 /* Features/Learning/DeckCoverStore.swift */; };
-		A1000000000000000000078 /* Features/Learning/DeckConceptView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */; };
 		A10000000000000000000F02 /* Features/Design/DesignPreviewStage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000F02 /* Features/Design/DesignPreviewStage.swift */; };
 		A10000000000000000000FA1 /* Features/Study/WordCardContent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */; };
 		A100000000000000000070 /* Features/Words/WordListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000070 /* Features/Words/WordListViewModel.swift */; };
@@ -171,19 +167,15 @@
 		A20000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Modifiers/OutlineSurface.swift; sourceTree = "<group>"; };
 		A20000000000000000000035 /* DesignSystem/Components/WireCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireCard.swift; sourceTree = "<group>"; };
 		A20000000000000000000036 /* DesignSystem/Components/WireButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireButton.swift; sourceTree = "<group>"; };
+		A200000000000000000000F3 /* DesignSystem/Components/WireIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireIconButton.swift; sourceTree = "<group>"; };
 		A20000000000000000000037 /* DesignSystem/Components/WireTextField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTextField.swift; sourceTree = "<group>"; };
 		A20000000000000000000038 /* DesignSystem/Components/WirePill.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WirePill.swift; sourceTree = "<group>"; };
-		A20000000000000000000039 /* DesignSystem/Components/WireIconButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireIconButton.swift; sourceTree = "<group>"; };
 		A2000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireImagePlaceholder.swift; sourceTree = "<group>"; };
-		A2000000000000000000003B /* DesignSystem/Components/WireTimeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/WireTimeline.swift; sourceTree = "<group>"; };
-		A2000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Previews/DesignSystemGallery.swift; sourceTree = "<group>"; };
 		A2000000000000000000003D /* DesignSystem/Components/BentoGroup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem/Components/BentoGroup.swift; sourceTree = "<group>"; };
 		A2000000000000000000003E /* Services/HapticFeedbackService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/HapticFeedbackService.swift; sourceTree = "<group>"; };
-		A2000000000000000000076 /* Features/Learning/LearningConcept.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/LearningConcept.swift; sourceTree = "<group>"; };
 		A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckSummaryViews.swift; sourceTree = "<group>"; };
 		A2000000000000000000901 /* Features/Learning/DeckCarouselView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckCarouselView.swift; sourceTree = "<group>"; };
 		A2000000000000000000902 /* Features/Learning/DeckCoverStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckCoverStore.swift; sourceTree = "<group>"; };
-		A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckConceptView.swift; sourceTree = "<group>"; };
 		A20000000000000000000F02 /* Features/Design/DesignPreviewStage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Design/DesignPreviewStage.swift; sourceTree = "<group>"; };
 		A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/WordCardContent.swift; sourceTree = "<group>"; };
 		A200000000000000000070 /* Features/Words/WordListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListViewModel.swift; sourceTree = "<group>"; };
@@ -276,12 +268,10 @@
 				A20000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift */,
 				A20000000000000000000035 /* DesignSystem/Components/WireCard.swift */,
 				A20000000000000000000036 /* DesignSystem/Components/WireButton.swift */,
+				A200000000000000000000F3 /* DesignSystem/Components/WireIconButton.swift */,
 				A20000000000000000000037 /* DesignSystem/Components/WireTextField.swift */,
 				A20000000000000000000038 /* DesignSystem/Components/WirePill.swift */,
-				A20000000000000000000039 /* DesignSystem/Components/WireIconButton.swift */,
 				A2000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift */,
-				A2000000000000000000003B /* DesignSystem/Components/WireTimeline.swift */,
-				A2000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift */,
 				A2000000000000000000003D /* DesignSystem/Components/BentoGroup.swift */,
 				A2000000000000000000000C /* Features/Auth/AuthView.swift */,
 				A2000000000000000000000E /* Features/Study/StudySessionView.swift */,
@@ -296,11 +286,9 @@
 				A20000000000000000000013 /* Features/Shell/AppShellView.swift */,
 				A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */,
 				A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */,
-				A2000000000000000000076 /* Features/Learning/LearningConcept.swift */,
 				A2000000000000000000077 /* Features/Learning/DeckSummaryViews.swift */,
 				A2000000000000000000901 /* Features/Learning/DeckCarouselView.swift */,
 				A2000000000000000000902 /* Features/Learning/DeckCoverStore.swift */,
-				A2000000000000000000078 /* Features/Learning/DeckConceptView.swift */,
 				A20000000000000000000029 /* Services/StudyBackupSyncer.swift */,
 				A20000000000000000000028 /* Services/GuestStudyBackupService.swift */,
 				A20000000000000000000015 /* Features/Design/DesignDashboardView.swift */,
@@ -484,12 +472,10 @@
 				A10000000000000000000034 /* DesignSystem/Modifiers/OutlineSurface.swift in Sources */,
 				A10000000000000000000035 /* DesignSystem/Components/WireCard.swift in Sources */,
 				A10000000000000000000036 /* DesignSystem/Components/WireButton.swift in Sources */,
+				A100000000000000000000F3 /* DesignSystem/Components/WireIconButton.swift in Sources */,
 				A10000000000000000000037 /* DesignSystem/Components/WireTextField.swift in Sources */,
 				A10000000000000000000038 /* DesignSystem/Components/WirePill.swift in Sources */,
-				A10000000000000000000039 /* DesignSystem/Components/WireIconButton.swift in Sources */,
 				A1000000000000000000003A /* DesignSystem/Components/WireImagePlaceholder.swift in Sources */,
-				A1000000000000000000003B /* DesignSystem/Components/WireTimeline.swift in Sources */,
-				A1000000000000000000003C /* DesignSystem/Previews/DesignSystemGallery.swift in Sources */,
 				A1000000000000000000003D /* DesignSystem/Components/BentoGroup.swift in Sources */,
 				A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */,
 				A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */,
@@ -504,11 +490,9 @@
 				A10000000000000000000013 /* Features/Shell/AppShellView.swift in Sources */,
 				A10000000000000000000014 /* Features/Learning/LearningDashboardView.swift in Sources */,
 				A10000000000000000000026 /* Features/Learning/DeckLibraryView.swift in Sources */,
-				A1000000000000000000076 /* Features/Learning/LearningConcept.swift in Sources */,
 				A1000000000000000000077 /* Features/Learning/DeckSummaryViews.swift in Sources */,
 				A1000000000000000000901 /* Features/Learning/DeckCarouselView.swift in Sources */,
 				A1000000000000000000902 /* Features/Learning/DeckCoverStore.swift in Sources */,
-				A1000000000000000000078 /* Features/Learning/DeckConceptView.swift in Sources */,
 				A10000000000000000000029 /* Services/StudyBackupSyncer.swift in Sources */,
 				A10000000000000000000028 /* Services/GuestStudyBackupService.swift in Sources */,
 				A10000000000000000000015 /* Features/Design/DesignDashboardView.swift in Sources */,

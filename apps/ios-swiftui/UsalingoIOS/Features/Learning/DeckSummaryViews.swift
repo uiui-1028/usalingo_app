@@ -1,5 +1,67 @@
 import SwiftUI
 
+/// デッキの見分け記号（B-12）。デッキIDから決めるので、開き直しても変わらない。
+/// 学習の進み具合とは関係がないため、数字と分けて持つ。
+enum DeckCoverSymbol {
+    private static let symbols = ["diamond", "triangle", "circle", "square", "hexagon", "seal"]
+
+    static func forDeck(id: Int) -> String {
+        symbols[abs(id % symbols.count)]
+    }
+}
+
+/// デッキの進み具合（B-2 / B-3 / B-4 / B-8）。そのデッキの実際のカードと学習記録から数える。
+///
+/// 新規と復習の「いま出せる枚数」は出題の上限が効くので、`StudyDeckCounts` を別に使う。
+struct DeckProgressSummary: Equatable {
+    /// 収録内容プレビュー（B-8）に出す語数。
+    static let previewWordLimit = 5
+
+    static let empty = DeckProgressSummary(cards: [])
+
+    let totalCount: Int
+    let masteredCount: Int
+    let learningCount: Int
+    let weakCount: Int
+    let previewWords: [String]
+
+    /// まだ一度も出していない枚数。4つのチップの合計が総枚数と合うようにする。
+    var untouchedCount: Int {
+        max(0, totalCount - masteredCount - learningCount - weakCount)
+    }
+
+    var masteryRatio: Double {
+        guard totalCount > 0 else { return 0 }
+        return min(1, Double(masteredCount) / Double(totalCount))
+    }
+
+    var masteryPercentText: String {
+        "\(Int((masteryRatio * 100).rounded()))%"
+    }
+
+    /// 1枚を1つの状態だけに数える。習得が最優先で、苦手は学習中から切り出す。
+    /// こうしないとチップの合計が総枚数を超える。
+    init(cards: [WordCard]) {
+        var mastered = 0
+        var learning = 0
+        var weak = 0
+        for card in cards {
+            if card.learningStatus == "mastered" {
+                mastered += 1
+            } else if card.learning?.isWeak == true {
+                weak += 1
+            } else if card.learning != nil {
+                learning += 1
+            }
+        }
+        totalCount = cards.count
+        masteredCount = mastered
+        learningCount = learning
+        weakCount = weak
+        previewWords = cards.prefix(Self.previewWordLimit).map(\.text)
+    }
+}
+
 /// デッキの見分け記号（B-12）。色相を持てないので、枠と記号だけで区別する。
 struct DeckCoverMark: View {
     let symbol: String
