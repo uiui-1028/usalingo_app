@@ -180,14 +180,6 @@ final class StudyService: RemoteStudyImporting {
         )
     }
 
-    private enum QueueLimit {
-        // ponytail: 一時的に実質無制限。元は review 20 / new 10 / futureReview 20 / weak 20。
-        static let review = 9999
-        static let new = 9999
-        static let futureReview = 9999
-        static let weak = 9999
-    }
-
     private enum FetchLimit {
         // Keep REST URLs short and stay below the Data API's default response cap.
         static let pageSize = 200
@@ -281,12 +273,12 @@ final class StudyService: RemoteStudyImporting {
             return try await fetchCards(deckId: deckId, session: session)
                 .filter { $0.learning == nil }
                 .sorted { $0.id < $1.id }
-                .prefixArray(QueueLimit.new)
+                .prefixArray(StudyQueueLimit.new)
         case .reviewOnly:
-            return try await fetchDueCards(deckId: deckId, limit: QueueLimit.review, session: session)
+            return try await fetchDueCards(deckId: deckId, limit: StudyQueueLimit.review, session: session)
         case .all:
             let cards = try await fetchCards(deckId: deckId, session: session)
-            return limitedStudyQueue(cards)
+            return StudyQueueRules.limitedStudyQueue(cards)
         case .weakOnly:
             return try await fetchCards(deckId: deckId, session: session)
                 .filter { $0.learning?.isWeak == true }
@@ -296,7 +288,7 @@ final class StudyService: RemoteStudyImporting {
                     }
                     return $0.id < $1.id
                 }
-                .prefixArray(QueueLimit.weak)
+                .prefixArray(StudyQueueLimit.weak)
         }
     }
 
@@ -437,16 +429,16 @@ final class StudyService: RemoteStudyImporting {
 
         let now = Date()
         let dueCount = rows.filter { row in
-            guard let dueDate = Self.parseDate(row.nextReviewDate) else { return false }
+            guard let dueDate = StudyQueueRules.parseDate(row.nextReviewDate) else { return false }
             return dueDate <= now
         }.count
         let masteredCount = rows.filter { $0.status == "mastered" }.count
         let reviewedDates = rows.compactMap { row -> Date? in
             guard let value = row.lastReviewedAt else { return nil }
-            return Self.parseDate(value)
+            return StudyQueueRules.parseDate(value)
         }
         let reviewedDays = Array(Set(reviewedDates.map { Calendar.current.startOfDay(for: $0) })).sorted()
-        let streak = currentStreak(from: reviewedDates)
+        let streak = StudyQueueRules.currentStreak(from: reviewedDates)
 
         return StudyStats(
             studiedCount: rows.count,
@@ -679,53 +671,6 @@ final class StudyService: RemoteStudyImporting {
         return records
     }
 
-    private func limitedStudyQueue(_ cards: [WordCard]) -> [WordCard] {
-        let now = Date()
-        let dueCards = cards
-            .filter { isDue($0, now: now) }
-            .sorted(by: sortByNextReviewDateThenId)
-            .prefixArray(QueueLimit.review)
-        let newCards = cards
-            .filter { $0.learning == nil }
-            .sorted { $0.id < $1.id }
-            .prefixArray(QueueLimit.new)
-        let futureReviewCards = cards
-            .filter { card in
-                guard card.learning != nil else { return false }
-                return !isDue(card, now: now)
-            }
-            .sorted(by: sortByNextReviewDateThenId)
-            .prefixArray(QueueLimit.futureReview)
-
-        return dueCards + newCards + futureReviewCards
-    }
-
-    private func nextReviewDate(for card: WordCard) -> Date? {
-        guard let value = card.learning?.nextReviewDate else { return nil }
-        return Self.parseDate(value)
-    }
-
-    private func isDue(_ card: WordCard, now: Date) -> Bool {
-        guard let dueDate = nextReviewDate(for: card) else { return false }
-        return dueDate <= now
-    }
-
-    private func sortByNextReviewDateThenId(_ left: WordCard, _ right: WordCard) -> Bool {
-        let leftDate = nextReviewDate(for: left)
-        let rightDate = nextReviewDate(for: right)
-        switch (leftDate, rightDate) {
-        case let (leftDate?, rightDate?):
-            if leftDate != rightDate { return leftDate < rightDate }
-        case (_?, nil):
-            return true
-        case (nil, _?):
-            return false
-        case (nil, nil):
-            break
-        }
-        return left.id < right.id
-    }
-
     private func applyUserData(to cards: [WordCard], session: AuthSession) async throws -> [WordCard] {
         let wordIds = Array(Set(cards.map(\.wordId))).sorted()
         let cardIds = Array(Set(cards.compactMap(\.cardId))).sorted()
@@ -803,30 +748,6 @@ final class StudyService: RemoteStudyImporting {
             primaryCardIdByWordId[row.wordId] = row.id
         }
         return words.map { $0.withCardId(primaryCardIdByWordId[$0.wordId]) }
-    }
-
-    private func currentStreak(from dates: [Date]) -> Int {
-        let calendar = Calendar.current
-        let reviewedDays = Set(dates.map { calendar.startOfDay(for: $0) })
-        var day = calendar.startOfDay(for: Date())
-        var streak = 0
-
-        while reviewedDays.contains(day) {
-            streak += 1
-            guard let previous = calendar.date(byAdding: .day, value: -1, to: day) else { break }
-            day = previous
-        }
-
-        return streak
-    }
-
-    private static func parseDate(_ value: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: value) {
-            return date
-        }
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.date(from: value)
     }
 }
 

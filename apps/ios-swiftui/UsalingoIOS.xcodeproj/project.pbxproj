@@ -41,6 +41,7 @@
 		A10000000000000000000022 /* Resources/Licenses in Resources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* Resources/Licenses */; };
 		A10000000000000000000023 /* Models/DeckFile.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000023 /* Models/DeckFile.swift */; };
 		A10000000000000000000024 /* Services/StudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* Services/StudyDataSource.swift */; };
+		A100000000000000000000F1 /* Services/StudyQueueRules.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000F1 /* Services/StudyQueueRules.swift */; };
 		A10000000000000000000025 /* Services/LocalStudyDataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000025 /* Services/LocalStudyDataSource.swift */; };
 		A10000000000000000000026 /* Features/Learning/DeckLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */; };
 		A10000000000000000000028 /* Services/GuestStudyBackupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* Services/GuestStudyBackupService.swift */; };
@@ -150,6 +151,7 @@
 		A20000000000000000000022 /* Resources/Licenses */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources/Licenses; sourceTree = "<group>"; };
 		A20000000000000000000023 /* Models/DeckFile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models/DeckFile.swift; sourceTree = "<group>"; };
 		A20000000000000000000024 /* Services/StudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyDataSource.swift; sourceTree = "<group>"; };
+		A200000000000000000000F1 /* Services/StudyQueueRules.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyQueueRules.swift; sourceTree = "<group>"; };
 		A20000000000000000000025 /* Services/LocalStudyDataSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/LocalStudyDataSource.swift; sourceTree = "<group>"; };
 		A20000000000000000000026 /* Features/Learning/DeckLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Learning/DeckLibraryView.swift; sourceTree = "<group>"; };
 		A20000000000000000000028 /* Services/GuestStudyBackupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/GuestStudyBackupService.swift; sourceTree = "<group>"; };
@@ -259,6 +261,7 @@
 				A20000000000000000000021 /* Services/AppInfo.swift */,
 				A2000000000000000000000A /* Services/StudyService.swift */,
 				A20000000000000000000024 /* Services/StudyDataSource.swift */,
+				A200000000000000000000F1 /* Services/StudyQueueRules.swift */,
 				A20000000000000000000025 /* Services/LocalStudyDataSource.swift */,
 				A20000000000000000000017 /* Services/SessionStore.swift */,
 				A20000000000000000000019 /* Services/AudioPlaybackService.swift */,
@@ -469,6 +472,7 @@
 				A1000000000000000000000A /* Services/StudyService.swift in Sources */,
 				A10000000000000000000023 /* Models/DeckFile.swift in Sources */,
 				A10000000000000000000024 /* Services/StudyDataSource.swift in Sources */,
+				A100000000000000000000F1 /* Services/StudyQueueRules.swift in Sources */,
 				A10000000000000000000025 /* Services/LocalStudyDataSource.swift in Sources */,
 				A10000000000000000000030 /* DesignSystem/Tokens/WireColor.swift in Sources */,
 				A10000000000000000000031 /* DesignSystem/Tokens/WireMetrics.swift in Sources */,

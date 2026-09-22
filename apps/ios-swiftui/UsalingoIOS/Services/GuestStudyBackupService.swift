@@ -8,18 +8,11 @@ struct GuestStudyBackup {
 
     /// 「2026年8月28日 15:04」の形にする。読めない値のときは nil を返して表示側で伏せる。
     var updatedAtText: String? {
-        guard let updatedAt, let date = Self.parseDate(updatedAt) else { return nil }
+        guard let updatedAt, let date = StudyQueueRules.parseDate(updatedAt) else { return nil }
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ja_JP")
         formatter.dateFormat = "yyyy年M月d日 HH:mm"
         return formatter.string(from: date)
-    }
-
-    private static func parseDate(_ value: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: value) { return date }
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.date(from: value)
     }
 }
 

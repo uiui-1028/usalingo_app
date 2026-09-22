@@ -79,7 +79,7 @@ final class RemoteStudyDataSource: StudyDataSource {
             newCount: cards.filter { $0.learning == nil }.count,
             dueCount: cards.filter { card in
                 guard let value = card.learning?.nextReviewDate else { return false }
-                return Self.parseDate(value).map { $0 <= now } ?? false
+                return StudyQueueRules.parseDate(value).map { $0 <= now } ?? false
             }.count
         )
     }
@@ -152,12 +152,5 @@ final class RemoteStudyDataSource: StudyDataSource {
 
     func deleteDeck(id: Int) async throws {
         try await service.deletePersonalDeck(id: id, session: session)
-    }
-
-    private static func parseDate(_ value: String) -> Date? {
-        let formatter = ISO8601DateFormatter()
-        if let date = formatter.date(from: value) { return date }
-        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.date(from: value)
     }
 }
