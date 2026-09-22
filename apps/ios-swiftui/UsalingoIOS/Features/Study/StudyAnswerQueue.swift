@@ -60,15 +60,18 @@ func drainStudyAnswerQueue(
     _ queue: Binding<StudyAnswerQueue>,
     appState: AppState,
     saveErrorMessage: Binding<String?>,
+    source: (any StudyDataSource)? = nil,
     onSaved: @escaping (StudyAnswerQueue.PendingAnswer, SavedAnswer) -> Void = { _, _ in }
 ) {
     guard queue.wrappedValue.beginDraining() else { return }
+    let source = source ?? appState.studyDataSource
     Task {
         while let pending = queue.wrappedValue.next {
             do {
-                let savedAnswer = try await appState.studyDataSource.saveAnswerWithUndo(
+                let savedAnswer = try await source.saveAnswerWithUndo(
                     card: pending.card,
-                    isCorrect: pending.isCorrect
+                    isCorrect: pending.isCorrect,
+                    attempt: pending.attempt
                 )
                 onSaved(pending, savedAnswer)
                 queue.wrappedValue.completeFirst()

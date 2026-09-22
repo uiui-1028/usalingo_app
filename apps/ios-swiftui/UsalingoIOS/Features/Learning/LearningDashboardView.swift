@@ -53,6 +53,7 @@ struct LearningDashboardView: View {
     @State private var wordListDeck: Deck?
     @State private var radioDeck: Deck?
     @State private var matchingDeck: Deck?
+    @State private var choiceDeck: Deck?
     @AppStorage(DeckPlayStyle.storageKey) private var playStyle: DeckPlayStyle = .card
     @State private var errorMessage: String?
     @State private var exportDocument: DeckDocument?
@@ -80,6 +81,9 @@ struct LearningDashboardView: View {
                 .navigationDestination(item: $matchingDeck) { deck in
                     MatchingGameView(deck: deck)
                 }
+                .navigationDestination(item: $choiceDeck) { deck in
+                    FiveChoiceView(deck: deck)
+                }
         }
         .task(id: reloadKey) { await reload() }
         .onChange(of: appState.session?.user.id) { _, _ in
@@ -89,6 +93,7 @@ struct LearningDashboardView: View {
             wordListDeck = nil
             radioDeck = nil
             matchingDeck = nil
+            choiceDeck = nil
             decks = []
             covers = [:]
         }
@@ -164,9 +169,10 @@ struct LearningDashboardView: View {
     /// デッキ全体を学習開始の入口にする。
     private func open(_ deck: Deck) {
         switch playStyle {
-        // ponytail: 5択はまだ無いのでカードと同じ学習を開く。5択画面ができたらここで分ける。
-        case .card, .choice:
+        case .card:
             studyLaunch = StudyLaunch(deck: deck, mode: .all)
+        case .choice:
+            choiceDeck = deck
         case .list:
             wordListDeck = deck
         case .audio:
