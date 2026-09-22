@@ -130,6 +130,33 @@ final class MatchingGameTests: XCTestCase {
         }
     }
 
+    func testShuffleMovesTilesWithoutChangingProgress() {
+        var game = MatchingGame(words: makeWords(count: 5), shufflesOrder: false)
+        _ = game.tap(tileId: tileId(game, cardId: 1, column: .japanese))
+        _ = game.tap(tileId: tileId(game, cardId: 1, column: .english))
+        let beforeIds = game.tiles(in: .english).map { $0?.id }
+
+        game.shuffleBoard()
+
+        XCTAssertNil(game.selectedTileId, "選びかけは解除する")
+        XCTAssertNotEqual(game.tiles(in: .english).map { $0?.id }, beforeIds, "置き場所は変わる")
+        XCTAssertEqual(Set(game.tiles.map(\.cardId)), Set(1...5), "出ている語は変わらない")
+        XCTAssertEqual(game.tiles.filter(\.isCleared).map(\.cardId), [1, 1], "消した札はそのまま")
+    }
+
+    func testShuffleKeepsClearedTilesInPlace() {
+        var game = MatchingGame(words: makeWords(count: 5), shufflesOrder: false)
+        _ = game.tap(tileId: tileId(game, cardId: 1, column: .japanese))
+        _ = game.tap(tileId: tileId(game, cardId: 1, column: .english))
+        let clearedSlots = game.tiles(in: .japanese).indices.filter { game.tiles(in: .japanese)[$0]?.isCleared == true }
+
+        game.shuffleBoard()
+
+        for slot in clearedSlots {
+            XCTAssertEqual(game.tiles(in: .japanese)[slot]?.cardId, 1, "薄く残した札は動かさない")
+        }
+    }
+
     private func tileId(_ game: MatchingGame, cardId: Int, column: MatchingGame.Column) -> Int {
         let tile = game.tiles.first { $0.cardId == cardId && $0.column == column }
         XCTAssertNotNil(tile, "盤に card \(cardId) の \(column) がない")

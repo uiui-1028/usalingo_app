@@ -3,6 +3,7 @@ import SwiftUI
 /// マッチングモード。左に日本語、右に英語を5枚ずつ表向きで並べ、同じ語の2枚を選んで消す。
 ///
 /// 1手目で揃えられたら正解、一度でもミスした語は不正解として、通常の学習と同じ記録に流す。
+/// 成績は画面に出さない。学習曲線は裏で動かし、遊んでいる間は点数を見せない。
 struct MatchingGameView: View {
     /// 揃った2枚を黒ベタで見せておく時間。この間に消えたと分かる。
     private static let matchFlashSeconds: Double = 0.45
@@ -20,8 +21,6 @@ struct MatchingGameView: View {
     @State private var loadErrorMessage: String?
     @State private var saveErrorMessage: String?
     @State private var answerQueue = StudyAnswerQueue()
-    @State private var sessionAnswers: [Bool] = []
-    @State private var sessionProgresses: [LearningProgress] = []
     /// 揃ったばかりで黒ベタにしている札。
     @State private var flashingTileIds: Set<Int> = []
     /// 違って揺らしている札。
@@ -29,7 +28,6 @@ struct MatchingGameView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            header
             ZStack {
                 if isLoading {
                     ProgressView()
@@ -52,13 +50,7 @@ struct MatchingGameView: View {
                         dismiss()
                     }
                 } else if game?.isFinished == true {
-                    StudyCompletionView(
-                        correctCount: sessionAnswers.filter { $0 }.count,
-                        incorrectCount: sessionAnswers.filter { !$0 }.count,
-                        studiedCount: sessionAnswers.count,
-                        accuracyText: accuracyText,
-                        weakCount: sessionProgresses.filter(\.isWeak).count
-                    )
+                    completion
                 } else {
                     board
                 }
@@ -66,6 +58,7 @@ struct MatchingGameView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             saveFailureBanner
+            actionBar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(WireColor.background)
@@ -79,40 +72,47 @@ struct MatchingGameView: View {
         .onDisappear { appState.isShellChromeHidden = false }
     }
 
-    private var header: some View {
-        HStack(spacing: WireMetrics.spacingM) {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
+    /// 盤の下に置く道具。カード学習と違い正解・不正解は押さないので、帯だけを中央に出す。
+    @ViewBuilder
+    private var actionBar: some View {
+        if !isLoading, loadErrorMessage == nil, !wordsById.isEmpty {
+            HStack(spacing: WireMetrics.spacingS) {
+                toolbarButton("chevron.left", label: "学習に戻る") { dismiss() }
+                toolbarButton(
+                    "shuffle",
+                    label: "札を並べ替える",
+                    isDisabled: game?.isFinished != false,
+                    action: shuffleBoard
+                )
             }
-            .buttonStyle(.wireIcon(diameter: 40))
-            .accessibilityLabel("デッキに戻る")
-
-            Text(deck.deckName)
-                .wireFont(.label)
-                .lineLimit(1)
-
-            Spacer(minLength: 0)
-
-            Text("正解 \(sessionAnswers.filter { $0 }.count) / ミス \(sessionAnswers.filter { !$0 }.count)")
-                .wireFont(.caption)
+            .padding(.horizontal, WireMetrics.spacingM)
+            .padding(.vertical, WireMetrics.spacingM)
+            .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+            .padding(.horizontal, WireMetrics.screenPadding)
+            .padding(.bottom, WireMetrics.spacingM)
         }
-        .padding(.horizontal, WireMetrics.screenPadding)
-        .padding(.vertical, WireMetrics.spacingM)
+    }
+
+    private func toolbarButton(
+        _ symbol: String,
+        label: String,
+        isDisabled: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: symbol)
+        }
+        .buttonStyle(.wireIcon(diameter: 40))
+        .disabled(isDisabled)
+        .accessibilityLabel(label)
     }
 
     @ViewBuilder
     private var board: some View {
         if let game {
-            VStack(spacing: WireMetrics.spacingM) {
-                Text("同じ意味の組をタップしてください")
-                    .wireFont(.caption)
-
-                HStack(alignment: .top, spacing: WireMetrics.spacingS) {
-                    column(.japanese, in: game)
-                    column(.english, in: game)
-                }
+            HStack(alignment: .top, spacing: WireMetrics.spacingS) {
+                column(.japanese, in: game)
+                column(.english, in: game)
             }
             .padding(.horizontal, WireMetrics.screenPadding)
         }
@@ -175,6 +175,22 @@ struct MatchingGameView: View {
         .accessibilityHint(tile.isCleared ? "揃いました" : "同じ意味の札と組にします")
     }
 
+    /// 遊び終えた合図だけを出す。正解数や正答率は見せない。
+    private var completion: some View {
+        VStack(spacing: WireMetrics.spacingL) {
+            Image(systemName: "sparkles")
+                .wireFont(.titleL)
+
+            VStack(spacing: WireMetrics.spacingXS) {
+                Text("学習完了")
+                    .wireFont(.titleL)
+                Text("今日の学習はここまで。")
+                    .wireFont(.caption)
+            }
+        }
+        .padding(WireMetrics.spacingXL)
+    }
+
     @ViewBuilder
     private var saveFailureBanner: some View {
         if let saveErrorMessage {
@@ -199,10 +215,13 @@ struct MatchingGameView: View {
         }
     }
 
-    private var accuracyText: String {
-        guard !sessionAnswers.isEmpty else { return "0%" }
-        let correctCount = sessionAnswers.filter { $0 }.count
-        return "\(Int((Double(correctCount) / Double(sessionAnswers.count) * 100).rounded()))%"
+    /// 残った札の場所だけ混ぜる。何を揃えたかは変わらないので、記録には触らない。
+    private func shuffleBoard() {
+        guard var game else { return }
+        game.shuffleBoard()
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) {
+            self.game = game
+        }
     }
 
     private func tap(_ tile: MatchingGame.Tile) {
