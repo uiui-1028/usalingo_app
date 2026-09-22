@@ -237,29 +237,8 @@ struct MatchingGameView: View {
         }
     }
 
-    /// 溜まった回答を投入順に保存する。カードの学習と同じく、UI は保存を待たない。
     private func drainAnswerQueue() {
-        guard answerQueue.beginDraining() else { return }
-        Task {
-            while let pending = answerQueue.next {
-                do {
-                    let savedAnswer = try await appState.studyDataSource.saveAnswerWithUndo(
-                        card: pending.card,
-                        isCorrect: pending.isCorrect
-                    )
-                    sessionAnswers.append(pending.isCorrect)
-                    sessionProgresses.append(savedAnswer.progress)
-                    answerQueue.completeFirst()
-                    appState.markStudyDataChanged()
-                    saveErrorMessage = nil
-                } catch {
-                    // 失敗した回答は先頭に残す。「もう一度保存」でここから再開する。
-                    saveErrorMessage = UserFacingError.message(for: error)
-                    break
-                }
-            }
-            answerQueue.endDraining()
-        }
+        drainStudyAnswerQueue($answerQueue, appState: appState, saveErrorMessage: $saveErrorMessage)
     }
 
     private func load() async {

@@ -18,6 +18,7 @@
 		A1000000000000000000000A /* Services/StudyService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000A /* Services/StudyService.swift */; };
 		A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000C /* Features/Auth/AuthView.swift */; };
 		A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* Features/Study/StudySessionView.swift */; };
+		A100000000000000000000F2 /* Features/Study/StudyAnswerQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000000F2 /* Features/Study/StudyAnswerQueue.swift */; };
 		A1000000000000000000A101 /* Features/Study/MatchingGame.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000A101 /* Features/Study/MatchingGame.swift */; };
 		A1000000000000000000A102 /* Features/Study/MatchingGameView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000A102 /* Features/Study/MatchingGameView.swift */; };
 		A1000000000000000000A103 /* Features/Study/RadioQueue.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000A103 /* Features/Study/RadioQueue.swift */; };
@@ -125,6 +126,7 @@
 		A2000000000000000000000A /* Services/StudyService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Services/StudyService.swift; sourceTree = "<group>"; };
 		A2000000000000000000000C /* Features/Auth/AuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Auth/AuthView.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* Features/Study/StudySessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudySessionView.swift; sourceTree = "<group>"; };
+		A200000000000000000000F2 /* Features/Study/StudyAnswerQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyAnswerQueue.swift; sourceTree = "<group>"; };
 		A2000000000000000000A101 /* Features/Study/MatchingGame.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/MatchingGame.swift; sourceTree = "<group>"; };
 		A2000000000000000000A102 /* Features/Study/MatchingGameView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/MatchingGameView.swift; sourceTree = "<group>"; };
 		A2000000000000000000A103 /* Features/Study/RadioQueue.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/RadioQueue.swift; sourceTree = "<group>"; };
@@ -283,6 +285,7 @@
 				A2000000000000000000003D /* DesignSystem/Components/BentoGroup.swift */,
 				A2000000000000000000000C /* Features/Auth/AuthView.swift */,
 				A2000000000000000000000E /* Features/Study/StudySessionView.swift */,
+				A200000000000000000000F2 /* Features/Study/StudyAnswerQueue.swift */,
 				A2000000000000000000000F /* Features/Study/StudyCardView.swift */,
 				A20000000000000000000FA1 /* Features/Study/WordCardContent.swift */,
 				A2000000000000000000A101 /* Features/Study/MatchingGame.swift */,
@@ -490,6 +493,7 @@
 				A1000000000000000000003D /* DesignSystem/Components/BentoGroup.swift in Sources */,
 				A1000000000000000000000C /* Features/Auth/AuthView.swift in Sources */,
 				A1000000000000000000000E /* Features/Study/StudySessionView.swift in Sources */,
+				A100000000000000000000F2 /* Features/Study/StudyAnswerQueue.swift in Sources */,
 				A1000000000000000000000F /* Features/Study/StudyCardView.swift in Sources */,
 				A1000000000000000000A101 /* Features/Study/MatchingGame.swift in Sources */,
 				A1000000000000000000A102 /* Features/Study/MatchingGameView.swift in Sources */,

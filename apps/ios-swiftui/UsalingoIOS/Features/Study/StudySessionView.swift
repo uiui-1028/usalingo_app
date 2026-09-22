@@ -312,40 +312,21 @@ struct StudySessionView: View {
         }
     }
 
-    /// 溜まった回答を投入順に保存する。排出役は常に1本だけで、走っている間に積まれた
-    /// 回答も同じループが拾う。UI はこの完了を待たない。
     private func drainAnswerQueue() {
-        guard answerQueue.beginDraining() else { return }
-        Task {
-            while let pending = answerQueue.next {
-                do {
-                    let savedAnswer = try await appState.studyDataSource.saveAnswerWithUndo(
-                        card: pending.card,
-                        isCorrect: pending.isCorrect
-                    )
-                    if pending.cardIndex < cards.count {
-                        cards[pending.cardIndex] = pending.card
-                            .withLearningProgress(savedAnswer.progress)
-                    }
-                    sessionAnswers.append(pending.isCorrect)
-                    sessionProgresses.append(savedAnswer.progress)
-                    answerHistory.append(
-                        AnswerCheckpoint(
-                            cardIndex: pending.cardIndex,
-                            originalCard: pending.card,
-                            previousProgress: savedAnswer.previousProgress
-                        )
-                    )
-                    answerQueue.completeFirst()
-                    appState.markStudyDataChanged()
-                    saveErrorMessage = nil
-                } catch {
-                    // 失敗した回答は先頭に残す。「もう一度保存」でここから再開する。
-                    saveErrorMessage = UserFacingError.message(for: error)
-                    break
-                }
+        drainStudyAnswerQueue($answerQueue, appState: appState, saveErrorMessage: $saveErrorMessage) { pending, savedAnswer in
+            if pending.cardIndex < cards.count {
+                cards[pending.cardIndex] = pending.card
+                    .withLearningProgress(savedAnswer.progress)
             }
-            answerQueue.endDraining()
+            sessionAnswers.append(pending.isCorrect)
+            sessionProgresses.append(savedAnswer.progress)
+            answerHistory.append(
+                AnswerCheckpoint(
+                    cardIndex: pending.cardIndex,
+                    originalCard: pending.card,
+                    previousProgress: savedAnswer.previousProgress
+                )
+            )
         }
     }
 
@@ -563,56 +544,6 @@ struct StudyAnswerActionBar<Toolbar: View>: View {
         .padding(.top, WireMetrics.spacingXS)
         .padding(.bottom, WireMetrics.screenPadding)
         .backSwipeProtectedRegion()
-    }
-}
-
-/// 保存待ちの回答を投入順に並べる行列。
-///
-/// 以前は「保存が終わるまで次の回答を受け付けない」作りだったため、通信のたびに
-/// スワイプが塞がっていた。ここでは投入は常に成功させ、詰まるのは保存側だけにする。
-struct StudyAnswerQueue {
-    struct PendingAnswer {
-        let cardIndex: Int
-        let card: WordCard
-        let isCorrect: Bool
-        let attempt = AnswerSaveAttempt()
-    }
-
-    private(set) var pending: [PendingAnswer] = []
-    private(set) var isDraining = false
-
-    var isEmpty: Bool { pending.isEmpty }
-    var next: PendingAnswer? { pending.first }
-
-    mutating func enqueue(cardIndex: Int, card: WordCard, isCorrect: Bool) {
-        pending.append(PendingAnswer(cardIndex: cardIndex, card: card, isCorrect: isCorrect))
-    }
-
-    /// 排出役は1本だけ立てる。すでに走っていれば新しい回答は既存のループが拾う。
-    mutating func beginDraining() -> Bool {
-        guard !isDraining, !pending.isEmpty else { return false }
-        isDraining = true
-        return true
-    }
-
-    mutating func completeFirst() {
-        guard !pending.isEmpty else { return }
-        pending.removeFirst()
-    }
-
-    mutating func endDraining() {
-        isDraining = false
-    }
-
-    /// 実行中の保存を終えてから、未送信の直前の判定だけを取り消す。
-    mutating func removeLast(cardIndex: Int) {
-        guard !isDraining, pending.last?.cardIndex == cardIndex else { return }
-        pending.removeLast()
-    }
-
-    mutating func reset() {
-        pending.removeAll()
-        isDraining = false
     }
 }
 

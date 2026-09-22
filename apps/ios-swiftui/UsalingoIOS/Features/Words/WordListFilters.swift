@@ -41,23 +41,11 @@ enum WordDueFilter: String, CaseIterable, Identifiable {
         case .unset:
             return word.learning == nil
         case .due:
-            guard let nextReviewDate = word.learning?.nextReviewDate,
-                  let date = Self.parseDate(nextReviewDate) else { return false }
-            return date <= Date()
+            return StudyQueueRules.isDue(word, now: Date())
         case .future:
-            guard let nextReviewDate = word.learning?.nextReviewDate,
-                  let date = Self.parseDate(nextReviewDate) else { return false }
+            guard let date = StudyQueueRules.nextReviewDate(for: word) else { return false }
             return date > Date()
         }
-    }
-
-    private static func parseDate(_ value: String) -> Date? {
-        let parser = ISO8601DateFormatter()
-        if let date = parser.date(from: value) {
-            return date
-        }
-        parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return parser.date(from: value)
     }
 }
 
@@ -109,21 +97,7 @@ enum WordSortOption: String, CaseIterable, Identifiable {
                 return leftRank < rightRank
             }
         case .dueDate:
-            words.sorted {
-                let leftDate = parseDate($0.learning?.nextReviewDate)
-                let rightDate = parseDate($1.learning?.nextReviewDate)
-                switch (leftDate, rightDate) {
-                case let (left?, right?):
-                    if left == right { return $0.id < $1.id }
-                    return left < right
-                case (.some, nil):
-                    return true
-                case (nil, .some):
-                    return false
-                case (nil, nil):
-                    return $0.id < $1.id
-                }
-            }
+            words.sorted(by: StudyQueueRules.sortByNextReviewDateThenId)
         }
     }
 
@@ -138,16 +112,6 @@ enum WordSortOption: String, CaseIterable, Identifiable {
         default:
             3
         }
-    }
-
-    private func parseDate(_ value: String?) -> Date? {
-        guard let value else { return nil }
-        let parser = ISO8601DateFormatter()
-        if let date = parser.date(from: value) {
-            return date
-        }
-        parser.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return parser.date(from: value)
     }
 }
 
