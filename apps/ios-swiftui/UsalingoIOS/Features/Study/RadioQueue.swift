@@ -32,6 +32,18 @@ struct RadioQueue {
         cards.indices.contains(index) ? cards[index] : nil
     }
 
+    /// ひとつ前のカード。カルーセルで上に並べる。先頭なら最後のカードを見せる。
+    var previous: WordCard? {
+        cards.isEmpty ? nil : cards[(index - 1 + cards.count) % cards.count]
+    }
+
+    /// 次のカード。カルーセルで下に並べる。
+    ///
+    /// 周の変わり目では `advance()` が混ぜ直すので、ここで見せた札とは別の札が鳴ることがある。
+    var next: WordCard? {
+        cards.isEmpty ? nil : cards[(index + 1) % cards.count]
+    }
+
     /// いまのカードで流すもの。訳が空のカードは読み上げを飛ばす。
     var currentSteps: [RadioStep] {
         guard let card = current, let wordAudio = card.wordAudioURL, let sentenceAudio = card.audioURL else {

@@ -2,21 +2,17 @@ import AVFoundation
 import Foundation
 import MediaPlayer
 
-/// 読み上げと再生の速さ。
-enum RadioRate: Double, CaseIterable, Identifiable {
-    case slow = 0.75
-    case normal = 1.0
-    case fast = 1.25
+/// 自動で止まるまでの時間。
+enum RadioSleep: Int, CaseIterable, Identifiable {
+    case off = 0
+    case fiveMinutes = 5
+    case tenMinutes = 10
+    case fifteenMinutes = 15
+    case thirtyMinutes = 30
 
-    var id: Double { rawValue }
+    var id: Int { rawValue }
 
-    var title: String {
-        switch self {
-        case .slow: return "0.75x"
-        case .normal: return "1.0x"
-        case .fast: return "1.25x"
-        }
-    }
+    var title: String { self == .off ? "なし" : "\(rawValue)分" }
 }
 
 /// デッキを流し続けるラジオ。1語ぶんを「英単語 → 日本語訳 → 英語例文」の順に鳴らし、
@@ -25,9 +21,24 @@ enum RadioRate: Double, CaseIterable, Identifiable {
 /// 画面を閉じても鳴り続けるので、音声セッションとロック画面の操作もここで持つ。
 @MainActor
 final class RadioPlayer: NSObject, ObservableObject {
+    /// 再生の速さで許す範囲。`AVAudioPlayer` が素直に鳴らせる幅に合わせてある。
+    static let minimumRate = 0.5
+    static let maximumRate = 2.0
+    /// 語と語のあいだに置く無音の長さ（秒）で許す範囲。
+    static let minimumGap = 0.5
+    static let maximumGap = 5.0
+
     @Published private(set) var currentCard: WordCard?
+    /// カルーセルで前後に並べる札。鳴らしはしない。
+    @Published private(set) var previousCard: WordCard?
+    @Published private(set) var nextCard: WordCard?
     @Published private(set) var isPlaying = false
-    @Published private(set) var rate: RadioRate = .normal
+    @Published private(set) var rate = 1.0
+    /// 語と語のあいだに置く無音の長さ（秒）。口に出して真似る間と、思い出す間を作る。
+    @Published private(set) var gap = RadioPlayer.minimumGap
+    @Published private(set) var sleep: RadioSleep = .off
+    /// スリープで止まる時刻。画面の残り時間表示に使う。
+    @Published private(set) var sleepDeadline: Date?
     /// 流せるカードが1枚も無かった。画面で案内を出す。
     @Published private(set) var hasNoPlayableCard = false
 
@@ -37,7 +48,9 @@ final class RadioPlayer: NSObject, ObservableObject {
     private var steps: [RadioStep] = []
     private var stepIndex = 0
     private var player: AVAudioPlayer?
-    private var loadTask: Task<Void, Never>?
+    /// 音源の取得と、無音のあいだの待ち。次の音を鳴らす前に必ず片付ける。
+    private var stepTask: Task<Void, Never>?
+    private var sleepTask: Task<Void, Never>?
     private var speakingUtterance: AVSpeechUtterance?
     private var deckName = ""
     private var isConfigured = false
@@ -83,27 +96,60 @@ final class RadioPlayer: NSObject, ObservableObject {
         beginCurrentCard()
     }
 
-    func setRate(_ rate: RadioRate) {
-        guard rate != self.rate else { return }
-        self.rate = rate
-        player?.rate = Float(rate.rawValue)
-        // 読み上げ中は速さを差し替えられないので、その語だけ読み直す。
-        if speakingUtterance != nil {
-            playCurrentStep()
+    /// 速さを変える。指を滑らせている最中に読み直すと落ち着かないので、
+    /// 収録音源だけその場で追従させ、読み上げの作り直しは `commitRate()` に任せる。
+    func setRate(_ rate: Double) {
+        let clamped = min(max(rate, Self.minimumRate), Self.maximumRate)
+        guard clamped != self.rate else { return }
+        self.rate = clamped
+        player?.rate = Float(clamped)
+        updateNowPlaying()
+    }
+
+    /// 速さを決め終えたときに呼ぶ。読み上げ中は速さを差し替えられないので、その語だけ読み直す。
+    func commitRate() {
+        guard speakingUtterance != nil else { return }
+        playCurrentStep()
+    }
+
+    func setGap(_ gap: Double) {
+        self.gap = min(max(gap, Self.minimumGap), Self.maximumGap)
+    }
+
+    func setSleep(_ sleep: RadioSleep) {
+        sleepTask?.cancel()
+        sleepTask = nil
+        self.sleep = sleep
+        guard sleep != .off else {
+            sleepDeadline = nil
+            return
+        }
+        let seconds = UInt64(sleep.rawValue) * 60
+        sleepDeadline = Date().addingTimeInterval(TimeInterval(seconds))
+        sleepTask = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: seconds * 1_000_000_000)
+            guard !Task.isCancelled else { return }
+            await self?.finishSleep()
         }
     }
 
     /// 画面を閉じるときに呼ぶ。鳴らしているものと、ロック画面の表示を片付ける。
     func stop() {
         generation += 1
-        loadTask?.cancel()
-        loadTask = nil
+        stepTask?.cancel()
+        stepTask = nil
+        sleepTask?.cancel()
+        sleepTask = nil
+        sleep = .off
+        sleepDeadline = nil
         player?.stop()
         player = nil
         speakingUtterance = nil
         synthesizer.stopSpeaking(at: .immediate)
         isPlaying = false
         currentCard = nil
+        previousCard = nil
+        nextCard = nil
         clearRemoteCommands()
         NotificationCenter.default.removeObserver(self)
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
@@ -114,6 +160,8 @@ final class RadioPlayer: NSObject, ObservableObject {
 
     private func beginCurrentCard() {
         currentCard = queue.current
+        previousCard = queue.previous
+        nextCard = queue.next
         steps = queue.currentSteps
         stepIndex = 0
         prefetchNextCard()
@@ -123,8 +171,8 @@ final class RadioPlayer: NSObject, ObservableObject {
     private func playCurrentStep() {
         generation += 1
         let generation = self.generation
-        loadTask?.cancel()
-        loadTask = nil
+        stepTask?.cancel()
+        stepTask = nil
         player?.stop()
         player = nil
         speakingUtterance = nil
@@ -141,10 +189,10 @@ final class RadioPlayer: NSObject, ObservableObject {
 
         switch steps[stepIndex] {
         case .word(let url), .sentence(let url):
-            loadTask = Task { [cache] in
+            stepTask = Task { [cache] in
                 let data = try? await cache.data(for: url)
                 guard !Task.isCancelled, generation == self.generation else { return }
-                self.loadTask = nil
+                self.stepTask = nil
                 self.startFile(data: data, generation: generation)
             }
         case .meaning(let text):
@@ -161,7 +209,7 @@ final class RadioPlayer: NSObject, ObservableObject {
         }
         audioPlayer.delegate = self
         audioPlayer.enableRate = true
-        audioPlayer.rate = Float(rate.rawValue)
+        audioPlayer.rate = Float(rate)
         player = audioPlayer
         if audioPlayer.play() {
             updateNowPlaying()
@@ -173,22 +221,35 @@ final class RadioPlayer: NSObject, ObservableObject {
     private func speak(_ text: String) {
         let utterance = AVSpeechUtterance(string: text)
         utterance.voice = AVSpeechSynthesisVoice(language: "ja-JP")
-        utterance.rate = AVSpeechUtteranceDefaultSpeechRate * Float(rate.rawValue)
+        utterance.rate = min(
+            max(AVSpeechUtteranceDefaultSpeechRate * Float(rate), AVSpeechUtteranceMinimumSpeechRate),
+            AVSpeechUtteranceMaximumSpeechRate
+        )
         // 訳のあとに例文がすぐ続くと切り替わりが速すぎるので、ひと呼吸置く。
         utterance.postUtteranceDelay = 0.3
         speakingUtterance = utterance
         synthesizer.speak(utterance)
     }
 
+    /// 次の音へ送る。設定した無音の長さだけ待ってから鳴らす。
     private func advanceStep() {
         stepIndex += 1
-        playCurrentStep()
+        generation += 1
+        let generation = self.generation
+        stepTask?.cancel()
+        player = nil
+        let seconds = gap
+        stepTask = Task {
+            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            guard !Task.isCancelled, generation == self.generation else { return }
+            self.playCurrentStep()
+        }
     }
 
     private func pause() {
         isPlaying = false
-        loadTask?.cancel()
-        loadTask = nil
+        stepTask?.cancel()
+        stepTask = nil
         player?.pause()
         if synthesizer.isSpeaking {
             synthesizer.pauseSpeaking(at: .word)
@@ -206,6 +267,14 @@ final class RadioPlayer: NSObject, ObservableObject {
             playCurrentStep()
         }
         updateNowPlaying()
+    }
+
+    private func finishSleep() {
+        sleepTask = nil
+        sleep = .off
+        sleepDeadline = nil
+        guard isPlaying else { return }
+        pause()
     }
 
     private func prefetchNextCard() {
@@ -292,7 +361,7 @@ final class RadioPlayer: NSObject, ObservableObject {
             MPMediaItemPropertyTitle: currentCard.text,
             MPMediaItemPropertyArtist: currentCard.primaryMeaning,
             MPMediaItemPropertyAlbumTitle: deckName,
-            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? rate.rawValue : 0.0
+            MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? rate : 0.0
         ]
         // 長さと経過は、収録音源を鳴らしている間だけ出せる。読み上げ中は伏せる。
         if let player {
