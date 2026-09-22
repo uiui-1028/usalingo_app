@@ -92,10 +92,25 @@ struct LearningDashboardView: View {
             decks = []
             covers = [:]
         }
-        // 詳細へのpushでも表示状態は変わらないため、画面ごとの出入りで競合させない。
-        .onChange(of: isShowingLibrary) { _, isPresented in
-            appState.isShellChromeHidden = isPresented
+        // タブバーの出し入れは push / pop が始まった時点で決める。子画面の
+        // onAppear / onDisappear は遷移が終わってから呼ばれるため、そこで戻すと
+        // 学習タブが出そろった後にバーが浮き上がってきてしまう。
+        .onChange(of: isCoveringScreenPresented) { _, isPresented in
+            // 隠すときだけ下へ滑らせる。戻すときは即座に出し、pop に合わせて
+            // 浮き上がったり薄く現れたりしないようにする。
+            withAnimation(isPresented ? .spring(response: 0.28, dampingFraction: 0.86) : nil) {
+                appState.isShellChromeHidden = isPresented
+            }
         }
+    }
+
+    /// タブバーの上に重なる全画面の子画面が出ているか。
+    private var isCoveringScreenPresented: Bool {
+        studyLaunch != nil
+            || isShowingLibrary
+            || wordListDeck != nil
+            || radioDeck != nil
+            || matchingDeck != nil
     }
 
     /// デッキのカードを上下に回すカルーセル。お知らせがあるときだけ下に足す。

@@ -68,8 +68,6 @@ struct MatchingGameView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .task { await load() }
-        .onAppear { appState.isShellChromeHidden = true }
-        .onDisappear { appState.isShellChromeHidden = false }
     }
 
     /// 盤の下に置く道具。カード学習と違い正解・不正解は押さないので、帯だけを中央に出す。
