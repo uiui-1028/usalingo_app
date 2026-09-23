@@ -18,12 +18,22 @@ struct RadioQueue {
     private(set) var cards: [WordCard]
     private(set) var index = 0
     private let shufflesEachLap: Bool
+    private let sourceCards: [WordCard]
+    /// ひとつ前までに通った周。逆向きへ戻るときも、画面で見えていた並びを変えない。
+    private var previousLaps: [[WordCard]] = []
+    /// 次の周は先に決めておく。最後の札の下に見えていた札と、実際に次に鳴る札を一致させる。
+    private var futureLaps: [[WordCard]] = []
 
     /// - Parameter shufflesEachLap: 毎周混ぜるか。テストだけ `false` にする。
     init(cards: [WordCard], shufflesEachLap: Bool = true) {
         let playable = cards.filter { $0.wordAudioURL != nil && $0.audioURL != nil }
         self.shufflesEachLap = shufflesEachLap
-        self.cards = shufflesEachLap ? playable.shuffled() : playable
+        self.sourceCards = playable
+        let firstLap = shufflesEachLap ? playable.shuffled() : playable
+        self.cards = firstLap
+        if !firstLap.isEmpty {
+            self.futureLaps = [Self.makeLap(from: playable, after: firstLap.last?.id, shuffled: shufflesEachLap)]
+        }
     }
 
     var isEmpty: Bool { cards.isEmpty }
@@ -34,14 +44,28 @@ struct RadioQueue {
 
     /// ひとつ前のカード。カルーセルで上に並べる。先頭なら最後のカードを見せる。
     var previous: WordCard? {
-        cards.isEmpty ? nil : cards[(index - 1 + cards.count) % cards.count]
+        guard !cards.isEmpty else { return nil }
+        if index > 0 { return cards[index - 1] }
+        return previousLaps.last?.last ?? cards.last
     }
 
-    /// 次のカード。カルーセルで下に並べる。
-    ///
-    /// 周の変わり目では `advance()` が混ぜ直すので、ここで見せた札とは別の札が鳴ることがある。
+    /// 次のカード。次の周まで先に決めてあるため、画面で見えた札がそのまま次に鳴る。
     var next: WordCard? {
-        cards.isEmpty ? nil : cards[(index + 1) % cards.count]
+        guard !cards.isEmpty else { return nil }
+        if index + 1 < cards.count { return cards[index + 1] }
+        return futureLaps.first?.first ?? cards.first
+    }
+
+    /// 現在位置から数えた札。画面外の札も先に並べ、ドラッグ中に途中で途切れさせない。
+    func card(relativeOffset: Int) -> WordCard? {
+        guard !cards.isEmpty else { return nil }
+        var copy = self
+        if relativeOffset > 0 {
+            for _ in 0..<relativeOffset { copy.advance() }
+        } else if relativeOffset < 0 {
+            for _ in 0..<(-relativeOffset) { copy.rewind() }
+        }
+        return copy.current
     }
 
     /// いまのカードで流すもの。訳が空のカードは読み上げを飛ばす。
@@ -55,24 +79,48 @@ struct RadioQueue {
 
     mutating func advance() {
         guard !cards.isEmpty else { return }
-        index += 1
-        guard index >= cards.count else { return }
+        guard cards.count > 1 else { return }
+        guard index + 1 >= cards.count else {
+            index += 1
+            return
+        }
+        previousLaps.append(cards)
+        if previousLaps.count > 2 { previousLaps.removeFirst() }
+        cards = futureLaps.isEmpty
+            ? Self.makeLap(from: sourceCards, after: cards.last?.id, shuffled: shufflesEachLap)
+            : futureLaps.removeFirst()
         index = 0
-        startNewLap()
+        prepareNextLap()
     }
 
     mutating func rewind() {
         guard !cards.isEmpty else { return }
-        index = index > 0 ? index - 1 : cards.count - 1
+        guard cards.count > 1 else { return }
+        guard index == 0 else {
+            index -= 1
+            return
+        }
+        guard let previousLap = previousLaps.popLast() else {
+            index = cards.count - 1
+            return
+        }
+        futureLaps.insert(cards, at: 0)
+        cards = previousLap
+        index = cards.count - 1
+    }
+
+    private mutating func prepareNextLap() {
+        guard futureLaps.isEmpty, !cards.isEmpty else { return }
+        futureLaps.append(Self.makeLap(from: sourceCards, after: cards.last?.id, shuffled: shufflesEachLap))
     }
 
     /// 周の変わり目で同じカードが続けて鳴らないよう、先頭だけずらす。
-    private mutating func startNewLap() {
-        guard shufflesEachLap, cards.count > 1 else { return }
-        let previousLast = cards[cards.count - 1].id
-        cards.shuffle()
-        if cards[0].id == previousLast {
-            cards.swapAt(0, 1)
+    private static func makeLap(from source: [WordCard], after previousID: WordCard.ID?, shuffled: Bool) -> [WordCard] {
+        guard shuffled, source.count > 1 else { return source }
+        var lap = source.shuffled()
+        if lap.first?.id == previousID {
+            lap.swapAt(0, 1)
         }
+        return lap
     }
 }

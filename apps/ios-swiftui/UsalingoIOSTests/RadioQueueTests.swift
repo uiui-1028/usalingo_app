@@ -77,6 +77,45 @@ final class RadioQueueTests: XCTestCase {
         XCTAssertNil(queue.current)
     }
 
+    func testRelativeCardsContinueOutsideTheVisibleThree() {
+        let queue = RadioQueue(
+            cards: [makeCard(id: 1), makeCard(id: 2), makeCard(id: 3), makeCard(id: 4)],
+            shufflesEachLap: false
+        )
+
+        XCTAssertEqual(queue.card(relativeOffset: -1)?.id, 4)
+        XCTAssertEqual(queue.card(relativeOffset: 0)?.id, 1)
+        XCTAssertEqual(queue.card(relativeOffset: 1)?.id, 2)
+        XCTAssertEqual(queue.card(relativeOffset: 2)?.id, 3)
+    }
+
+    func testCardShownAfterLastMatchesCardActuallyPlayedNext() {
+        var queue = RadioQueue(
+            cards: [makeCard(id: 1), makeCard(id: 2), makeCard(id: 3), makeCard(id: 4)],
+            shufflesEachLap: true
+        )
+        for _ in 1..<queue.cards.count { queue.advance() }
+        let shownNextID = queue.next?.id
+
+        queue.advance()
+
+        XCTAssertEqual(queue.current?.id, shownNextID)
+    }
+
+    func testRewindAcrossLapReturnsToTheCardThatWasActuallyShown() {
+        var queue = RadioQueue(
+            cards: [makeCard(id: 1), makeCard(id: 2), makeCard(id: 3)],
+            shufflesEachLap: true
+        )
+        for _ in 1..<queue.cards.count { queue.advance() }
+        let previousLapLastID = queue.current?.id
+        queue.advance()
+
+        queue.rewind()
+
+        XCTAssertEqual(queue.current?.id, previousLapLastID)
+    }
+
     private func makeCard(
         id: Int,
         meaning: String? = nil,
