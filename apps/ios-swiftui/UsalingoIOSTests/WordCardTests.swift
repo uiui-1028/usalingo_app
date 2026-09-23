@@ -314,7 +314,7 @@ final class WordCardTests: XCTestCase {
             let hidden = try renderedWordList(words: words, displayMode: .list, width: width, redSheetEnabled: true, check: model)
             model.isAnswerVisible = true
             let revealed = try renderedWordList(words: words, displayMode: .list, width: width, redSheetEnabled: true, check: model)
-            XCTAssertGreaterThan(try redPixelCount(in: hidden, rightHalf: true), try redPixelCount(in: revealed, rightHalf: true))
+            XCTAssertEqual(try firstRedY(in: hidden), try firstRedY(in: revealed), accuracy: 1)
             model.submit(isCorrect: true)
             model.isAnswerVisible = true
             model.submit(isCorrect: false)
@@ -335,6 +335,32 @@ final class WordCardTests: XCTestCase {
         attachment.name = "Red check large text width 320"
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+
+    @MainActor
+    func testRevealingRedSheetAnswerMovesListWithoutMovingSheet() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let source = LocalStudyDataSource(directoryURL: directory)
+        let words = (1...12).map { index in
+            WordCard(id: index, cardId: index, text: "word \(index)", meaning: "意味",
+                     partOfSpeech: nil, sentenceEnglish: nil, sentenceJapanese: nil,
+                     imageAssetPath: nil, audioAssetPath: nil, tags: [], learningStatus: nil, learning: nil)
+        }
+        let model = RedSheetCheckModel()
+        model.start(words: words, source: source) { _ in }
+        _ = try renderedWordList(words: words, displayMode: .list, redSheetEnabled: true, check: model) { root in
+            let scroll = try XCTUnwrap(self.descendants(of: root).compactMap { $0 as? UIScrollView }
+                .first { $0.contentSize.height > 1500 })
+            let before = try self.settledRedSheetImage(in: root)
+            let beforeOffset = scroll.contentOffset.y
+
+            model.revealAnswer()
+            let after = try self.settledRedSheetImage(in: root)
+
+            XCTAssertEqual(try self.firstRedY(in: after), try self.firstRedY(in: before), accuracy: 1)
+            XCTAssertEqual(scroll.contentOffset.y - beforeOffset, 80, accuracy: 2)
+        }
     }
 
     @MainActor
