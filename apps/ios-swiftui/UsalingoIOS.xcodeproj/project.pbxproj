@@ -83,7 +83,6 @@
 		A100000000000000000074 /* Features/Words/WordListErrorBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000074 /* Features/Words/WordListErrorBox.swift */; };
 		A100000000000000000075 /* Features/Words/WordDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000075 /* Features/Words/WordDetailSheet.swift */; };
 		A1000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */; };
-		A1000000000000000000F3 /* Features/Words/WordListDeckBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000F3 /* Features/Words/WordListDeckBanner.swift */; };
 		B10000000000000000000001 /* LearningProgressTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000001 /* LearningProgressTests.swift */; };
 		B10000000000000000000002 /* WordCardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000003 /* WordCardTests.swift */; };
 		B10000000000000000000004 /* AuthTransportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20000000000000000000005 /* AuthTransportTests.swift */; };
@@ -191,7 +190,6 @@
 		A200000000000000000074 /* Features/Words/WordListErrorBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListErrorBox.swift; sourceTree = "<group>"; };
 		A200000000000000000075 /* Features/Words/WordDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordDetailSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/InteractiveSwipeBack.swift; sourceTree = "<group>"; };
-		A2000000000000000000F3 /* Features/Words/WordListDeckBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListDeckBanner.swift; sourceTree = "<group>"; };
 		B20000000000000000000001 /* LearningProgressTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningProgressTests.swift; sourceTree = "<group>"; };
 		B20000000000000000000002 /* UsalingoIOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = UsalingoIOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B20000000000000000000003 /* WordCardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordCardTests.swift; sourceTree = "<group>"; };
@@ -307,7 +305,6 @@
 				A200000000000000000071 /* Features/Words/WordListFilters.swift */,
 				A200000000000000000072 /* Features/Words/WordListFilterBars.swift */,
 				A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */,
-				A2000000000000000000F3 /* Features/Words/WordListDeckBanner.swift */,
 				A200000000000000000073 /* Features/Words/WordListRowViews.swift */,
 				A200000000000000000074 /* Features/Words/WordListErrorBox.swift */,
 				A200000000000000000075 /* Features/Words/WordDetailSheet.swift */,
@@ -515,7 +512,6 @@
 				A100000000000000000071 /* Features/Words/WordListFilters.swift in Sources */,
 				A100000000000000000072 /* Features/Words/WordListFilterBars.swift in Sources */,
 				A1000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift in Sources */,
-				A1000000000000000000F3 /* Features/Words/WordListDeckBanner.swift in Sources */,
 				A100000000000000000073 /* Features/Words/WordListRowViews.swift in Sources */,
 				A100000000000000000074 /* Features/Words/WordListErrorBox.swift in Sources */,
 				A100000000000000000075 /* Features/Words/WordDetailSheet.swift in Sources */,

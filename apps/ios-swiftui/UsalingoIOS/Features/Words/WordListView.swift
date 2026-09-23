@@ -43,7 +43,7 @@ struct WordListView: View {
     }
 
     /// 単語一覧のシートだけを画面いっぱいに置く。
-    /// 背面のデッキ選択バナーは一旦外してある（deckBanner を参照）。
+    /// 背面のデッキ選択バナーは外してある（復活させるならコミット履歴から戻す）。
     var body: some View {
         GeometryReader { proxy in
             if sheetOnly {
@@ -401,23 +401,6 @@ struct WordListView: View {
             GridItem(.flexible(), spacing: 12),
             GridItem(.flexible())
         ]
-    }
-
-    /// 背面のデッキ選択。0件と取得失敗は札を並べず、1行の案内にとどめる。
-    /// いまは画面に出していない。戻すときは body のシート高さも元に戻す。
-    @ViewBuilder
-    private var deckBanner: some View {
-        if viewModel.decks.isEmpty {
-            Text(viewModel.deckMessage.isEmpty ? "デッキがありません" : viewModel.deckMessage)
-                .wireFont(.caption)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .padding(.horizontal, WireMetrics.screenPadding)
-        } else {
-            WordListDeckBanner(decks: viewModel.decks, selectedDeckID: viewModel.deck?.id) { deck in
-                appState.wordListDeckID = deck.id
-                Task { await viewModel.selectDeck(deck, dataSource: appState.studyDataSource) }
-            }
-        }
     }
 }
 
