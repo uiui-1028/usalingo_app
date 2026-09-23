@@ -207,16 +207,16 @@ final class WordListViewModelTests: XCTestCase {
 
 @MainActor
 final class RedSheetCheckTests: XCTestCase {
-    func testAnswerButtonRevealsFirstThenSubmitsItsJudgment() {
+    func testTapRevealsThenJudgmentSubmits() {
         let model = RedSheetCheckModel()
         model.start(words: words, source: FakeStudyDataSource()) { _ in }
 
-        model.revealOrSubmit(isCorrect: false)
+        model.revealAnswer()
         XCTAssertTrue(model.isAnswerVisible)
         XCTAssertEqual(model.index, 0)
         XCTAssertTrue(model.answers.isEmpty)
 
-        model.revealOrSubmit(isCorrect: true)
+        model.submit(isCorrect: true)
         XCTAssertEqual(model.index, 1)
         XCTAssertEqual(model.answers[1], true)
         XCTAssertFalse(model.isAnswerVisible)

@@ -7,8 +7,12 @@ struct WordListView: View {
     private static let sheetHeightRatio: CGFloat = 0.75
     /// 浮動バーの高さと下余白のぶん、最後の行が隠れないように空ける量。
     @State private var bottomBarClearance: CGFloat = 96
+    /// 赤シート上端は、初期状態では画面下から55%（上から45%）。
+    private static let initialRedSheetTopRatio: CGFloat = 0.45
+    private static let minimumRedSheetTopRatio: CGFloat = 0.30
+    private static let maximumRedSheetTopRatio: CGFloat = 0.80
     @State private var isRedSheetEnabled = false
-    @State private var redSheetTopRatio: CGFloat = 0.4
+    @State private var redSheetTopRatio = Self.initialRedSheetTopRatio
     @State private var rowFrames: [Int: CGRect] = [:]
     @State private var lastRowHeight: CGFloat = 80
     @StateObject private var check = RedSheetCheckModel()
@@ -85,6 +89,7 @@ struct WordListView: View {
         }
         .onChange(of: isRedSheetEnabled) { _, enabled in
             if enabled {
+                redSheetTopRatio = Self.initialRedSheetTopRatio
                 startCheck()
             } else {
                 check.reset()
@@ -126,20 +131,27 @@ struct WordListView: View {
     /// スクロールした中身はシートの上端まで届き、そこで切り取られる。
     private func sheet(bottomInset: CGFloat) -> some View {
         GeometryReader { proxy in
-            let contentHeight = max(0, proxy.size.height - bottomBarClearance - bottomInset)
             wordScroll(bottomInset: bottomInset, viewportHeight: proxy.size.height)
+                .overlay {
+                    if isRedSheetEnabled && check.isStarted && !check.isComplete {
+                        RedSheetStudyTapLayer(
+                            isAnswerVisible: check.isAnswerVisible,
+                            isDisabled: check.current == nil || check.isUndoing,
+                            onReveal: revealCurrentAnswer,
+                            onJudge: judgeCurrentAnswer
+                        )
+                    }
+                }
                 .overlay(alignment: .topTrailing) {
                     if isRedSheetEnabled && viewModel.selectedDisplayMode == .list
                         && !displayedWords.isEmpty && !viewModel.isLoading && !check.isComplete {
                         WordRedSheet(
                             topRatio: $redSheetTopRatio,
-                            availableHeight: contentHeight,
-                            stops: check.isStarted ? checkStops : WordListRowSnapping.sheetStops(frames: Array(rowFrames.values), availableHeight: contentHeight),
-                            controlledTop: check.isStarted ? checkSheetTop : nil,
-                            onSettle: check.isStarted ? { position in
-                                guard let frame = currentRowFrame else { return }
-                                check.isAnswerVisible = position >= frame.midY
-                            } : nil
+                            availableHeight: proxy.size.height,
+                            minimumTopRatio: Self.minimumRedSheetTopRatio,
+                            maximumTopRatio: Self.maximumRedSheetTopRatio,
+                            revealedTop: check.isAnswerVisible ? currentRowFrame?.maxY : nil,
+                            isAdjustmentEnabled: !check.isAnswerVisible
                         )
                             .frame(width: proxy.size.width / 2, height: proxy.size.height)
                     }
@@ -232,6 +244,9 @@ struct WordListView: View {
                         }
                         .padding(WireMetrics.screenPadding)
                     } else {
+                        if isRedSheetEnabled && check.isStarted {
+                            RedSheetEmptyRecords(height: redSheetTop(in: viewportHeight))
+                        }
                         ForEach(Array(displayedWords.enumerated()), id: \.element.id) { index, word in
                             WordRow(
                                 word: word,
@@ -271,12 +286,15 @@ struct WordListView: View {
                     : bottomBarClearance + bottomInset)
             }
             .scrollIndicators(.hidden)
+            .scrollDisabled(isRedSheetEnabled)
             .scrollTargetBehavior(WordListRowScrollBehavior(isEnabled: viewModel.selectedDisplayMode == .list))
             .onChange(of: check.current?.id) { _, id in
                 guard let id else { return }
-                // 前の印を少し残しつつ、大きな文字でも対象行が画面内に収まる位置へ進める。
+                let rowHeight = rowFrames[id]?.height ?? lastRowHeight
+                let anchorY = min(1, redSheetTop(in: viewportHeight) / max(1, viewportHeight - rowHeight))
+                // 判定のたびに次の単語を赤シートの基準位置まで1行ずつ上げる。
                 withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
-                    reader.scrollTo(id, anchor: UnitPoint(x: 0, y: 0.25))
+                    reader.scrollTo(id, anchor: UnitPoint(x: 0, y: anchorY))
                 }
             }
         }
@@ -284,13 +302,9 @@ struct WordListView: View {
 
     private var displayedWords: [WordCard] { check.isStarted ? check.words : viewModel.filteredWords }
     private var currentRowFrame: CGRect? { check.current.flatMap { rowFrames[$0.id] } }
-    private var checkStops: [CGFloat] {
-        guard let frame = currentRowFrame else { return [0] }
-        return [max(0, frame.minY), max(0, frame.maxY)]
-    }
-    private var checkSheetTop: CGFloat {
-        guard let frame = currentRowFrame else { return 0 }
-        return max(0, check.isAnswerVisible ? frame.maxY : frame.minY)
+
+    private func redSheetTop(in viewportHeight: CGFloat) -> CGFloat {
+        RedSheetPosition.top(availableHeight: viewportHeight, ratio: redSheetTopRatio)
     }
 
     private func meaningIsHidden(at index: Int) -> Bool {
@@ -306,20 +320,22 @@ struct WordListView: View {
         }
     }
 
+    private func revealCurrentAnswer() {
+        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.18)) {
+            check.revealAnswer()
+        }
+    }
+
+    private func judgeCurrentAnswer(isCorrect: Bool) {
+        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+            check.submit(isCorrect: isCorrect)
+        }
+    }
+
     private var redSheetControls: some View {
         VStack(spacing: 10) {
             redSheetSaveStatus
-            StudyAnswerActionBar(
-                correctSymbol: "circle",
-                incorrectLabel: check.isAnswerVisible ? "不正解" : "答えを表示。もう一度押すと不正解",
-                correctLabel: check.isAnswerVisible ? "正解" : "答えを表示。もう一度押すと正解",
-                isDisabled: check.current == nil || check.isUndoing,
-                onIncorrect: { check.revealOrSubmit(isCorrect: false) },
-                onCorrect: { check.revealOrSubmit(isCorrect: true) }
-            ) {
-                redSheetToolbar
-                    .frame(maxWidth: .infinity)
-            }
+            redSheetToolbar
         }
     }
 
@@ -419,55 +435,51 @@ private struct WordListRowScrollBehavior: ScrollTargetBehavior {
     }
 }
 
-/// 行高は折り返し・文字サイズで変わるため、実測した境界だけを停止候補にする。
 enum WordListRowSnapping {
-    static func sheetStops(frames: [CGRect], availableHeight: CGFloat) -> [CGFloat] {
-        let boundaries = Array(Set(frames.flatMap { [$0.minY, $0.maxY] }))
-            .filter { $0.isFinite && $0 >= 0 && $0 <= max(0, availableHeight - 44) }
-            .sorted()
-        // 通常範囲（20〜80%）に加え、その外側の境界を上下1行分ずつ動かせる範囲に含める。
-        guard let first = boundaries.firstIndex(where: { $0 >= availableHeight * 0.2 }),
-              let last = boundaries.lastIndex(where: { $0 <= availableHeight * 0.8 }),
-              first <= last else {
-            // 少数の単語や大きな文字で通常範囲に境界がない場合も、行途中には置かない。
-            return boundaries.isEmpty ? [0] : boundaries
-        }
-        return Array(boundaries[max(0, first - 1)...min(boundaries.count - 1, last + 1)])
-    }
-
-    static func nearestStop(to position: CGFloat, stops: [CGFloat]) -> CGFloat {
-        stops.min { abs($0 - position) < abs($1 - position) } ?? 0
-    }
-
-    static func adjacentStop(to position: CGFloat, stops: [CGFloat], movingDown: Bool) -> CGFloat {
-        let sorted = stops.sorted()
-        if movingDown { return sorted.first { $0 > position + 0.5 } ?? sorted.last ?? 0 }
-        return sorted.last { $0 < position - 0.5 } ?? sorted.first ?? 0
-    }
-
     static func bottomPadding(viewportHeight: CGFloat, lastRowHeight: CGFloat) -> CGFloat {
         max(0, viewportHeight - lastRowHeight)
     }
 }
 
-/// 右半分を覆う不透明なシート。つまみ以外は一覧のスクロールを通す。
+enum RedSheetPosition {
+    static func top(availableHeight: CGFloat, ratio: CGFloat) -> CGFloat {
+        max(0, availableHeight) * ratio
+    }
+
+    static func clampedRatio(_ ratio: CGFloat, minimum: CGFloat, maximum: CGFloat) -> CGFloat {
+        min(maximum, max(minimum, ratio))
+    }
+}
+
+enum RedSheetTapAction: Equatable {
+    case reveal
+    case judge(isCorrect: Bool)
+
+    static func resolve(isAnswerVisible: Bool, tapX: CGFloat, width: CGFloat) -> Self {
+        guard isAnswerVisible else { return .reveal }
+        return .judge(isCorrect: tapX >= width / 2)
+    }
+}
+
+/// 右半分を覆う不透明なシート。つまみは連続値で動き、空レコードも同じ量だけ動く。
 private struct WordRedSheet: View {
     @Binding var topRatio: CGFloat
     let availableHeight: CGFloat
-    let stops: [CGFloat]
-    var controlledTop: CGFloat? = nil
-    var onSettle: ((CGFloat) -> Void)? = nil
-    @State private var settledTop: CGFloat?
-    @GestureState(resetTransaction: Transaction(animation: .easeOut(duration: 0.18)))
-    private var dragTranslation: CGFloat?
+    let minimumTopRatio: CGFloat
+    let maximumTopRatio: CGFloat
+    var revealedTop: CGFloat? = nil
+    var isAdjustmentEnabled = true
+    @State private var dragStartTop: CGFloat?
 
     private var restingTop: CGFloat {
-        controlledTop ?? settledTop ?? WordListRowSnapping.nearestStop(to: availableHeight * topRatio, stops: stops)
+        RedSheetPosition.top(
+            availableHeight: availableHeight,
+            ratio: RedSheetPosition.clampedRatio(topRatio, minimum: minimumTopRatio, maximum: maximumTopRatio)
+        )
     }
 
     private var displayedTop: CGFloat {
-        guard let dragTranslation else { return restingTop }
-        return min(stops.last ?? 0, max(stops.first ?? 0, restingTop + dragTranslation))
+        min(availableHeight, max(0, revealedTop ?? restingTop))
     }
 
     var body: some View {
@@ -487,22 +499,32 @@ private struct WordRedSheet: View {
                 .contentShape(Rectangle())
                 .gesture(
                     DragGesture(minimumDistance: 0, coordinateSpace: .named("wordListViewport"))
-                        .updating($dragTranslation) { value, state, _ in
-                            state = value.translation.height
+                        .onChanged { value in
+                            guard isAdjustmentEnabled else { return }
+                            if dragStartTop == nil { dragStartTop = restingTop }
+                            guard let dragStartTop else { return }
+                            let top = dragStartTop + value.translation.height
+                            topRatio = RedSheetPosition.clampedRatio(
+                                top / max(1, availableHeight),
+                                minimum: minimumTopRatio,
+                                maximum: maximumTopRatio
+                            )
                         }
-                        .onEnded { value in
-                            settle(at: restingTop + value.translation.height)
+                        .onEnded { _ in
+                            dragStartTop = nil
                         }
                 )
+                .onTapGesture { }
                 .accessibilityLabel("赤シートの高さ")
-                .accessibilityValue("行の境界に合わせて移動")
-                .accessibilityHint("上下にドラッグして調整。指を離すと行の境界で止まります")
+                .accessibilityValue("画面下から\(Int(((1 - topRatio) * 100).rounded()))パーセント")
+                .accessibilityHint("上下にドラッグして滑らかに調整します")
                 .accessibilityAdjustableAction { direction in
+                    guard isAdjustmentEnabled else { return }
                     switch direction {
                     case .increment:
-                        settle(at: WordListRowSnapping.adjacentStop(to: restingTop, stops: stops, movingDown: false))
+                        topRatio = RedSheetPosition.clampedRatio(topRatio - 0.01, minimum: minimumTopRatio, maximum: maximumTopRatio)
                     case .decrement:
-                        settle(at: WordListRowSnapping.adjacentStop(to: restingTop, stops: stops, movingDown: true))
+                        topRatio = RedSheetPosition.clampedRatio(topRatio + 0.01, minimum: minimumTopRatio, maximum: maximumTopRatio)
                     @unknown default: break
                     }
                 }
@@ -510,25 +532,78 @@ private struct WordRedSheet: View {
                 .backSwipeProtectedRegion()
         }
         .clipped()
-        // iOS 17でも減速終了・並べ替え・文字サイズ変更を扱えるよう、実測値の
-        // 更新が落ち着いてから合わせ直す。スクロール中はシートを飛び跳ねさせない。
-        .task(id: stops) {
-            guard controlledTop == nil else { return }
-            do { try await Task.sleep(for: .milliseconds(160)) } catch { return }
-            guard dragTranslation == nil else { return }
-            settle(at: availableHeight * topRatio)
-        }
     }
+}
 
-    private func settle(at position: CGFloat) {
-        let top = WordListRowSnapping.nearestStop(to: position, stops: stops)
-        if let onSettle {
-            onSettle(top)
-            return
+/// 最初の単語を赤シート位置から始めるための、番号も文字もない空レコード。
+private struct RedSheetEmptyRecords: View {
+    let height: CGFloat
+    private let rowHeight: CGFloat = 80
+
+    var body: some View {
+        let count = max(1, Int(ceil(height / rowHeight)))
+        VStack(spacing: 0) {
+            ForEach(0..<count, id: \.self) { index in
+                Rectangle()
+                    .fill(index.isMultiple(of: 2) ? WireColor.ink.opacity(0.04) : WireColor.surface)
+                    .frame(height: rowHeight)
+                    .overlay(alignment: .bottom) {
+                        Rectangle().fill(WireColor.ink.opacity(0.12)).frame(height: 1)
+                    }
+            }
         }
-        withAnimation(.easeOut(duration: 0.18)) {
-            settledTop = top
-            topRatio = top / max(1, availableHeight)
+        .frame(height: height, alignment: .bottom)
+        .clipped()
+        .accessibilityHidden(true)
+    }
+}
+
+/// 未表示ならどこをタップしても答えを見せ、表示後は画面の左右で判定する。
+private struct RedSheetStudyTapLayer: View {
+    let isAnswerVisible: Bool
+    let isDisabled: Bool
+    let onReveal: () -> Void
+    let onJudge: (Bool) -> Void
+
+    var body: some View {
+        GeometryReader { proxy in
+            Color.clear
+                .contentShape(Rectangle())
+                .gesture(
+                    SpatialTapGesture().onEnded { value in
+                        guard !isDisabled else { return }
+                        switch RedSheetTapAction.resolve(
+                            isAnswerVisible: isAnswerVisible,
+                            tapX: value.location.x,
+                            width: proxy.size.width
+                        ) {
+                        case .reveal:
+                            onReveal()
+                        case let .judge(isCorrect):
+                            onJudge(isCorrect)
+                        }
+                    }
+                )
+                .accessibilityElement()
+                .accessibilityLabel("赤シート学習")
+                .accessibilityValue(isAnswerVisible ? "答えを表示中" : "答えは非表示")
+                .accessibilityActions {
+                    if isAnswerVisible {
+                        Button("不正解") {
+                            guard !isDisabled else { return }
+                            onJudge(false)
+                        }
+                        Button("正解") {
+                            guard !isDisabled else { return }
+                            onJudge(true)
+                        }
+                    } else {
+                        Button("答えを表示") {
+                            guard !isDisabled else { return }
+                            onReveal()
+                        }
+                    }
+                }
         }
     }
 }
