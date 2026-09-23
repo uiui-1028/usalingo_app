@@ -3,7 +3,7 @@ import SwiftUI
 struct WordListView: View {
     /// 詳細ページへ組み込むときは、バナーを省いて単語シートだけを表示する。
     private let sheetOnly: Bool
-    /// シートが画面の高さに占める割合。7.5割で固定し、引っ張っても変えない。
+    /// シートが画面の高さに占める割合。デッキ選択バナーを戻すときに再び使う。
     private static let sheetHeightRatio: CGFloat = 0.75
     /// 浮動バーの高さと下余白のぶん、最後の行が隠れないように空ける量。
     @State private var bottomBarClearance: CGFloat = 96
@@ -42,33 +42,21 @@ struct WordListView: View {
         ))
     }
 
-    /// 画面は「背面のバナー（デッキ選択）」と「前面のシート（単語一覧）」の2層。
-    /// バナーは戻るスワイプの通り道でもあるので、横に動く操作は置かない。
+    /// 単語一覧のシートだけを画面いっぱいに置く。
+    /// 背面のデッキ選択バナーは一旦外してある（deckBanner を参照）。
     var body: some View {
         GeometryReader { proxy in
             if sheetOnly {
                 sheet(bottomInset: 0)
             } else {
                 let insets = proxy.safeAreaInsets
-                // セーフエリアまで含めた画面の高さ。シートの高さはここから割合で決める。
-                let screenHeight = proxy.size.height + insets.top + insets.bottom
-                let sheetHeight = isRedSheetEnabled
-                    ? proxy.size.height + insets.bottom
-                    : screenHeight * Self.sheetHeightRatio
-                let bannerHeight = max(0, screenHeight - sheetHeight - insets.top - WireMetrics.spacingS)
+                // デッキ選択バナーは一旦外したので、シートは画面いっぱいに広げる。
+                let sheetHeight = proxy.size.height + insets.bottom
 
                 ZStack(alignment: .top) {
                     // シートより1段退いた面。これで前後関係を作る。
                     WireColor.scrim
                         .ignoresSafeArea()
-
-                    if !isRedSheetEnabled {
-                        // 左右の余白は付けない（WordListDeckBanner の説明を参照）。
-                        deckBanner
-                        .padding(.top, WireMetrics.spacingS)
-                        .frame(height: bannerHeight + WireMetrics.spacingS, alignment: .top)
-                        .transition(.opacity)
-                    }
 
                     VStack(spacing: 0) {
                         Spacer(minLength: 0)
@@ -416,6 +404,7 @@ struct WordListView: View {
     }
 
     /// 背面のデッキ選択。0件と取得失敗は札を並べず、1行の案内にとどめる。
+    /// いまは画面に出していない。戻すときは body のシート高さも元に戻す。
     @ViewBuilder
     private var deckBanner: some View {
         if viewModel.decks.isEmpty {
