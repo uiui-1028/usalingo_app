@@ -21,6 +21,9 @@ struct FiveChoiceView: View {
             footer
         }
         .background(WireColor.background)
+        .background {
+            BackSwipeEnabler()
+        }
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
         .task { await load() }
@@ -82,9 +85,6 @@ struct FiveChoiceView: View {
         GeometryReader { geometry in
             ScrollView {
                 VStack(spacing: WireMetrics.spacingL) {
-                    Text(deck.deckName)
-                        .wireFont(.caption)
-                        .frame(maxWidth: .infinity, alignment: .leading)
                     partOfSpeechRow(question.card, revealed: game.isRevealed)
                     Text(question.card.text)
                         .wireFont(.titleL)
@@ -110,9 +110,6 @@ struct FiveChoiceView: View {
                         }
                     }
                     .accessibilityElement(children: .contain)
-                    Text(game.isRevealed ? "画面をタップして次へ" : "日本語の意味を選んでください")
-                        .wireFont(.caption)
-                        .accessibilityIdentifier("fiveChoice.hint")
                     Spacer(minLength: 0)
                 }
                 .padding(WireMetrics.screenPadding)
@@ -126,7 +123,7 @@ struct FiveChoiceView: View {
     private func choice(_ card: WordCard, index: Int, question: FiveChoiceGame.Question, game: FiveChoiceGame) -> some View {
         let isCorrect = game.isRevealed && index == question.correctIndex
         let isWrong = game.isRevealed && index == game.selectedIndex && !isCorrect
-        let status = isCorrect ? (index == game.selectedIndex ? "正解" : "正しい答え") : (isWrong ? "不正解・選んだ答え" : "")
+        let status = isCorrect ? "正解" : (isWrong ? "不正解" : "")
         // 正誤だけに色を添え、色を見分けなくても記号と文言で判断できるようにする。
         let color: Color = isCorrect ? Color(red: 0.08, green: 0.38, blue: 0.19)
             : (isWrong ? Color(red: 0.65, green: 0.12, blue: 0.12) : WireColor.ink)
