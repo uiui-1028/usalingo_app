@@ -12,6 +12,7 @@ struct WordListView: View {
     private static let minimumRedSheetTopRatio: CGFloat = 0.30
     private static let maximumRedSheetTopRatio: CGFloat = 0.80
     @State private var isRedSheetEnabled = false
+    @State private var isLanguageSwapped = false
     @State private var redSheetTopRatio = Self.initialRedSheetTopRatio
     @State private var rowFrames: [Int: CGRect] = [:]
     @State private var lastRowHeight: CGFloat = 80
@@ -89,6 +90,7 @@ struct WordListView: View {
         }
         .onChange(of: isRedSheetEnabled) { _, enabled in
             if enabled {
+                isLanguageSwapped = false
                 redSheetTopRatio = Self.initialRedSheetTopRatio
                 startCheck()
             } else {
@@ -149,9 +151,7 @@ struct WordListView: View {
                             topRatio: $redSheetTopRatio,
                             availableHeight: proxy.size.height,
                             minimumTopRatio: Self.minimumRedSheetTopRatio,
-                            maximumTopRatio: Self.maximumRedSheetTopRatio,
-                            revealedTop: check.isAnswerVisible ? currentRowFrame?.maxY : nil,
-                            isAdjustmentEnabled: !check.isAnswerVisible
+                            maximumTopRatio: Self.maximumRedSheetTopRatio
                         )
                             .frame(width: proxy.size.width / 2, height: proxy.size.height)
                     }
@@ -251,11 +251,12 @@ struct WordListView: View {
                             WordRow(
                                 word: word,
                                 number: index + 1,
-                                hidesMeaningFromAccessibility: meaningIsHidden(at: index),
+                                hidesAnswerFromAccessibility: answerIsHidden(at: index),
                                 checkResult: check.answers[word.id],
                                 reservesCheckResultSpace: check.isStarted,
                                 isCheckTarget: check.current?.id == word.id,
-                                coversMeaning: check.isStarted && meaningIsHidden(at: index)
+                                coversAnswer: check.isStarted && answerIsHidden(at: index),
+                                isLanguageSwapped: isRedSheetEnabled && isLanguageSwapped
                             )
                                 .cardTapTarget(radius: 0) {
                                     if check.isStarted {
@@ -288,6 +289,17 @@ struct WordListView: View {
             .scrollIndicators(.hidden)
             .scrollDisabled(isRedSheetEnabled)
             .scrollTargetBehavior(WordListRowScrollBehavior(isEnabled: viewModel.selectedDisplayMode == .list))
+            .onChange(of: check.isAnswerVisible) { _, visible in
+                guard visible, let id = check.current?.id else { return }
+                let rowHeight = rowFrames[id]?.height ?? lastRowHeight
+                let anchorY = max(0, min(1,
+                    (redSheetTop(in: viewportHeight) - rowHeight) / max(1, viewportHeight - rowHeight)
+                ))
+                // 赤シートは固定し、答えの行だけをシートの上へ送る。
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
+                    reader.scrollTo(id, anchor: UnitPoint(x: 0, y: anchorY))
+                }
+            }
             .onChange(of: check.current?.id) { _, id in
                 guard let id else { return }
                 let rowHeight = rowFrames[id]?.height ?? lastRowHeight
@@ -301,13 +313,11 @@ struct WordListView: View {
     }
 
     private var displayedWords: [WordCard] { check.isStarted ? check.words : viewModel.filteredWords }
-    private var currentRowFrame: CGRect? { check.current.flatMap { rowFrames[$0.id] } }
-
     private func redSheetTop(in viewportHeight: CGFloat) -> CGFloat {
         RedSheetPosition.top(availableHeight: viewportHeight, ratio: redSheetTopRatio)
     }
 
-    private func meaningIsHidden(at index: Int) -> Bool {
+    private func answerIsHidden(at index: Int) -> Bool {
         guard isRedSheetEnabled else { return false }
         guard check.isStarted else { return true }
         return index > check.index || (index == check.index && !check.isAnswerVisible)
@@ -365,6 +375,17 @@ struct WordListView: View {
             .accessibilityLabel("赤シート")
             .accessibilityValue("オン")
             .accessibilityHint("赤シートを終了します")
+
+            Button {
+                isLanguageSwapped.toggle()
+            } label: {
+                Image(systemName: "arrow.left.arrow.right")
+            }
+            .buttonStyle(.wireIcon(diameter: 40))
+            .disabled(check.current == nil)
+            .accessibilityLabel("日英変換")
+            .accessibilityValue(isLanguageSwapped ? "日本語から英語" : "英語から日本語")
+            .accessibilityHint("タップすると左右の言語を入れ替えます")
 
             Button {
                 taggingWord = check.current
@@ -467,8 +488,6 @@ private struct WordRedSheet: View {
     let availableHeight: CGFloat
     let minimumTopRatio: CGFloat
     let maximumTopRatio: CGFloat
-    var revealedTop: CGFloat? = nil
-    var isAdjustmentEnabled = true
     @State private var dragStartTop: CGFloat?
 
     private var restingTop: CGFloat {
@@ -478,16 +497,12 @@ private struct WordRedSheet: View {
         )
     }
 
-    private var displayedTop: CGFloat {
-        min(availableHeight, max(0, revealedTop ?? restingTop))
-    }
-
     var body: some View {
         ZStack(alignment: .top) {
             // 上端は直線にして、角丸部分から隠した行の文字が見えないようにする。
             Rectangle()
                 .fill(Color(red: 1, green: 0.18, blue: 0.23))
-                .padding(.top, displayedTop)
+                .padding(.top, restingTop)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
 
@@ -500,7 +515,6 @@ private struct WordRedSheet: View {
                 .gesture(
                     DragGesture(minimumDistance: 0, coordinateSpace: .named("wordListViewport"))
                         .onChanged { value in
-                            guard isAdjustmentEnabled else { return }
                             if dragStartTop == nil { dragStartTop = restingTop }
                             guard let dragStartTop else { return }
                             let top = dragStartTop + value.translation.height
@@ -519,7 +533,6 @@ private struct WordRedSheet: View {
                 .accessibilityValue("画面下から\(Int(((1 - topRatio) * 100).rounded()))パーセント")
                 .accessibilityHint("上下にドラッグして滑らかに調整します")
                 .accessibilityAdjustableAction { direction in
-                    guard isAdjustmentEnabled else { return }
                     switch direction {
                     case .increment:
                         topRatio = RedSheetPosition.clampedRatio(topRatio - 0.01, minimum: minimumTopRatio, maximum: maximumTopRatio)
@@ -528,7 +541,7 @@ private struct WordRedSheet: View {
                     @unknown default: break
                     }
                 }
-                .offset(y: displayedTop)
+                .offset(y: restingTop)
                 .backSwipeProtectedRegion()
         }
         .clipped()
