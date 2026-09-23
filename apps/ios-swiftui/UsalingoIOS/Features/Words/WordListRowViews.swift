@@ -59,11 +59,12 @@ struct WordLibraryCard: View {
 struct WordRow: View {
     let word: WordCard
     let number: Int
-    var hidesMeaningFromAccessibility = false
+    var hidesAnswerFromAccessibility = false
     var checkResult: Bool? = nil
     var reservesCheckResultSpace = false
     var isCheckTarget = false
-    var coversMeaning = false
+    var coversAnswer = false
+    var isLanguageSwapped = false
 
     var body: some View {
         HStack(spacing: 0) {
@@ -72,7 +73,7 @@ struct WordRow: View {
                     .font(.caption.monospacedDigit())
                     .foregroundStyle(.secondary)
                     .frame(minWidth: 22, alignment: .trailing)
-                Text(word.text)
+                Text(isLanguageSwapped ? word.meaning : word.text)
                     .wireFont(.titleS)
                     .fixedSize(horizontal: false, vertical: true)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -82,7 +83,7 @@ struct WordRow: View {
             .frame(maxHeight: .infinity, alignment: .leading)
             .containerRelativeFrame(.horizontal, count: 2, spacing: 0)
 
-            Text(word.meaning)
+            Text(isLanguageSwapped ? word.text : word.meaning)
                 .wireFont(.body, color: Color(red: 0.65, green: 0.09, blue: 0.1))
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.leading, 14)
@@ -93,9 +94,9 @@ struct WordRow: View {
                 .overlay(alignment: .leading) {
                     Rectangle().fill(WireColor.ink.opacity(0.12)).frame(width: 1)
                 }
-                .accessibilityHidden(hidesMeaningFromAccessibility)
+                .accessibilityHidden(hidesAnswerFromAccessibility)
                 .overlay {
-                    if coversMeaning {
+                    if coversAnswer {
                         Color(red: 1, green: 0.18, blue: 0.23)
                             .accessibilityHidden(true)
                     }

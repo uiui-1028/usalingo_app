@@ -12,6 +12,7 @@ struct WordListView: View {
     private static let minimumRedSheetTopRatio: CGFloat = 0.30
     private static let maximumRedSheetTopRatio: CGFloat = 0.80
     @State private var isRedSheetEnabled = false
+    @State private var isLanguageSwapped = false
     @State private var redSheetTopRatio = Self.initialRedSheetTopRatio
     @State private var rowFrames: [Int: CGRect] = [:]
     @State private var lastRowHeight: CGFloat = 80
@@ -89,6 +90,7 @@ struct WordListView: View {
         }
         .onChange(of: isRedSheetEnabled) { _, enabled in
             if enabled {
+                isLanguageSwapped = false
                 redSheetTopRatio = Self.initialRedSheetTopRatio
                 startCheck()
             } else {
@@ -251,11 +253,12 @@ struct WordListView: View {
                             WordRow(
                                 word: word,
                                 number: index + 1,
-                                hidesMeaningFromAccessibility: meaningIsHidden(at: index),
+                                hidesAnswerFromAccessibility: answerIsHidden(at: index),
                                 checkResult: check.answers[word.id],
                                 reservesCheckResultSpace: check.isStarted,
                                 isCheckTarget: check.current?.id == word.id,
-                                coversMeaning: check.isStarted && meaningIsHidden(at: index)
+                                coversAnswer: check.isStarted && answerIsHidden(at: index),
+                                isLanguageSwapped: isRedSheetEnabled && isLanguageSwapped
                             )
                                 .cardTapTarget(radius: 0) {
                                     if check.isStarted {
@@ -307,7 +310,7 @@ struct WordListView: View {
         RedSheetPosition.top(availableHeight: viewportHeight, ratio: redSheetTopRatio)
     }
 
-    private func meaningIsHidden(at index: Int) -> Bool {
+    private func answerIsHidden(at index: Int) -> Bool {
         guard isRedSheetEnabled else { return false }
         guard check.isStarted else { return true }
         return index > check.index || (index == check.index && !check.isAnswerVisible)
@@ -365,6 +368,17 @@ struct WordListView: View {
             .accessibilityLabel("赤シート")
             .accessibilityValue("オン")
             .accessibilityHint("赤シートを終了します")
+
+            Button {
+                isLanguageSwapped.toggle()
+            } label: {
+                Image(systemName: "arrow.left.arrow.right")
+            }
+            .buttonStyle(.wireIcon(diameter: 40))
+            .disabled(check.current == nil)
+            .accessibilityLabel("日英変換")
+            .accessibilityValue(isLanguageSwapped ? "日本語から英語" : "英語から日本語")
+            .accessibilityHint("タップすると左右の言語を入れ替えます")
 
             Button {
                 taggingWord = check.current
