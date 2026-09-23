@@ -99,6 +99,7 @@ final class RadioPlayer: NSObject, ObservableObject {
     }
 
     var playableCardCount: Int { queue.cards.count }
+    var carouselIndex: Int { queue.index }
 
     func carouselCard(relativeOffset: Int) -> WordCard? {
         queue.card(relativeOffset: relativeOffset)
@@ -268,12 +269,15 @@ final class RadioPlayer: NSObject, ObservableObject {
     }
 
     /// 次の音へ送る。設定した無音の長さだけ待ってから鳴らす。
-    private func advanceStep() {
+    func advanceStep() {
         stepIndex += 1
         generation += 1
         let generation = self.generation
         stepTask?.cancel()
+        stepTask = nil
         player = nil
+        // 一時停止直後にも音声の終了通知は届く。次の位置だけ記録し、勝手に再開しない。
+        guard isPlaying else { return }
         let seconds = gap
         stepTask = Task {
             try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
