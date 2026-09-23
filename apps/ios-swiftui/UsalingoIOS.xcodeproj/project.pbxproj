@@ -29,6 +29,7 @@
 		B1000000000000000000A201 /* MatchingGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000A201 /* MatchingGameTests.swift */; };
 		B1000000000000000000C201 /* FiveChoiceGameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000C201 /* FiveChoiceGameTests.swift */; };
 		B1000000000000000000A202 /* RadioQueueTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000A202 /* RadioQueueTests.swift */; };
+		B1000000000000000000A203 /* AudioCarouselMotionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2000000000000000000A203 /* AudioCarouselMotionTests.swift */; };
 		A1000000000000000000000F /* Features/Study/StudyCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000F /* Features/Study/StudyCardView.swift */; };
 		A10000000000000000000013 /* Features/Shell/AppShellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000013 /* Features/Shell/AppShellView.swift */; };
 		A10000000000000000000014 /* Features/Learning/LearningDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* Features/Learning/LearningDashboardView.swift */; };
@@ -136,6 +137,7 @@
 		B2000000000000000000A201 /* MatchingGameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchingGameTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000C201 /* FiveChoiceGameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FiveChoiceGameTests.swift; sourceTree = "<group>"; };
 		B2000000000000000000A202 /* RadioQueueTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadioQueueTests.swift; sourceTree = "<group>"; };
+		B2000000000000000000A203 /* AudioCarouselMotionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCarouselMotionTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000000F /* Features/Study/StudyCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Study/StudyCardView.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* UsalingoIOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = UsalingoIOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A20000000000000000000011 /* Config/Local.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Local.xcconfig; sourceTree = "<group>"; };
@@ -342,6 +344,7 @@
 				B2000000000000000000A201 /* MatchingGameTests.swift */,
 				B2000000000000000000C201 /* FiveChoiceGameTests.swift */,
 				B2000000000000000000A202 /* RadioQueueTests.swift */,
+				B2000000000000000000A203 /* AudioCarouselMotionTests.swift */,
 				B20000000000000000000003 /* WordCardTests.swift */,
 				B200000000000000000012 /* WordListFiltersTests.swift */,
 				B200000000000000000013 /* WordListViewModelTests.swift */,
@@ -542,6 +545,7 @@
 				B1000000000000000000A201 /* MatchingGameTests.swift in Sources */,
 				B1000000000000000000C201 /* FiveChoiceGameTests.swift in Sources */,
 				B1000000000000000000A202 /* RadioQueueTests.swift in Sources */,
+				B1000000000000000000A203 /* AudioCarouselMotionTests.swift in Sources */,
 				B10000000000000000000002 /* WordCardTests.swift in Sources */,
 				B100000000000000000012 /* WordListFiltersTests.swift in Sources */,
 				B100000000000000000013 /* WordListViewModelTests.swift in Sources */,
