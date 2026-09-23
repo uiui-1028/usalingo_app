@@ -48,6 +48,7 @@ struct AudioRadioView: View {
                     }
                 } else {
                     carousel
+                        .ignoresSafeArea(.container, edges: .vertical)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -351,12 +352,12 @@ private struct AudioCoverflowCarousel<CardContent: View>: View {
 
     private var cardStride: CGFloat { cardHeight + 24 }
 
-    // 見える札だけを描く。2〜3枚のデッキも手動操作中は各札を1枚ずつ表示する。
+    // 中央の前後5枚を描き、画面外へ続ける。少数デッキの札は重複させない。
     private var visibleIndices: Range<Int> {
         let center = -motion.position / cardStride
         let count = player.playableCardCount + (showsNextLap ? 1 : 0)
-        let lower = max(0, min(count, Int(floor(center)) - 3))
-        let upper = max(lower, min(count, Int(ceil(center)) + 4))
+        let lower = max(0, min(count, Int(floor(center)) - 5))
+        let upper = max(lower, min(count, Int(ceil(center)) + 6))
         return lower..<upper
     }
 
@@ -380,10 +381,9 @@ private struct AudioCoverflowCarousel<CardContent: View>: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: cardHeight + cardStride * 2)
+        // 操作バーの背後まで札を流し、中央3枚分の枠では切り取らない。
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())
-        .clipped()
         .gesture(dragGesture)
         .accessibilityElement(children: .contain)
         .accessibilityAction(named: "次の単語へ") { snap(to: player.carouselIndex + 1) }
