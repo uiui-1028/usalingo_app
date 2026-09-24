@@ -33,8 +33,9 @@ enum DeckSlotEdge: Hashable {
 /// 学習画面のデッキ一覧。上下のスワイプで回す平面のカルーセル。
 ///
 /// 動きは音声モードのカルーセル（`AudioCarouselMotion`）と同じで、指を離すと慣性で滑り、
-/// いちばん近い枠が中央で止まる。中央のデッキだけが縦に広がり、表紙・名前・進み具合を
+/// いちばん近い枠が中央で止まる。中央の枠だけが縦に広がり、デッキなら表紙・名前・進み具合を
 /// 見せる。ほかは表紙と名前だけの細い帯にする。両端の空き枠をタップするとデッキを足せる。
+/// 空き枠も中央では同じだけ広げる。高さがそろうので、指の動きと枠の動きがずれない。
 struct DeckCarouselView: View {
     /// 見た目の寸法。帯と中央の大きさはここだけで決める。
     private enum Metrics {
@@ -45,9 +46,13 @@ struct DeckCarouselView: View {
         static let coverWidthRatio: CGFloat = 0.45
         /// 帯の横幅。中央のカードより少し細くして、主役を目立たせる。
         static let bandWidthRatio: CGFloat = 0.92
-        /// 中央と隣の帯の中心どうしの距離。指の移動量を枠の数へ直すのに使う。
-        static var stride: CGFloat { (bandHeight + expandedHeight) / 2 + spacing }
     }
+
+    private let layout = DeckCarouselLayout(
+        bandHeight: Metrics.bandHeight,
+        expandedHeight: Metrics.expandedHeight,
+        spacing: Metrics.spacing
+    )
 
     let decks: [Deck]
     /// 最初に中央へ置くデッキ。見つからなければ先頭のデッキにする。
@@ -69,30 +74,20 @@ struct DeckCarouselView: View {
 
     private var slots: [DeckSlot] { DeckSlot.slots(for: decks) }
 
-    private var layout: DeckCarouselLayout {
-        DeckCarouselLayout(
-            bandHeight: Metrics.bandHeight,
-            spacing: Metrics.spacing,
-            overscrollStep: Metrics.stride,
-            expandedHeights: slots.map { $0.deck == nil ? Metrics.bandHeight : Metrics.expandedHeight }
-        )
-    }
-
     var body: some View {
         GeometryReader { proxy in
-            let center = -motion.position / Metrics.stride
-            let frames = layout.frames(center: center)
-            let slots = self.slots
+            let center = -motion.position / layout.stride
 
             ZStack {
                 ForEach(Array(slots.enumerated()), id: \.element.id) { index, slot in
-                    let frame = frames[index]
+                    let offset = CGFloat(index) - center
+                    let y = layout.y(offset: offset)
                     // 画面の外の枠は描かない。
-                    if abs(frame.y) < proxy.size.height {
-                        let expansion = layout.expansion(at: index, center: center)
+                    if abs(y) < proxy.size.height {
+                        let expansion = layout.expansion(offset: offset)
                         slotView(slot, index: index, expansion: expansion,
-                                 width: proxy.size.width, height: frame.height)
-                            .offset(y: frame.y)
+                                 width: proxy.size.width, height: layout.height(offset: offset))
+                            .offset(y: y)
                             .zIndex(Double(expansion))
                     }
                 }
@@ -117,12 +112,24 @@ struct DeckCarouselView: View {
     private func slotView(_ slot: DeckSlot, index: Int, expansion: CGFloat,
                           width: CGFloat, height: CGFloat) -> some View {
         let cardWidth = width * (Metrics.bandWidthRatio + (1 - Metrics.bandWidthRatio) * expansion)
-        switch slot {
-        case .deck(let deck):
-            deckCard(deck, index: index, expansion: expansion, width: cardWidth, height: height)
-        case .empty(let edge):
-            emptyCard(edge, width: width * Metrics.bandWidthRatio, height: height)
+        Group {
+            switch slot {
+            case .deck(let deck):
+                deckCard(deck, index: index, expansion: expansion, width: cardWidth, height: height)
+            case .empty(let edge):
+                emptyCard(edge, width: cardWidth, height: height)
+            }
         }
+        // ponytail: VoiceOver は中央の枠だけを読み、上下の操作で隣へ移すだけの最低限。
+        // 作り込みは後でまとめて行う（AGENTS.md の方針）。
+        .accessibilityAdjustableAction { direction in
+            switch direction {
+            case .increment: snap(to: centerIndex + 1)
+            case .decrement: snap(to: centerIndex - 1)
+            @unknown default: break
+            }
+        }
+        .accessibilityHidden(index != centerIndex)
     }
 
     private func deckCard(_ deck: Deck, index: Int, expansion: CGFloat,
@@ -168,15 +175,8 @@ struct DeckCarouselView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(deck.deckName)
         .accessibilityValue("\(progress.totalCount) 語のうち \(progress.masteredCount) 語を習得")
-        .accessibilityHint(isCenter ? "選んだ遊び方で開きます" : "中央へ移します")
+        .accessibilityHint("選んだ遊び方で開きます")
         .accessibilityAddTraits(.isButton)
-        .accessibilityAdjustableAction { direction in
-            switch direction {
-            case .increment: snap(to: centerIndex + 1)
-            case .decrement: snap(to: centerIndex - 1)
-            @unknown default: break
-            }
-        }
     }
 
     /// 空き枠。どこにあってもタップでデッキライブラリを開く。
@@ -237,7 +237,7 @@ struct DeckCarouselView: View {
         let remembered = slots.firstIndex { $0.deck?.id == centeredDeckId && centeredDeckId != nil }
         let firstDeck = slots.firstIndex { $0.deck != nil }
         centerIndex = remembered ?? firstDeck ?? 0
-        motion.configure(stride: Metrics.stride, count: slots.count, index: centerIndex)
+        motion.configure(stride: layout.stride, count: slots.count, index: centerIndex)
     }
 
     private func snap(to index: Int) {
@@ -254,64 +254,52 @@ struct DeckCarouselView: View {
 
 /// カルーセルの並び計算。見た目と切り離してあるので、単体で確かめられる。
 ///
-/// 中央の枠ほど高く、離れた枠は帯の高さになる。隣どうしは高さの半分ずつと `spacing` だけ
-/// 離すので、中央のカードが広がっても帯と重ならない。一周はしない。
+/// 中央の枠ほど高く、離れた枠は帯の高さになる。どの枠も広がり方が同じなので、中央と隣の
+/// 中心どうしは常に `stride` だけ離れ、指の移動と枠の移動がそろう。一周はしない。
 struct DeckCarouselLayout {
     let bandHeight: CGFloat
+    let expandedHeight: CGFloat
     let spacing: CGFloat
-    /// 端より先へ引いたとき、1枠ぶんとして動かす距離。
-    let overscrollStep: CGFloat
-    /// 各枠が中央に来たときの高さ。
-    let expandedHeights: [CGFloat]
 
-    /// 中央へどれだけ近いか。0 が帯、1 がちょうど中央。
-    func expansion(at index: Int, center: CGFloat) -> CGFloat {
-        max(0, 1 - abs(CGFloat(index) - center))
+    /// 1枠ぶん進むときに動く距離。中央の枠と隣の帯の、中心どうしの間隔と同じ。
+    var stride: CGFloat { (bandHeight + expandedHeight) / 2 + spacing }
+
+    /// 中央へどれだけ近いか。`offset` は中央からの枠の数で、0 がちょうど中央、1 以上離れると帯。
+    func expansion(offset: CGFloat) -> CGFloat {
+        max(0, 1 - abs(offset))
     }
 
-    /// 各枠の高さと、画面中央からの縦位置。`center` は中央にいる枠の番号で、動いている途中は小数。
-    func frames(center: CGFloat) -> [(height: CGFloat, y: CGFloat)] {
-        let count = expandedHeights.count
-        guard count > 0 else { return [] }
-        let heights = expandedHeights.indices.map { index in
-            bandHeight + (expandedHeights[index] - bandHeight) * expansion(at: index, center: center)
-        }
-        let clamped = min(max(center, 0), CGFloat(count - 1))
-        let anchor = Int(clamped.rounded(.down))
-        let next = min(anchor + 1, count - 1)
-        let gap = { (upper: Int) in (heights[upper] + heights[upper + 1]) / 2 + spacing }
+    func height(offset: CGFloat) -> CGFloat {
+        bandHeight + (expandedHeight - bandHeight) * expansion(offset: offset)
+    }
 
-        var ys = [CGFloat](repeating: 0, count: count)
-        // 中央の線を、上下2枠の間で指の位置に合わせて置く。端より先はそのままずらす。
-        ys[anchor] = -(clamped - CGFloat(anchor)) * (next == anchor ? 0 : gap(anchor))
-            - (center - clamped) * overscrollStep
-        for index in stride(from: anchor + 1, to: count, by: 1) {
-            ys[index] = ys[index - 1] + gap(index - 1)
-        }
-        for index in stride(from: anchor - 1, through: 0, by: -1) {
-            ys[index] = ys[index + 1] - gap(index)
-        }
-        return zip(heights, ys).map { ($0, $1) }
+    /// 画面中央からの縦位置。中央の隣までは `stride` 刻み、その先は帯どうしの間隔で並べる。
+    func y(offset: CGFloat) -> CGFloat {
+        let distance = abs(offset)
+        let y = min(distance, 1) * stride + max(distance - 1, 0) * (bandHeight + spacing)
+        return offset < 0 ? -y : y
     }
 }
 
 /// デッキの並び順と、最後に中央へ置いたデッキを端末へ覚えておく。
 ///
-/// `DeckCoverStore` と同じ理由で、保存先は利用者ごとに分けず端末で1か所にする。
+/// 利用者ごとに分けて覚える。端末で作ったデッキの番号は利用者ごとに 1 から振るので、
+/// 分けないと別の人の同じ番号のデッキを指してしまう。
 /// 覚えていないデッキは末尾へ足し、消えたデッキは詰める。
 struct DeckOrderStore {
-    private static let orderKey = "learning.deckOrder"
-    private static let selectedKey = "learning.selectedDeck"
-
+    private let orderKey: String
+    private let selectedKey: String
     private let defaults: UserDefaults
 
-    init(defaults: UserDefaults = .standard) {
+    init(accountId: String, defaults: UserDefaults = .standard) {
+        orderKey = "learning.deckOrder.\(accountId)"
+        selectedKey = "learning.selectedDeck.\(accountId)"
         self.defaults = defaults
     }
 
     /// 覚えた順に並べ、その結果を覚え直す。
     func arranged(_ decks: [Deck]) -> [Deck] {
-        let saved = defaults.array(forKey: Self.orderKey) as? [Int] ?? []
+        let saved = defaults.array(forKey: orderKey) as? [Int] ?? []
         let rank = Dictionary(saved.enumerated().map { ($1, $0) }, uniquingKeysWith: { first, _ in first })
         let result = decks.enumerated()
             .sorted { lhs, rhs in
@@ -319,7 +307,7 @@ struct DeckOrderStore {
                     < (rank[rhs.element.id] ?? saved.count + rhs.offset)
             }
             .map(\.element)
-        defaults.set(result.map(\.id), forKey: Self.orderKey)
+        defaults.set(result.map(\.id), forKey: orderKey)
         return result
     }
 
@@ -330,12 +318,18 @@ struct DeckOrderStore {
         case .top: ids.insert(deckId, at: 0)
         case .bottom: ids.append(deckId)
         }
-        defaults.set(ids, forKey: Self.orderKey)
+        defaults.set(ids, forKey: orderKey)
     }
 
     var selectedDeckId: Int? {
-        get { defaults.object(forKey: Self.selectedKey) as? Int }
-        nonmutating set { defaults.set(newValue, forKey: Self.selectedKey) }
+        get { defaults.object(forKey: selectedKey) as? Int }
+        nonmutating set { defaults.set(newValue, forKey: selectedKey) }
+    }
+
+    /// 退会したときに、その人の並び順を消す。
+    func removeAll() {
+        defaults.removeObject(forKey: orderKey)
+        defaults.removeObject(forKey: selectedKey)
     }
 }
 

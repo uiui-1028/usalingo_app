@@ -148,11 +148,11 @@ struct LearningDashboardView: View {
     private var carousel: some View {
         DeckCarouselView(
             decks: decks,
-            centeredDeckId: DeckOrderStore().selectedDeckId,
+            centeredDeckId: deckOrder.selectedDeckId,
             coverURL: { covers[$0.id] },
             summary: summary(for:),
             onOpen: open,
-            onSelect: { DeckOrderStore().selectedDeckId = $0.id },
+            onSelect: { deckOrder.selectedDeckId = $0.id },
             onAdd: { edge in
                 addEdge = edge
                 isShowingLibrary = true
@@ -201,12 +201,18 @@ struct LearningDashboardView: View {
 
     /// ライブラリで追加した公式デッキを、選んだ空き枠の端へ入れて中央に置き、学習タブへ戻る。
     private func placeAddedDeck(remoteDeckId: Int) {
-        let store = DeckOrderStore()
+        let store = deckOrder
         let deckId = LocalStudyDataSource.cachedDeckId(remoteDeckId: remoteDeckId)
         store.place(deckId: deckId, at: addEdge, in: decks.map(\.id))
         store.selectedDeckId = deckId
         isShowingLibrary = false
-        Task { await reload() }
+        // 読み直しは追加の時点で上がる `studyDataVersion` にまかせる。ここでも呼ぶと、
+        // 全デッキのカードを2回読むことになる。
+    }
+
+    /// 並び順と最後に選んだデッキ。利用者ごとに分けて覚える。
+    private var deckOrder: DeckOrderStore {
+        DeckOrderStore(accountId: appState.session?.user.id ?? "guest")
     }
 
     /// そのデッキの進み具合。まだ読めていないデッキは 0 枚として出す。
@@ -220,10 +226,11 @@ struct LearningDashboardView: View {
 
     private func reload() async {
         let dataSource = appState.localStudy
+        let order = deckOrder
         do {
             let fetched = try await dataSource.fetchDecks()
             guard appState.localStudy === dataSource else { return }
-            decks = DeckOrderStore().arranged(fetched)
+            decks = order.arranged(fetched)
             errorMessage = nil
             await loadDeckDetails(for: fetched, from: dataSource)
         } catch {
@@ -279,6 +286,15 @@ struct LearningDashboardView: View {
         guard dataSource.canManage(deck) else {
             errorMessage = "配信中のデッキは削除できません。"
             return
+        }
+
+        // 中央のデッキを消したら、詰めて上がってくる下の隣を中央にする。下が無ければ上の隣。
+        let order = deckOrder
+        if (order.selectedDeckId ?? decks.first?.id) == deck.id,
+           let index = decks.firstIndex(of: deck) {
+            let neighbor = decks.indices.contains(index + 1) ? decks[index + 1]
+                : decks.indices.contains(index - 1) ? decks[index - 1] : nil
+            order.selectedDeckId = neighbor?.id
         }
 
         Task {
