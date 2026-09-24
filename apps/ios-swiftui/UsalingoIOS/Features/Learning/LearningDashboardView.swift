@@ -40,9 +40,6 @@ enum DeckPlayStyle: String, CaseIterable, Identifiable {
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
-    /// シェルの浮動アクションバーが見えている間だけ、下へ確保する余白。
-    private let bottomActionBarClearance: CGFloat
-
     @State private var decks: [Deck] = []
     /// デッキごとの進み具合。カードを読み終えるまでは空のまま出す。
     @State private var summaries: [Int: DeckProgressSummary] = [:]
@@ -60,10 +57,6 @@ struct LearningDashboardView: View {
     @State private var errorMessage: String?
     @State private var exportDocument: DeckDocument?
     @State private var exportFileName = "deck"
-
-    init(bottomActionBarClearance: CGFloat = 0) {
-        self.bottomActionBarClearance = bottomActionBarClearance
-    }
 
     var body: some View {
         NavigationStack {
@@ -128,7 +121,6 @@ struct LearningDashboardView: View {
         }
         .padding(.horizontal, WireMetrics.screenPadding)
         .padding(.top, WireMetrics.spacingM)
-        .padding(.bottom, bottomActionBarClearance)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .fileExporter(
             isPresented: Binding(
