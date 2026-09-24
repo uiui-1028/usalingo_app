@@ -171,6 +171,7 @@ final class AppState: ObservableObject {
             resetError = error
         }
         designSettings.reset()
+        DeckOrderStore(accountId: session.user.id, defaults: defaults).removeAll()
         self.session = nil
         isResettingPassword = false
         isShellChromeHidden = false

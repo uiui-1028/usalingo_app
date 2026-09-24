@@ -44,8 +44,14 @@ cause, not the symptom the report names.
 - No abstraction, dependency, or boilerplate that was not requested.
 - Deletion over addition. Boring over clever. The shortest working diff wins.
 - Never cut input validation at trust boundaries, error handling, security,
-  accessibility, required tests, or anything the user explicitly asked for. This
-  overrides every rung above.
+  accessibility (except the VoiceOver deferral below), required tests, or anything
+  the user explicitly asked for. This overrides every rung above.
+- VoiceOver work is deferred and will be done later in one batch. For now, give
+  new or changed UI only the minimum: the primary element has a label and can be
+  activated, and off-focus decoration is hidden. Do not research, polish, or
+  write tests for VoiceOver behavior, and do not flag missing VoiceOver support in
+  reviews. Mark any such cut with a `ponytail:` comment. Other accessibility
+  (Dynamic Type, contrast, reduce motion) stays in scope.
 - Mark a deliberate simplification that cuts a real corner with a `ponytail:`
   comment naming the ceiling and the upgrade path.
 
