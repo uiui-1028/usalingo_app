@@ -107,10 +107,9 @@ struct WordListActionBar: View {
                     isRedSheetEnabled.toggle()
                 } label: {
                     Image(systemName: "rectangle.fill")
-                        .foregroundStyle(isRedSheetEnabled ? .white : .red)
+                        .foregroundStyle(.red)
                         .frame(width: 48, height: 48)
-                        .background(Capsule().fill(isRedSheetEnabled ? Color.red : WireColor.surface))
-                        .overlay(Capsule().strokeBorder(Color.red, lineWidth: WireMetrics.strokeBase))
+                        .glassBarSelection(isRedSheetEnabled, in: Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("赤シート")
@@ -135,10 +134,9 @@ struct WordListActionBar: View {
                 }
             } label: {
                 Image(systemName: isSearchExpanded ? "xmark" : "magnifyingglass")
-                    .wireFont(.label, color: isSearching ? WireColor.surface : WireColor.ink)
+                    .wireFont(.label, color: .primary)
                     .frame(minWidth: 48, minHeight: 48)
-                    .background(Capsule().fill(isSearching ? WireColor.ink : WireColor.surface))
-                    .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
+                    .glassBarSelection(isSearching, in: Capsule())
                     .contentShape(Capsule())
             }
             .buttonStyle(.plain)
@@ -275,21 +273,17 @@ struct WordListActionBarIcon: View {
 
     var body: some View {
         Image(systemName: symbol)
-            .wireFont(.label, color: isActive ? WireColor.surface : WireColor.ink)
+            .wireFont(.label, color: .primary)
             .frame(minWidth: 48, minHeight: 48)
-            .background(Capsule().fill(isActive ? WireColor.ink : WireColor.surface))
-            .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
+            .glassBarSelection(isActive, in: Capsule())
             .contentShape(Capsule())
     }
 }
 
 extension View {
-    /// 浮動バー1本分の枠。シェルのタブバーと同じ丸ピルだが、検索欄の文字が
-    /// 一覧に重ならないよう中だけ地の色で塗る。
+    /// 浮動バー1本分のガラス面。
     func wordListBarChrome() -> some View {
         padding(WireMetrics.spacingM)
-            .background(Capsule().fill(WireColor.background))
-            .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
-            .offsetShadow(.card, in: Capsule())
+            .glassBarSurface(in: Capsule())
     }
 }

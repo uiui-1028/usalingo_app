@@ -85,7 +85,7 @@ struct MatchingGameView: View {
             }
             .padding(.horizontal, WireMetrics.spacingM)
             .padding(.vertical, WireMetrics.spacingM)
-            .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+            .glassBarSurface(in: RoundedRectangle(cornerRadius: WireMetrics.radiusLarge))
             .padding(.horizontal, WireMetrics.screenPadding)
             .padding(.bottom, WireMetrics.spacingM)
         }
@@ -100,7 +100,7 @@ struct MatchingGameView: View {
         Button(action: action) {
             Image(systemName: symbol)
         }
-        .buttonStyle(.wireIcon(diameter: 40))
+        .buttonStyle(.glassBarIcon(diameter: 40))
         .disabled(isDisabled)
         .accessibilityLabel(label)
     }

@@ -47,6 +47,50 @@ struct OutlineCircleSurface: ViewModifier {
 }
 
 extension View {
+    /// 操作バーだけに使う。新しいOSはシステムのガラス、旧OSは半透明素材。
+    @ViewBuilder
+    func glassBarSurface<S: Shape>(in shape: S) -> some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            glassEffect(.regular, in: shape)
+        } else {
+            background(.regularMaterial, in: shape)
+        }
+        #else
+        // Xcode 16 のCIには glassEffect がない。旧SDKでは半透明素材を使う。
+        background(.regularMaterial, in: shape)
+        #endif
+    }
+
+    func glassBarSelection<S: Shape>(_ selected: Bool, in shape: S) -> some View {
+        background {
+            if selected {
+                shape.fill(.primary.opacity(0.14))
+            }
+        }
+    }
+
+    @ViewBuilder
+    func glassNavigationBar() -> some View {
+        if #available(iOS 26.0, *) {
+            self
+        } else {
+            toolbarBackground(.regularMaterial, for: .navigationBar)
+                .toolbarBackground(.visible, for: .navigationBar)
+        }
+    }
+
+    @ViewBuilder
+    func glassTabBar(_ visibility: Visibility) -> some View {
+        if #available(iOS 26.0, *) {
+            toolbar(visibility, for: .tabBar)
+        } else {
+            toolbar(visibility, for: .tabBar)
+                .toolbarBackground(.regularMaterial, for: .tabBar)
+                .toolbarBackground(.visible, for: .tabBar)
+        }
+    }
+
     func outlineSurface(
         radius: CGFloat = WireMetrics.radiusCard,
         stroke: CGFloat = WireMetrics.strokeBase,

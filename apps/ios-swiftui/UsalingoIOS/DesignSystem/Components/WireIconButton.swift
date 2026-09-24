@@ -66,3 +66,25 @@ extension ButtonStyle where Self == WireIconButtonStyle {
         )
     }
 }
+
+/// 浮動バー内だけのアイコン。外側のガラス面を重ねて濁らせない。
+struct GlassBarIconButtonStyle: ButtonStyle {
+    var diameter: CGFloat = 44
+    var isSelected = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(.body.weight(isSelected ? .bold : .semibold))
+            .foregroundStyle(.primary)
+            .frame(width: diameter, height: diameter)
+            .glassBarSelection(isSelected, in: Circle())
+            .contentShape(Circle())
+            .opacity(configuration.isPressed ? 0.65 : 1)
+    }
+}
+
+extension ButtonStyle where Self == GlassBarIconButtonStyle {
+    static func glassBarIcon(diameter: CGFloat = 44, isSelected: Bool = false) -> GlassBarIconButtonStyle {
+        GlassBarIconButtonStyle(diameter: diameter, isSelected: isSelected)
+    }
+}

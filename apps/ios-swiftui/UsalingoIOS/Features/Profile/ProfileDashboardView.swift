@@ -2,6 +2,7 @@ import SwiftUI
 import WebKit
 
 struct ProfileDashboardView: View {
+    var onScrollDrag: (DragGesture.Value?) -> Void = { _ in }
     @EnvironmentObject private var appState: AppState
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var stats = StudyStats.empty
@@ -138,6 +139,11 @@ struct ProfileDashboardView: View {
             .padding(.bottom, WireMetrics.screenPadding)
         }
         .scrollBounceBehavior(.basedOnSize)
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 1)
+                .onChanged { onScrollDrag($0) }
+                .onEnded { _ in onScrollDrag(nil) }
+        )
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .background(
             UnevenRoundedRectangle(
@@ -479,8 +485,7 @@ private struct LegalInformationView: View {
             .background(WireColor.background)
             .navigationTitle("法務・ライセンス")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
@@ -903,8 +908,7 @@ private struct ProfileEditSheet: View {
             .background(WireColor.background)
             .navigationTitle("プロフィール編集")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -1040,8 +1044,7 @@ private struct AccountSecuritySheet: View {
             .background(WireColor.background)
             .navigationTitle("アカウントの安全")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -1173,8 +1176,7 @@ struct AccountDeletionSheet: View {
             .background(WireColor.background)
             .navigationTitle("アカウントを削除")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .interactiveDismissDisabled(appState.isDeletingAccount)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

@@ -2,48 +2,35 @@ import SwiftUI
 
 struct AppShellView: View {
     @EnvironmentObject private var appState: AppState
-    @EnvironmentObject private var designSettings: DesignSettings
     @State private var selectedTab = 1
     @State private var isTabBarHiddenByScroll = false
     @State private var previousVerticalDragTranslation: CGFloat?
-    @State private var tabBarHeight: CGFloat = 0
     @AppStorage(DeckPlayStyle.storageKey) private var playStyle: DeckPlayStyle = .card
 
-    private let tabs: [ShellTab] = [
-        .init(title: "デザイン", selectedTitle: "Design", symbol: "paintpalette"),
-        .init(title: "学習", selectedTitle: "Game", symbol: "bolt"),
-        .init(title: "プロフィール", selectedTitle: "Profile", symbol: "person.crop.circle")
-    ]
-
     var body: some View {
-        ZStack(alignment: .bottom) {
-            shellBody
-                // 下端の操作をタブバーの下までスクロールできるようにする。これは透明な
-                // スペーサーなので、Body の背景を切ったり、見た目の高さを固定したりしない。
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    Color.clear
-                        // 学習タブは NavigationStack 内の List が自分で末尾余白を持つ。
-                        // 二重に確保しないよう、ほかの Body だけシェル側で避ける。
-                        .frame(height: isTabBarPresented && selectedTab != 1 ? tabBarScrollClearance : 0)
-                        .allowsHitTesting(false)
-                }
+        TabView(selection: $selectedTab) {
+            DesignDashboardView()
+                .tabItem { Label("Design", systemImage: "paintpalette") }
+                .tag(0)
+                .glassTabBar(tabBarVisibility)
 
-            if isTabBarPresented {
-                bottomBars
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-            }
+            LearningDashboardView()
+                .safeAreaInset(edge: .bottom, spacing: 0) {
+                    if !appState.isShellChromeHidden {
+                        playStyleBar
+                            .padding(.horizontal, WireMetrics.screenPadding)
+                            .padding(.bottom, WireMetrics.spacingM)
+                    }
+                }
+                .tabItem { Label("Game", systemImage: "bolt") }
+                .tag(1)
+                .glassTabBar(tabBarVisibility)
+
+            ProfileDashboardView(onScrollDrag: updateTabBarVisibility)
+                .tabItem { Label("Profile", systemImage: "person.crop.circle") }
+                .tag(2)
+                .glassTabBar(tabBarVisibility)
         }
-        // isShellChromeHidden の出し入れは書き手が withAnimation で決める。ここで
-        // 暗黙のアニメーションを足すと、戻るときも必ず滑って浮き上がってしまう。
-        .animation(.spring(response: 0.28, dampingFraction: 0.86), value: isTabBarHiddenByScroll)
-        // ScrollView / List を各画面ごとに実装し直さず、Body 配下の縦ドラッグを同時に
-        // 見る。下方向へ動いたら隠し、折り返して少しでも上方向へ動いた時点で戻す。
-        .simultaneousGesture(
-            DragGesture(minimumDistance: 1)
-                .onChanged(updateTabBarVisibility)
-                .onEnded { _ in previousVerticalDragTranslation = nil },
-            including: .subviews
-        )
         .onChange(of: selectedTab) { _, _ in
             isTabBarHiddenByScroll = false
             previousVerticalDragTranslation = nil
@@ -54,41 +41,17 @@ struct AppShellView: View {
                 isTabBarHiddenByScroll = false
             }
         }
-        // バーを外している間は実測値が来ないので、最後に測った高さを持ち続ける。
-        .onPreferenceChange(ShellTabBarHeightKey.self) { height in
-            guard height > 0 else { return }
-            tabBarHeight = height
+    }
+
+    private var tabBarVisibility: Visibility {
+        appState.isShellChromeHidden || isTabBarHiddenByScroll ? .hidden : .visible
+    }
+
+    private func updateTabBarVisibility(_ value: DragGesture.Value?) {
+        guard let value else {
+            previousVerticalDragTranslation = nil
+            return
         }
-    }
-
-    private var shellBody: some View {
-        Group {
-            switch selectedTab {
-            case 0:
-                DesignDashboardView()
-            case 2:
-                ProfileDashboardView()
-            default:
-                // バーを隠している間も同じだけ空ける。ここを 0 に戻すと、学習モードへ
-                // 出入りするたびにデッキが画面の中央へ動いてしまう。
-                LearningDashboardView(bottomActionBarClearance: tabBarScrollClearance)
-            }
-        }
-    }
-
-    private var isTabBarPresented: Bool {
-        !appState.isShellChromeHidden && !isTabBarHiddenByScroll
-    }
-
-    private var tabBarScrollClearance: CGFloat {
-        // 実測値を優先するので、将来タブの文字や余白が大きくなっても末尾の操作に重ならない。
-        max(ShellTabBarLayout.minimumScrollClearance, tabBarHeight + WireMetrics.screenPadding)
-    }
-
-    private func updateTabBarVisibility(_ value: DragGesture.Value) {
-        // 学習タブは縦スクロールではなくデッキを回す操作なので、バーを隠さない。
-        // 隠すと下に固定した進捗が動いてしまう。
-        guard selectedTab != 1 else { return }
         // 横スクロール（保存済みコンセプトなど）の僅かな縦ブレでは反応しない。
         guard abs(value.translation.height) > abs(value.translation.width) else {
             previousVerticalDragTranslation = nil
@@ -103,25 +66,7 @@ struct AppShellView: View {
         isTabBarHiddenByScroll = verticalMovement < 0
     }
 
-    /// 学習タブでは、タブバーの上にデッキの遊び方を選ぶバーを重ねる。
-    /// 高さは2本まとめて測り、一覧の末尾がどちらにも隠れないようにする。
-    private var bottomBars: some View {
-        VStack(spacing: WireMetrics.spacingM) {
-            if selectedTab == 1 {
-                playStyleBar
-            }
-            floatingTabBar
-        }
-        .padding(.horizontal, WireMetrics.screenPadding)
-        .padding(.bottom, WireMetrics.spacingXL)
-        .background {
-            GeometryReader { proxy in
-                Color.clear.preference(key: ShellTabBarHeightKey.self, value: proxy.size.height)
-            }
-        }
-    }
-
-    /// 遊び方は5つあるので、タブバーと同じく普段はアイコンだけにし、
+    /// 遊び方は5つあるので、普段はアイコンだけにし、
     /// 選んだものにだけ名前を出す。1行に収めたまま、いまの選択が読めるようにする。
     private var playStyleBar: some View {
         HStack(spacing: WireMetrics.spacingXS) {
@@ -135,17 +80,16 @@ struct AppShellView: View {
 
                         if isSelected {
                             Text(style.title)
-                                .wireFont(.label, color: WireColor.surface)
+                                .wireFont(.label, color: .primary)
                                 .lineLimit(1)
                                 .fixedSize()
                                 .transition(.opacity.combined(with: .move(edge: .leading)))
                         }
                     }
-                    .foregroundStyle(isSelected ? WireColor.surface : WireColor.ink)
+                    .foregroundStyle(.primary)
                     .frame(minWidth: 44, minHeight: 44)
                     .padding(.horizontal, isSelected ? WireMetrics.spacingM : 0)
-                    .background(Capsule().fill(isSelected ? WireColor.ink : WireColor.surface))
-                    .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair))
+                    .glassBarSelection(isSelected, in: Capsule())
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -154,70 +98,12 @@ struct AppShellView: View {
             }
         }
         .padding(WireMetrics.spacingXS)
-        .background(Capsule().fill(WireColor.surface))
-        .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair))
+        .glassBarSurface(in: Capsule())
         .animation(.spring(response: 0.26, dampingFraction: 0.82), value: playStyle)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("デッキの遊び方")
     }
 
-    private var floatingTabBar: some View {
-        HStack(spacing: 8) {
-            ForEach(tabs.indices, id: \.self) { index in
-                let tab = tabs[index]
-                let isSelected = selectedTab == index
-
-                Button {
-                    withAnimation(.spring(response: 0.26, dampingFraction: 0.82)) {
-                        selectedTab = index
-                    }
-                } label: {
-                    HStack(spacing: WireMetrics.spacingS) {
-                        Image(systemName: tab.symbol)
-
-                        if isSelected {
-                            Text(tab.selectedTitle)
-                                .wireFont(.label, color: WireColor.surface)
-                                .transition(.opacity.combined(with: .move(edge: .leading)))
-                        }
-                    }
-                    .foregroundStyle(isSelected ? WireColor.surface : WireColor.ink)
-                    .frame(minWidth: 48, minHeight: 48)
-                    .padding(.horizontal, isSelected ? WireMetrics.spacingM : 0)
-                    .background(Capsule().fill(isSelected ? WireColor.ink : WireColor.surface))
-                    .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
-                    .contentShape(Capsule())
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel(tab.title)
-                .accessibilityAddTraits(isSelected ? .isSelected : [])
-                .animation(.spring(response: 0.26, dampingFraction: 0.82), value: isSelected)
-            }
-        }
-        .padding(WireMetrics.spacingM)
-        .background(Capsule().fill(.clear))
-        .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
-        .offsetShadow(.card, in: Capsule())
-    }
-}
-
-private enum ShellTabBarLayout {
-    /// 初回レイアウトでバー高を実測するまで確保する、安全側の最小値。
-    static let minimumScrollClearance: CGFloat = 48 + (WireMetrics.spacingM * 2) + WireMetrics.spacingXL + WireMetrics.screenPadding
-}
-
-private struct ShellTabBarHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
-    }
-}
-
-private struct ShellTab {
-    let title: String
-    let selectedTitle: String
-    let symbol: String
 }
 
 #if DEBUG

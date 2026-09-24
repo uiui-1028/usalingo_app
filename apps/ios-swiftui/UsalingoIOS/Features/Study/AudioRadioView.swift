@@ -150,7 +150,7 @@ struct AudioRadioView: View {
                     settingPanel(for: openPanel)
                         .padding(.horizontal, WireMetrics.spacingL)
                         .padding(.vertical, WireMetrics.spacingM)
-                        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+                        .glassBarSurface(in: RoundedRectangle(cornerRadius: WireMetrics.radiusLarge))
                         .padding(.horizontal, WireMetrics.screenPadding)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
@@ -178,7 +178,7 @@ struct AudioRadioView: View {
                     }
                 }
                 .padding(WireMetrics.spacingM)
-                .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+                .glassBarSurface(in: RoundedRectangle(cornerRadius: WireMetrics.radiusLarge))
             }
             .padding(.bottom, WireMetrics.spacingM)
         }
@@ -303,7 +303,7 @@ struct AudioRadioView: View {
         Button(action: action) {
             Image(systemName: symbol)
         }
-        .buttonStyle(.wireIcon(diameter: 44, isSelected: isSelected))
+        .buttonStyle(.glassBarIcon(diameter: 44, isSelected: isSelected))
         .accessibilityLabel(label)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }
