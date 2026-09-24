@@ -72,8 +72,7 @@ struct WordEditSheet: View {
             .background(WireColor.background)
             .navigationTitle("単語編集")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {

@@ -76,8 +76,7 @@ struct TagSheet: View {
             .background(WireColor.background)
             .navigationTitle("タグ")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {

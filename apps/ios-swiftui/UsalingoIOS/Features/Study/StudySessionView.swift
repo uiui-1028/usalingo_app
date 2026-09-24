@@ -234,7 +234,7 @@ struct StudySessionView: View {
         }
         .padding(.horizontal, WireMetrics.spacingM)
         .padding(.vertical, WireMetrics.spacingM)
-        .outlineSurface(radius: WireMetrics.radiusLarge, shadow: .card)
+        .glassBarSurface(in: RoundedRectangle(cornerRadius: WireMetrics.radiusLarge))
     }
 
     @ViewBuilder
@@ -269,7 +269,7 @@ struct StudySessionView: View {
         Button(action: action) {
             Image(systemName: symbol)
         }
-        .buttonStyle(.wireIcon(diameter: 40))
+        .buttonStyle(.glassBarIcon(diameter: 40))
         .disabled(isDisabled)
         .accessibilityLabel(label)
     }
@@ -523,7 +523,8 @@ struct StudyAnswerActionBar<Toolbar: View>: View {
             Button(action: onIncorrect) {
                 Image(systemName: "xmark")
             }
-            .buttonStyle(.wireIcon(diameter: 52))
+            .buttonStyle(.glassBarIcon(diameter: 52))
+            .glassBarSurface(in: Circle())
             .disabled(isDisabled)
             .accessibilityLabel(incorrectLabel)
 
@@ -532,7 +533,8 @@ struct StudyAnswerActionBar<Toolbar: View>: View {
             Button(action: onCorrect) {
                 Image(systemName: correctSymbol)
             }
-            .buttonStyle(.wireIcon(diameter: 52, isSelected: true, invertsWhenSelected: true))
+            .buttonStyle(.glassBarIcon(diameter: 52, isSelected: true))
+            .glassBarSurface(in: Circle())
             .disabled(isDisabled)
             .accessibilityLabel(correctLabel)
         }

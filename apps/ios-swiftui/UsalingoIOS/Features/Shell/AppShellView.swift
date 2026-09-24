@@ -135,17 +135,16 @@ struct AppShellView: View {
 
                         if isSelected {
                             Text(style.title)
-                                .wireFont(.label, color: WireColor.surface)
+                                .wireFont(.label, color: .primary)
                                 .lineLimit(1)
                                 .fixedSize()
                                 .transition(.opacity.combined(with: .move(edge: .leading)))
                         }
                     }
-                    .foregroundStyle(isSelected ? WireColor.surface : WireColor.ink)
+                    .foregroundStyle(.primary)
                     .frame(minWidth: 44, minHeight: 44)
                     .padding(.horizontal, isSelected ? WireMetrics.spacingM : 0)
-                    .background(Capsule().fill(isSelected ? WireColor.ink : WireColor.surface))
-                    .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair))
+                    .glassBarSelection(isSelected, in: Capsule())
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -154,8 +153,7 @@ struct AppShellView: View {
             }
         }
         .padding(WireMetrics.spacingXS)
-        .background(Capsule().fill(WireColor.surface))
-        .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeHair))
+        .glassBarSurface(in: Capsule())
         .animation(.spring(response: 0.26, dampingFraction: 0.82), value: playStyle)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("デッキの遊び方")
@@ -177,15 +175,14 @@ struct AppShellView: View {
 
                         if isSelected {
                             Text(tab.selectedTitle)
-                                .wireFont(.label, color: WireColor.surface)
+                                .wireFont(.label, color: .primary)
                                 .transition(.opacity.combined(with: .move(edge: .leading)))
                         }
                     }
-                    .foregroundStyle(isSelected ? WireColor.surface : WireColor.ink)
+                    .foregroundStyle(.primary)
                     .frame(minWidth: 48, minHeight: 48)
                     .padding(.horizontal, isSelected ? WireMetrics.spacingM : 0)
-                    .background(Capsule().fill(isSelected ? WireColor.ink : WireColor.surface))
-                    .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
+                    .glassBarSelection(isSelected, in: Capsule())
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
@@ -195,9 +192,7 @@ struct AppShellView: View {
             }
         }
         .padding(WireMetrics.spacingM)
-        .background(Capsule().fill(.clear))
-        .overlay(Capsule().strokeBorder(WireColor.ink, lineWidth: WireMetrics.strokeBase))
-        .offsetShadow(.card, in: Capsule())
+        .glassBarSurface(in: Capsule())
     }
 }
 

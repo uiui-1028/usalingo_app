@@ -479,8 +479,7 @@ private struct LegalInformationView: View {
             .background(WireColor.background)
             .navigationTitle("法務・ライセンス")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button {
@@ -903,8 +902,7 @@ private struct ProfileEditSheet: View {
             .background(WireColor.background)
             .navigationTitle("プロフィール編集")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -1040,8 +1038,7 @@ private struct AccountSecuritySheet: View {
             .background(WireColor.background)
             .navigationTitle("アカウントの安全")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
@@ -1173,8 +1170,7 @@ struct AccountDeletionSheet: View {
             .background(WireColor.background)
             .navigationTitle("アカウントを削除")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(WireColor.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .glassNavigationBar()
             .interactiveDismissDisabled(appState.isDeletingAccount)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
