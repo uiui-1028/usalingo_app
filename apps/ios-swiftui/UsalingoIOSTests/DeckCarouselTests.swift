@@ -1,114 +1,122 @@
 import XCTest
 @testable import UsalingoIOS
 
-/// カルーセルの並び順と、表紙の1枚を覚えておく仕組みを確かめる。
+/// カルーセルの並び方と、デッキの並び順を覚えておく仕組みを確かめる。
 final class DeckCarouselLayoutTests: XCTestCase {
-    /// 1件だけのときは回さない。中央の1枚だけを出す。
-    func testSingleDeckShowsOnlyTheCenterCard() {
-        let placements = DeckCarouselLayout(count: 1).placements(position: 0)
+    private let layout = DeckCarouselLayout(
+        bandHeight: 64, spacing: 10, overscrollStep: 162,
+        expandedHeights: [64, 240, 240, 240, 64]
+    )
 
-        XCTAssertEqual(placements.map(\.index), [0])
-        XCTAssertEqual(placements[0].offset, 0, accuracy: 0.0001)
+    /// 中央の枠だけが広がり、画面の中央に来る。
+    func testCenterSlotIsExpandedAndCentered() {
+        let frames = layout.frames(center: 2)
+
+        XCTAssertEqual(frames[2].height, 240, accuracy: 0.001)
+        XCTAssertEqual(frames[2].y, 0, accuracy: 0.001)
+        XCTAssertEqual(frames[1].height, 64, accuracy: 0.001)
+        XCTAssertEqual(frames[3].height, 64, accuracy: 0.001)
     }
 
-    func testNoDeckShowsNothing() {
-        XCTAssertTrue(DeckCarouselLayout(count: 0).placements(position: 0).isEmpty)
-    }
-
-    /// 何件でも同じデッキを2か所へ出さない。
-    func testNoDeckIsShownTwice() {
-        for count in 1...8 {
-            let layout = DeckCarouselLayout(count: count)
-            for step in 0...(count * 10) {
-                let indices = layout.placements(position: Double(step) / 10).map(\.index)
-                XCTAssertEqual(Set(indices).count, indices.count, "\(count) 件で重複した")
+    /// 動いている途中でも、隣どうしは重ならず、同じ間隔だけ離れる。
+    func testSlotsNeverOverlapWhileMoving() {
+        for step in 0...40 {
+            let frames = layout.frames(center: CGFloat(step) / 10)
+            for index in 0..<(frames.count - 1) {
+                let gap = (frames[index + 1].y - frames[index + 1].height / 2)
+                    - (frames[index].y + frames[index].height / 2)
+                XCTAssertEqual(gap, 10, accuracy: 0.001, "center \(Double(step) / 10)")
             }
         }
     }
 
-    /// 先頭にいるとき、上には何も出さない。一周して最後のデッキが現れない。
-    func testFirstDeckHasNothingAbove() {
-        let placements = DeckCarouselLayout(count: 7).placements(position: 0)
+    /// 枠をまたいでも位置が飛ばない。
+    func testPositionsAreContinuous() {
+        let before = layout.frames(center: 1.9999)
+        let after = layout.frames(center: 2)
 
-        XCTAssertEqual(placements.map(\.index), [0, 1, 2])
-        XCTAssertTrue(placements.allSatisfy { $0.offset >= 0 })
-    }
-
-    /// 最後にいるとき、下には何も出さない。
-    func testLastDeckHasNothingBelow() {
-        let placements = DeckCarouselLayout(count: 7).placements(position: 6)
-
-        XCTAssertEqual(placements.map(\.index), [4, 5, 6])
-        XCTAssertTrue(placements.allSatisfy { $0.offset <= 0 })
-    }
-
-    /// 真ん中にいるときだけ、上下2枚ずつの5枚になる。
-    func testMiddleDeckShowsTwoAboveAndTwoBelow() {
-        let placements = DeckCarouselLayout(count: 7).placements(position: 3)
-        let byIndex = Dictionary(uniqueKeysWithValues: placements.map { ($0.index, $0.offset) })
-
-        XCTAssertEqual(placements.count, 5)
-        XCTAssertEqual(byIndex[1], -2)
-        XCTAssertEqual(byIndex[2], -1)
-        XCTAssertEqual(byIndex[3], 0)
-        XCTAssertEqual(byIndex[4], 1)
-        XCTAssertEqual(byIndex[5], 2)
-    }
-
-    /// 範囲の中では、指の動きをそのまま通す。
-    func testRubberBandDoesNothingInsideTheRange() {
-        let layout = DeckCarouselLayout(count: 5)
-
-        for position in [0.0, 0.5, 2.0, 3.7, 4.0] {
-            XCTAssertEqual(layout.rubberBanded(position, limit: 0.45), position, accuracy: 0.0001)
+        for (lhs, rhs) in zip(before, after) {
+            XCTAssertEqual(lhs.y, rhs.y, accuracy: 0.1)
+            XCTAssertEqual(lhs.height, rhs.height, accuracy: 0.1)
         }
     }
 
-    /// 端をはみ出すと、引くほど伸びにくくなり、上限より先へは出ない。
-    func testRubberBandStretchesLessTheHarderYouPull() {
-        let layout = DeckCarouselLayout(count: 5)
-        let limit = 0.45
+    /// 端より先へ引いたぶんは、全体をそのままずらす。
+    func testOverscrollShiftsEverything() {
+        let resting = layout.frames(center: 0)
+        let pulled = layout.frames(center: -0.5)
 
-        let gentle = layout.rubberBanded(-0.5, limit: limit)
-        let hard = layout.rubberBanded(-3.0, limit: limit)
-
-        XCTAssertLessThan(gentle, 0)
-        XCTAssertLessThan(hard, gentle)
-        XCTAssertGreaterThan(hard, -limit)
-        // 指の移動の6倍でも、伸びは2倍に満たない。
-        XCTAssertLessThan(abs(hard), abs(gentle) * 2)
-        XCTAssertGreaterThan(layout.rubberBanded(-100, limit: limit), -limit)
+        XCTAssertEqual(pulled[0].y - resting[0].y, 81, accuracy: 0.001)
     }
 
-    /// 最後のデッキの先でも同じように縮める。
-    func testRubberBandWorksAtTheLastDeck() {
-        let layout = DeckCarouselLayout(count: 5)
-        let limit = 0.45
-
-        let pulled = layout.rubberBanded(6.0, limit: limit)
-
-        XCTAssertGreaterThan(pulled, 4)
-        XCTAssertLessThan(pulled, 4 + limit)
+    func testNoSlotShowsNothing() {
+        XCTAssertTrue(DeckCarouselLayout(bandHeight: 64, spacing: 10, overscrollStep: 162, expandedHeights: [])
+            .frames(center: 0).isEmpty)
     }
 
-    /// デッキが1件のときは、どちらへ引いても同じ1枚のまわりで縮める。
-    func testRubberBandWithASingleDeck() {
-        let layout = DeckCarouselLayout(count: 1)
-        let limit = 0.45
+    /// 両端に空き枠を1つずつ置く。デッキが無いときは空き枠1つだけ。
+    func testEmptySlotsSitAtBothEnds() {
+        let decks = [makeDeck(1), makeDeck(2)]
 
-        XCTAssertGreaterThan(layout.rubberBanded(-2, limit: limit), -limit)
-        XCTAssertLessThan(layout.rubberBanded(2, limit: limit), limit)
+        XCTAssertEqual(DeckSlot.slots(for: decks), [.empty(.top), .deck(decks[0]), .deck(decks[1]), .empty(.bottom)])
+        XCTAssertEqual(DeckSlot.slots(for: []), [.empty(.bottom)])
+    }
+}
+
+final class DeckOrderStoreTests: XCTestCase {
+    private var defaults: UserDefaults!
+    private var suiteName: String!
+
+    override func setUp() {
+        super.setUp()
+        suiteName = "DeckOrderStoreTests.\(UUID().uuidString)"
+        defaults = UserDefaults(suiteName: suiteName)
     }
 
-    /// 端より先へは進めない。
-    func testClampStopsAtBothEnds() {
-        let layout = DeckCarouselLayout(count: 5)
-        XCTAssertEqual(layout.clamp(-1), 0)
-        XCTAssertEqual(layout.clamp(-4), 0)
-        XCTAssertEqual(layout.clamp(5), 4)
-        XCTAssertEqual(layout.clamp(2), 2)
-        XCTAssertEqual(DeckCarouselLayout(count: 0).clamp(3), 0)
+    override func tearDown() {
+        defaults.removePersistentDomain(forName: suiteName)
+        defaults = nil
+        suiteName = nil
+        super.tearDown()
     }
+
+    /// 覚えた順が無ければ、渡された順のまま。
+    func testKeepsGivenOrderAtFirst() {
+        let store = DeckOrderStore(defaults: defaults)
+        XCTAssertEqual(store.arranged([makeDeck(3), makeDeck(1)]).map(\.id), [3, 1])
+    }
+
+    /// 先頭の空き枠から足したデッキは先頭へ、末尾からなら末尾へ入る。
+    func testPlacedDeckGoesToTheChosenEdge() {
+        let store = DeckOrderStore(defaults: defaults)
+        let decks = [makeDeck(1), makeDeck(2), makeDeck(3)]
+
+        store.place(deckId: 3, at: .top, in: [1, 2])
+        XCTAssertEqual(store.arranged(decks).map(\.id), [3, 1, 2])
+
+        store.place(deckId: 4, at: .bottom, in: [3, 1, 2])
+        XCTAssertEqual(store.arranged(decks + [makeDeck(4)]).map(\.id), [3, 1, 2, 4])
+    }
+
+    /// 消えたデッキは詰め、覚えていないデッキは末尾へ足す。
+    func testDeletedDecksCloseTheGapAndNewOnesGoLast() {
+        let store = DeckOrderStore(defaults: defaults)
+        _ = store.arranged([makeDeck(1), makeDeck(2), makeDeck(3)])
+
+        XCTAssertEqual(store.arranged([makeDeck(9), makeDeck(3), makeDeck(1)]).map(\.id), [1, 3, 9])
+    }
+
+    func testRemembersSelectedDeck() {
+        let store = DeckOrderStore(defaults: defaults)
+        XCTAssertNil(store.selectedDeckId)
+
+        store.selectedDeckId = -5
+        XCTAssertEqual(DeckOrderStore(defaults: defaults).selectedDeckId, -5)
+    }
+}
+
+private func makeDeck(_ id: Int) -> Deck {
+    Deck(id: id, deckName: "deck\(id)", description: nil)
 }
 
 final class DeckCoverStoreTests: XCTestCase {
