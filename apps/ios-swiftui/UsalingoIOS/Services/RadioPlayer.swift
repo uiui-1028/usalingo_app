@@ -65,6 +65,15 @@ final class RadioPlayer: NSObject, ObservableObject {
         synthesizer.delegate = self
     }
 
+#if DEBUG
+    static func preview(cards: [WordCard]) -> RadioPlayer {
+        let player = RadioPlayer()
+        player.queue = RadioQueue(cards: cards, shufflesEachLap: false)
+        player.currentCard = player.queue.current
+        return player
+    }
+#endif
+
     func start(cards: [WordCard], deckName: String) {
         guard !isConfigured else { return }
         isConfigured = true

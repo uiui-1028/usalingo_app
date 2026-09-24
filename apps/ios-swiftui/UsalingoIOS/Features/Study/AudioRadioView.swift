@@ -70,8 +70,8 @@ struct AudioRadioView: View {
 
     // MARK: - カード
 
-    /// 1枚の高さ。前後の札をどれだけ見せるかもこの高さで決まる。
-    private var cardHeight: CGFloat { 150 }
+    /// 1枚の高さ。プレビューも同じ値を使う。
+    fileprivate var cardHeight: CGFloat { 150 }
 
     private var carousel: some View {
         AudioCoverflowCarousel(player: player, cardHeight: cardHeight) { word, isCurrent in
@@ -81,7 +81,7 @@ struct AudioRadioView: View {
 
     /// 1枚の札。左に絵、右に単語と訳。いま鳴っている札だけ濃く出す。
     @ViewBuilder
-    private func card(_ card: WordCard?, isCurrent: Bool) -> some View {
+    fileprivate func card(_ card: WordCard?, isCurrent: Bool) -> some View {
         HStack(spacing: WireMetrics.spacingM) {
             illustration(for: card)
 
@@ -350,7 +350,19 @@ private struct AudioCoverflowCarousel<CardContent: View>: View {
         self.cardContent = cardContent
     }
 
-    private var cardStride: CGFloat { cardHeight + 24 }
+    private let cardSpacing: CGFloat = 3
+    private var cardStride: CGFloat { cardHeight + cardSpacing }
+
+    // 中央と隣、その先の縮んだ札同士で、それぞれの見た目の高さから中心間距離を決める。
+    private func visualOffset(for progress: CGFloat) -> CGFloat {
+        let distance = abs(progress)
+        let centerScale = reduceMotion ? 1 : AudioCarouselStyle.centerScale
+        let sideScale = reduceMotion ? 1 : AudioCarouselStyle.sideScale
+        let firstStep = cardHeight * (centerScale + sideScale) / 2 + cardSpacing
+        let offset = min(distance, 1) * firstStep
+            + max(distance - 1, 0) * (cardHeight * sideScale + cardSpacing)
+        return progress < 0 ? -offset : offset
+    }
 
     // 中央の前後5枚を描き、画面外へ続ける。少数デッキの札は重複させない。
     private var visibleIndices: Range<Int> {
@@ -375,7 +387,7 @@ private struct AudioCoverflowCarousel<CardContent: View>: View {
                         .saturation(style.saturation)
                         .colorMultiply(Color(white: style.brightness))
                         .opacity(style.opacity)
-                        .offset(y: progress * cardStride + (reduceMotion ? 0 : progress * -5))
+                        .offset(y: visualOffset(for: progress))
                         .zIndex(100 - Double(abs(progress)) * 10)
                         .onTapGesture { snap(to: index) }
                 }
@@ -475,9 +487,11 @@ private struct AudioCoverflowCarousel<CardContent: View>: View {
 
 /// 距離の補間値は参照JSと共通。brightnessは加算ではなくRGBへの乗算。
 struct AudioCarouselStyle {
+    static let centerScale: CGFloat = 1.06
+    static let sideScale: CGFloat = 0.92
     let progress: CGFloat
     private var t: CGFloat { min(abs(progress), 1) }
-    var scale: CGFloat { 1.06 + (0.92 - 1.06) * t }
+    var scale: CGFloat { Self.centerScale + (Self.sideScale - Self.centerScale) * t }
     var rotation: CGFloat { min(12, max(-12, progress * -7)) }
     var depth: CGFloat { 35 - 95 * t }
     var opacity: Double { 1 - 0.6 * min(Double(abs(progress)) / 2.3, 1) }
@@ -646,3 +660,35 @@ final class AudioCarouselMotion: ObservableObject {
         callback?(index)
     }
 }
+
+#if DEBUG
+#Preview("音声モード・カルーセル") {
+    let words = [
+        ("apple", "りんご", "I eat an apple."),
+        ("book", "本", "This is my book."),
+        ("cat", "猫", "The cat is sleeping."),
+        ("dog", "犬", "The dog is running."),
+        ("flower", "花", "The flower is red.")
+    ].enumerated().map { index, item in
+        WordCard(
+            id: index + 1,
+            text: item.0,
+            meaning: item.1,
+            partOfSpeech: nil,
+            sentenceEnglish: item.2,
+            sentenceJapanese: nil,
+            imageAssetPath: nil,
+            audioAssetPath: "file:///dev/null",
+            wordAudioAssetPath: "file:///dev/null",
+            tags: [],
+            learningStatus: nil,
+            learning: nil
+        )
+    }
+    let screen = AudioRadioView(deck: Deck(id: 0, deckName: "プレビュー", description: nil))
+    AudioCoverflowCarousel(player: RadioPlayer.preview(cards: words), cardHeight: screen.cardHeight) { word, isCurrent in
+        screen.card(word, isCurrent: isCurrent)
+    }
+    .background(WireColor.background)
+}
+#endif
