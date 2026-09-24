@@ -36,7 +36,7 @@ enum DeckPlayStyle: String, CaseIterable, Identifiable {
 }
 
 /// 学習タブ。表紙・名前・進み具合をまとめたカードを上下に回して選び、中央のカードを
-/// タップすると、選んだ遊び方でそのデッキを開く。
+/// タップすると、選んだ遊び方でそのデッキを開く。両端の空き枠からデッキを1つずつ足す。
 struct LearningDashboardView: View {
     @EnvironmentObject private var appState: AppState
 
@@ -50,6 +50,8 @@ struct LearningDashboardView: View {
     @State private var covers: [Int: URL] = [:]
     @State private var studyLaunch: StudyLaunch?
     @State private var isShowingLibrary = false
+    /// 空き枠から開いたライブラリで追加したデッキを、どちらの端へ入れるか。
+    @State private var addEdge: DeckSlotEdge = .bottom
     @State private var wordListDeck: Deck?
     @State private var radioDeck: Deck?
     @State private var matchingDeck: Deck?
@@ -70,7 +72,7 @@ struct LearningDashboardView: View {
                     StudySessionView(deck: launch.deck, studyMode: launch.mode)
                 }
                 .navigationDestination(isPresented: $isShowingLibrary) {
-                    DeckLibraryView { Task { await reload() } }
+                    DeckLibraryView(onAdded: placeAddedDeck)
                 }
                 .navigationDestination(item: $wordListDeck) { deck in
                     WordListView(deck: deck)
@@ -121,19 +123,13 @@ struct LearningDashboardView: View {
     /// デッキのカードを上下に回すカルーセル。お知らせがあるときだけ下に足す。
     private var content: some View {
         VStack(spacing: WireMetrics.spacingM) {
-            if decks.isEmpty {
-                emptyState
-                Spacer(minLength: 0)
-            } else {
-                carousel
-            }
+            carousel
             notice
         }
         .padding(.horizontal, WireMetrics.screenPadding)
-        .padding(.top, addDeckButtonClearance)
+        .padding(.top, WireMetrics.spacingM)
         .padding(.bottom, bottomActionBarClearance)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .overlay(alignment: .topTrailing) { addDeckButton }
         .fileExporter(
             isPresented: Binding(
                 get: { exportDocument != nil },
@@ -152,9 +148,15 @@ struct LearningDashboardView: View {
     private var carousel: some View {
         DeckCarouselView(
             decks: decks,
+            centeredDeckId: DeckOrderStore().selectedDeckId,
             coverURL: { covers[$0.id] },
             summary: summary(for:),
             onOpen: open,
+            onSelect: { DeckOrderStore().selectedDeckId = $0.id },
+            onAdd: { edge in
+                addEdge = edge
+                isShowingLibrary = true
+            },
             onExport: prepareExport,
             onDelete: delete,
             canExport: canExport,
@@ -197,41 +199,14 @@ struct LearningDashboardView: View {
         }
     }
 
-    /// ログインの有無では出し分けない。デッキを増やせることは、どちらでも同じにする。
-    private var addDeckButton: some View {
-        Button {
-            isShowingLibrary = true
-        } label: {
-            Text("デッキ追加 +")
-                .wireFont(.label, color: WireColor.surface)
-                .padding(.horizontal, WireMetrics.spacingL)
-                .frame(height: Self.addDeckButtonHeight)
-                .background(Capsule().fill(WireColor.ink))
-                .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .padding(.top, WireMetrics.spacingS)
-        .padding(.trailing, WireMetrics.screenPadding)
-        .accessibilityLabel("デッキを追加")
-        .accessibilityHint("デッキライブラリを開きます")
-    }
-
-    private static let addDeckButtonHeight: CGFloat = 44
-
-    private var addDeckButtonClearance: CGFloat {
-        Self.addDeckButtonHeight + WireMetrics.spacingS + WireMetrics.spacingM
-    }
-
-    /// デッキが1件もないときの案内。
-    private var emptyState: some View {
-        VStack(alignment: .leading, spacing: WireMetrics.spacingS) {
-            Text("デッキがありません")
-                .wireFont(.body)
-            Text("右上の「デッキ追加 +」から追加してください。")
-                .wireFont(.caption)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(WireMetrics.spacingL)
+    /// ライブラリで追加した公式デッキを、選んだ空き枠の端へ入れて中央に置き、学習タブへ戻る。
+    private func placeAddedDeck(remoteDeckId: Int) {
+        let store = DeckOrderStore()
+        let deckId = LocalStudyDataSource.cachedDeckId(remoteDeckId: remoteDeckId)
+        store.place(deckId: deckId, at: addEdge, in: decks.map(\.id))
+        store.selectedDeckId = deckId
+        isShowingLibrary = false
+        Task { await reload() }
     }
 
     /// そのデッキの進み具合。まだ読めていないデッキは 0 枚として出す。
@@ -248,7 +223,7 @@ struct LearningDashboardView: View {
         do {
             let fetched = try await dataSource.fetchDecks()
             guard appState.localStudy === dataSource else { return }
-            decks = fetched
+            decks = DeckOrderStore().arranged(fetched)
             errorMessage = nil
             await loadDeckDetails(for: fetched, from: dataSource)
         } catch {

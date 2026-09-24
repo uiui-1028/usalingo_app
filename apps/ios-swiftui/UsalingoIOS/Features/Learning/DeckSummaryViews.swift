@@ -119,9 +119,14 @@ struct DeckMasteryBar: View {
 /// 苦手だけ枠線を太くして、色を使わずに目を引かせる。
 struct DeckStatusChips: View {
     let summary: DeckProgressSummary
+    /// 横に収まらないときは縦に積む。
+    var axis: Axis = .horizontal
 
     var body: some View {
-        HStack(spacing: WireMetrics.spacingS) {
+        let layout = axis == .horizontal
+            ? AnyLayout(HStackLayout(spacing: WireMetrics.spacingS))
+            : AnyLayout(VStackLayout(alignment: .leading, spacing: WireMetrics.spacingXS))
+        layout {
             WirePill(title: "新規 \(summary.untouchedCount)", font: .caption)
             WirePill(title: "学習中 \(summary.learningCount)", font: .caption)
             WirePill(title: "習得 \(summary.masteredCount)", font: .caption)

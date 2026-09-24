@@ -21,10 +21,11 @@ struct DeckDocument: FileDocument {
 }
 
 /// ジャンル → 詳細から公式デッキを選んで、学習タブへ追加するギャラリー。
-/// 一覧はサーバーの公式デッキを毎回読む。
+/// 一覧はサーバーの公式デッキを毎回読む。学習タブの空き枠1つにつき1デッキを追加し、
+/// 追加できたら `onAdded` にサーバーのデッキ番号を渡す。戻るのは呼び出し側が決める。
 struct DeckLibraryView: View {
     @EnvironmentObject private var appState: AppState
-    let onChanged: () -> Void
+    let onAdded: (Int) -> Void
     @State private var decks: [OfficialDeck] = []
     @State private var isLoading = true
     @State private var message: String?
@@ -67,10 +68,7 @@ struct DeckLibraryView: View {
             }
             ForEach(decks) { official in
                 NavigationLink {
-                    GalleryDeckDetail(official: official, onChanged: {
-                        onChanged()
-                        Task { await reload() }
-                    })
+                    GalleryDeckDetail(official: official, onAdded: onAdded)
                 } label: {
                     HStack(spacing: 16) {
                         GalleryDeckCover(size: 76)
@@ -133,16 +131,16 @@ private struct GalleryDeckCover: View {
 private struct GalleryDeckDetail: View {
     @EnvironmentObject private var appState: AppState
     let official: OfficialDeck
-    let onChanged: () -> Void
+    let onAdded: (Int) -> Void
     @State private var words: [WordCard] = []
     @State private var isLoadingWords = true
     @State private var isDownloading = false
     @State private var isInstalled: Bool
     @State private var message: String?
 
-    init(official: OfficialDeck, onChanged: @escaping () -> Void) {
+    init(official: OfficialDeck, onAdded: @escaping (Int) -> Void) {
         self.official = official
-        self.onChanged = onChanged
+        self.onAdded = onAdded
         _isInstalled = State(initialValue: official.isAdded)
     }
 
@@ -238,8 +236,7 @@ private struct GalleryDeckDetail: View {
             do {
                 try await appState.addOfficialDeck(id: official.id)
                 isInstalled = true
-                message = "学習タブに追加しました。"
-                onChanged()
+                onAdded(official.id)
             } catch {
                 message = UserFacingError.message(for: error)
             }

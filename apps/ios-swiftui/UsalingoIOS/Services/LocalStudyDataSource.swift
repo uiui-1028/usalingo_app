@@ -332,9 +332,12 @@ final class LocalStudyDataSource: StudyDataSource {
 
     // MARK: - StudyDataSource
 
+    /// サーバーのデッキを端末の一覧に出すときの番号。端末で作ったデッキの番号と重ならないよう負にする。
+    static func cachedDeckId(remoteDeckId id: Int) -> Int { -id - 1 }
+
     func fetchDecks() async throws -> [Deck] {
         cachedRemoteDecks.map { cached in
-            Deck(id: -cached.deck.id - 1, deckName: cached.deck.deckName,
+            Deck(id: Self.cachedDeckId(remoteDeckId: cached.deck.id), deckName: cached.deck.deckName,
                  description: cached.deck.description, ownerId: cached.deck.ownerId)
         } + decks().map(\.deck)
     }
@@ -574,7 +577,7 @@ final class LocalStudyDataSource: StudyDataSource {
 
     private func loadCards(deckId: Int) throws -> [WordCard] {
         if deckId < Self.allDecksId {
-            guard let cached = cachedRemoteDecks.first(where: { -$0.deck.id - 1 == deckId }) else {
+            guard let cached = cachedRemoteDecks.first(where: { Self.cachedDeckId(remoteDeckId: $0.deck.id) == deckId }) else {
                 throw LocalStudyError.deckNotFound
             }
             return try cached.cards.map(makeCachedCard)
