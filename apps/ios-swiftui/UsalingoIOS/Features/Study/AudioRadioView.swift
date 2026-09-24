@@ -462,7 +462,7 @@ private struct AudioCoverflowCarousel<CardContent: View>: View {
         pendingAutomaticAdvance = true
         guard !motion.isDragging, !motion.isMoving else { return }
         showsNextLap = player.carouselIndex == player.playableCardCount - 1
-        motion.snap(to: player.carouselIndex + 1, animated: !reduceMotion, completion: complete)
+        motion.snap(to: player.carouselIndex + 1, animated: !reduceMotion, gentle: true, completion: complete)
     }
 
     private func complete(at index: Int) {
@@ -520,24 +520,52 @@ struct AudioCarouselProjection: GeometryEffect {
 }
 
 /// フレームごとに座標そのものを更新する。SwiftUIの暗黙アニメーションで札を再移動しない。
+///
+/// 手ざわりは Final Cut Pro のマグネティックタイムラインのように、枠へはっきり吸い付かせる。
+/// - ドラッグ中は、枠から間隔の4分の1までは張り付いて動かず、それを越えると次の枠へ外れる。
+/// - 指を離すと、勢いから行き先を決めて短い時間で行き過ぎずに止まる。滑ってから寄せる2段階はしない。
+/// - 指で動かしたときだけ、枠に吸い付くたびに軽く振動させる。自動送りはゆったり動かし、振動もしない。
 @MainActor
 final class AudioCarouselMotion: ObservableObject {
+    private enum Magnet {
+        /// 枠に張り付いたまま動かない範囲。枠の間隔に対する割合。
+        static let hold: CGFloat = 0.25
+        /// 指を離したときの勢いを、どれだけ先まで見込むか（ミリ秒）。
+        static let flickProjection: CGFloat = 150
+        /// これより速く離したら、少なくとも1枠は進める（points / millisecond）。
+        static let flickMinVelocity: CGFloat = 0.3
+        /// 手で動かしたあとの止まり方。遠いほど少しだけ長くかける。
+        static let snapBase: TimeInterval = 0.18
+        static let snapPerSlot: TimeInterval = 0.04
+        static let snapMax: TimeInterval = 0.34
+        /// 自動送りのゆったりした動き。
+        static let gentleSnap: TimeInterval = 0.420
+    }
+
     @Published private(set) var position: CGFloat = 0
     private(set) var velocity: CGFloat = 0 // points / millisecond（参照JSと同じ）
     private(set) var isDragging = false
     private(set) var isMoving = false
+    /// 枠に吸い付いたときに呼ぶ。テストでは差し替えて数える。
+    var onDetent: (() -> Void)?
     private var stride: CGFloat = 174
     private var lastIndex = 0
     private var minimum: CGFloat { -CGFloat(lastIndex) * stride }
     var nearestIndex: Int { min(lastIndex, max(0, Int((-position / stride).rounded()))) }
+    /// 指が指している位置。磁力で枠に張り付いている間は `position` とずれる。
+    private var fingerPosition: CGFloat = 0
+    /// 最後に吸い付いた枠。同じ枠で振動を繰り返さない。
+    private var detentIndex = 0
     private var lastTranslation: CGFloat = 0
     private var lastDragTime: TimeInterval = 0
-    private var previousFrame: TimeInterval = 0
     private var snapStart: CGFloat = 0
     private var snapTarget: Int?
     private var snapElapsed: TimeInterval = 0
+    private var snapDuration: TimeInterval = Magnet.gentleSnap
+    private var isGentleSnap = false
     private var completion: ((Int) -> Void)?
     private var displayLink: CADisplayLink?
+    private var previousFrame: TimeInterval = 0
 
     // CADisplayLinkはtargetを強参照するため、弱参照の中継を挟む。
     @MainActor
@@ -551,11 +579,13 @@ final class AudioCarouselMotion: ObservableObject {
         self.stride = stride
         lastIndex = max(0, count - 1)
         position = -CGFloat(index) * stride
+        detentIndex = index
     }
 
     func beginDrag(at time: TimeInterval) {
         stop()
         isDragging = true
+        fingerPosition = position
         lastTranslation = 0
         lastDragTime = time
         velocity = 0
@@ -564,31 +594,42 @@ final class AudioCarouselMotion: ObservableObject {
     func drag(translation: CGFloat, at time: TimeInterval) {
         let delta = translation - lastTranslation
         let dt = max((time - lastDragTime) * 1000, 1)
-        position = rubberBand(position + delta, resistance: 0.28)
+        fingerPosition = rubberBand(fingerPosition + delta, resistance: 0.28)
+        move(to: magnetized(fingerPosition), detents: true)
         if time > lastDragTime { velocity = velocity * 0.68 + delta / dt * 0.32 }
         lastTranslation = translation
         lastDragTime = time
     }
 
+    /// 勢いから行き先を1つ決め、そこへまっすぐ止める。
     func endDrag(at time: TimeInterval, animated: Bool, completion: @escaping (Int) -> Void) {
         isDragging = false
         // 指を止めてから離した場合、古い速度でフリックしない。
         if time - lastDragTime > 0.08 { velocity = 0 }
-        self.completion = completion
-        if !animated || position > 0 || position < minimum || abs(velocity) <= 0.035 {
-            snap(to: nearestIndex, animated: animated, completion: completion)
-        } else {
-            snapTarget = nil
-            startDisplayLink()
+        let current = (-fingerPosition / stride).rounded()
+        var target = current
+        // 「視差効果を減らす」ときは勢いを使わず、いちばん近い枠で止める。
+        if animated {
+            target = (-(fingerPosition + velocity * Magnet.flickProjection) / stride).rounded()
+            if abs(velocity) > Magnet.flickMinVelocity, target == current {
+                target += velocity < 0 ? 1 : -1
+            }
         }
+        snap(to: min(max(Int(target), 0), lastIndex), animated: animated, completion: completion)
     }
 
-    func snap(to index: Int, animated: Bool, completion: @escaping (Int) -> Void) {
+    /// `gentle` は自動送り用。ゆったり動かし、振動させない。
+    func snap(to index: Int, animated: Bool, gentle: Bool = false, completion: @escaping (Int) -> Void) {
         stop()
         self.completion = completion
         snapTarget = index
         snapStart = position
         snapElapsed = 0
+        isGentleSnap = gentle
+        let slots = abs(-CGFloat(index) * stride - position) / max(stride, 1)
+        snapDuration = gentle
+            ? Magnet.gentleSnap
+            : min(Magnet.snapBase + Magnet.snapPerSlot * TimeInterval(slots), Magnet.snapMax)
         if animated {
             startDisplayLink()
         } else {
@@ -624,28 +665,42 @@ final class AudioCarouselMotion: ObservableObject {
 
     // 時間を注入できるようにし、60Hz/120Hz・長いドラッグの逆戻りをテストする。
     func advanceFrame(seconds: TimeInterval) {
-        guard isMoving else { return }
-        if let target = snapTarget {
-            snapElapsed += seconds
-            let t = min(snapElapsed / 0.420, 1)
-            let eased = 1 - pow(1 - t, 4)
-            position = snapStart + (-CGFloat(target) * stride - snapStart) * eased
-            if t >= 1 { finish(at: target) }
-        } else {
-            let dt = min(seconds * 1000, 32)
-            position += velocity * dt
-            if position > 0 || position < minimum {
-                position = rubberBand(position, resistance: 0.18)
-                velocity *= 0.75
-            }
-            velocity *= pow(0.935, dt / 16.67)
-            if abs(velocity) <= 0.05 {
-                // 元JSの±0.35判定は、この条件では到達しない。慣性後の最寄りへスナップする。
-                snapTarget = nearestIndex
-                snapStart = position
-                snapElapsed = 0
-            }
-        }
+        guard isMoving, let target = snapTarget else { return }
+        snapElapsed += seconds
+        let t = min(snapElapsed / snapDuration, 1)
+        // 自動送りは長く減速させ、手で動かしたあとは短く止めて余韻を残さない。
+        let eased = isGentleSnap ? 1 - pow(1 - t, 4) : 1 - pow(1 - t, 3)
+        move(to: snapStart + (-CGFloat(target) * stride - snapStart) * eased, detents: !isGentleSnap)
+        if t >= 1 { finish(at: target) }
+    }
+
+    /// 枠のまわりでは張り付かせ、`Magnet.hold` を越えたぶんだけ次の枠へ向けて速めに動かす。
+    /// 端より先（ゴムで伸びている間）は磁力をかけない。
+    private func magnetized(_ raw: CGFloat) -> CGFloat {
+        guard stride > 0, raw <= 0, raw >= minimum else { return raw }
+        let slot = -raw / stride
+        let nearest = slot.rounded()
+        let offset = slot - nearest
+        let free = max(0, abs(offset) - Magnet.hold) / (0.5 - Magnet.hold) * 0.5
+        return -(nearest + (offset < 0 ? -free : free)) * stride
+    }
+
+    /// 位置を動かし、枠へ乗ったかまたいだら1回だけ振動させる。
+    private func move(to newPosition: CGFloat, detents: Bool) {
+        let old = -position / stride
+        position = newPosition
+        guard detents, stride > 0 else { return }
+        let new = -newPosition / stride
+        let epsilon: CGFloat = 0.0001
+        let lower = min(old, new) - epsilon
+        let upper = max(old, new) + epsilon
+        // 通り過ぎた枠のうち、進む先にいちばん近いもの。
+        let slot = new >= old ? upper.rounded(.down) : lower.rounded(.up)
+        guard slot >= lower, slot <= upper else { return }
+        let index = Int(slot)
+        guard (0...lastIndex).contains(index), index != detentIndex else { return }
+        detentIndex = index
+        if let onDetent { onDetent() } else { HapticFeedbackService.detent() }
     }
 
     private func rubberBand(_ y: CGFloat, resistance: CGFloat) -> CGFloat {
@@ -656,6 +711,7 @@ final class AudioCarouselMotion: ObservableObject {
 
     private func finish(at index: Int) {
         let callback = completion
+        detentIndex = index
         stop()
         callback?(index)
     }
