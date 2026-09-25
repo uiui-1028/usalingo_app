@@ -115,7 +115,7 @@ final class AudioCarouselMotionTests: XCTestCase {
         XCTAssertEqual(motion.position, displayed)
         motion.drag(translation: 20, at: 2.016)
         let dragged = motion.position
-        XCTAssertGreaterThanOrEqual(dragged, displayed, "指の向きへ動く（磁力で張り付くことはある）")
+        XCTAssertGreaterThanOrEqual(dragged, displayed, "指の向きへ動く")
         motion.advanceFrame(seconds: 1)
         XCTAssertEqual(motion.position, dragged, accuracy: 0.001, "古いアニメーションは止まっている")
         motion.stop()
@@ -169,31 +169,45 @@ final class AudioCarouselMotionTests: XCTestCase {
 
     // MARK: - 磁力
 
-    /// 枠から間隔の4分の1までは張り付いて動かない。
-    func testDragSticksToTheSlotWithinAQuarter() {
-        let motion = makeMotion(count: 8, index: 2)
+    /// 指には滑らかに付いてくる。逆向きに動いたり止まったりせず、ずれは枠の間隔の 8% 以内。
+    func testDragFollowsTheFingerSmoothly() {
+        let motion = makeMotion(count: 8)
         motion.beginDrag(at: 1)
-        motion.drag(translation: -0.2 * 174, at: 1.1)
-        XCTAssertEqual(motion.position, -2 * 174, accuracy: 0.001)
-        motion.drag(translation: 0.24 * 174, at: 1.2)
-        XCTAssertEqual(motion.position, -2 * 174, accuracy: 0.001)
+        var previous = motion.position
+        for step in 1...300 {
+            let finger = -CGFloat(step) / 100 * 174
+            motion.drag(translation: finger, at: 1 + Double(step) * 0.01)
+            XCTAssertLessThan(motion.position, previous, "指の向きへ動き続ける")
+            XCTAssertEqual(motion.position, finger, accuracy: 0.08 * 174)
+            previous = motion.position
+        }
         motion.stop()
     }
 
-    /// 4分の1を越えると外れ、指より速く次の枠へ向かい、4分の3で次の枠に張り付く。
-    func testDragBreaksFreeAndLocksOntoTheNextSlot() {
+    /// 枠の近くでは指の半分の速さ、境いでは1.5倍で、やわらかく枠へ引き寄せる。
+    func testSoftMagnetSlowsNearTheSlotAndSpeedsUpAtTheBoundary() {
         let motion = makeMotion(count: 8, index: 2)
         motion.beginDrag(at: 1)
-        motion.drag(translation: -0.375 * 174, at: 1.1)
-        XCTAssertEqual(motion.position, -2.25 * 174, accuracy: 0.001)
+        motion.drag(translation: -0.25 * 174, at: 1.1)
+        XCTAssertEqual(motion.position, -2.1704 * 174, accuracy: 0.01)
         motion.drag(translation: -0.5 * 174, at: 1.2)
-        XCTAssertEqual(motion.position, -2.5 * 174, accuracy: 0.001)
-        motion.drag(translation: -0.75 * 174, at: 1.3)
-        XCTAssertEqual(motion.position, -3 * 174, accuracy: 0.001)
+        XCTAssertEqual(motion.position, -2.5 * 174, accuracy: 0.001, "境いでは指と同じ位置")
         motion.stop()
     }
 
-    /// 指で動かすと、枠に吸い付くたびに1回ずつ振動する。同じ枠では繰り返さない。
+    /// 動いている途中でつかんでも、札は跳ばない。
+    func testGrabbingMidAnimationDoesNotJump() {
+        let motion = makeMotion(count: 8)
+        motion.snap(to: 3, animated: true) { _ in }
+        motion.advanceFrame(seconds: 0.1)
+        let displayed = motion.position
+        motion.beginDrag(at: 2)
+        motion.drag(translation: 0.5, at: 2.016)
+        XCTAssertEqual(motion.position, displayed, accuracy: 1)
+        motion.stop()
+    }
+
+    /// 指で動かすと、枠の境いを越えるたびに1回ずつ振動する。同じ枠では繰り返さない。
     func testDetentFiresOncePerSlotWhileDragging() {
         let motion = makeMotion(count: 8)
         var detents = 0
@@ -202,7 +216,7 @@ final class AudioCarouselMotionTests: XCTestCase {
         for step in 1...30 {
             motion.drag(translation: -CGFloat(step) * 0.1 * 174, at: 1 + Double(step) * 0.1)
         }
-        XCTAssertEqual(detents, 3, "0→1→2→3 の3枠")
+        XCTAssertEqual(detents, 3, "0.5・1.5・2.5 の3つの境い")
         motion.stop()
     }
 
