@@ -81,6 +81,7 @@
 		A100000000000000000071 /* Features/Words/WordListFilters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000071 /* Features/Words/WordListFilters.swift */; };
 		A100000000000000000072 /* Features/Words/WordListFilterBars.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000072 /* Features/Words/WordListFilterBars.swift */; };
 		A100000000000000000073 /* Features/Words/WordListRowViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000073 /* Features/Words/WordListRowViews.swift */; };
+		A1000000000000000000D5 /* Features/Words/RedSheetLayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000D5 /* Features/Words/RedSheetLayer.swift */; };
 		A100000000000000000074 /* Features/Words/WordListErrorBox.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000074 /* Features/Words/WordListErrorBox.swift */; };
 		A100000000000000000075 /* Features/Words/WordDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A200000000000000000075 /* Features/Words/WordDetailSheet.swift */; };
 		A1000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */; };
@@ -189,6 +190,7 @@
 		A200000000000000000071 /* Features/Words/WordListFilters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilters.swift; sourceTree = "<group>"; };
 		A200000000000000000072 /* Features/Words/WordListFilterBars.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListFilterBars.swift; sourceTree = "<group>"; };
 		A200000000000000000073 /* Features/Words/WordListRowViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListRowViews.swift; sourceTree = "<group>"; };
+		A2000000000000000000D5 /* Features/Words/RedSheetLayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/RedSheetLayer.swift; sourceTree = "<group>"; };
 		A200000000000000000074 /* Features/Words/WordListErrorBox.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordListErrorBox.swift; sourceTree = "<group>"; };
 		A200000000000000000075 /* Features/Words/WordDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/WordDetailSheet.swift; sourceTree = "<group>"; };
 		A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Features/Words/InteractiveSwipeBack.swift; sourceTree = "<group>"; };
@@ -308,6 +310,7 @@
 				A200000000000000000072 /* Features/Words/WordListFilterBars.swift */,
 				A2000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift */,
 				A200000000000000000073 /* Features/Words/WordListRowViews.swift */,
+				A2000000000000000000D5 /* Features/Words/RedSheetLayer.swift */,
 				A200000000000000000074 /* Features/Words/WordListErrorBox.swift */,
 				A200000000000000000075 /* Features/Words/WordDetailSheet.swift */,
 				A2000000000000000000001A /* Features/Words/WordEditSheet.swift */,
@@ -516,6 +519,7 @@
 				A100000000000000000072 /* Features/Words/WordListFilterBars.swift in Sources */,
 				A1000000000000000000F1 /* Features/Words/InteractiveSwipeBack.swift in Sources */,
 				A100000000000000000073 /* Features/Words/WordListRowViews.swift in Sources */,
+				A1000000000000000000D5 /* Features/Words/RedSheetLayer.swift in Sources */,
 				A100000000000000000074 /* Features/Words/WordListErrorBox.swift in Sources */,
 				A100000000000000000075 /* Features/Words/WordDetailSheet.swift in Sources */,
 				A10000000000000000000019 /* Services/AudioPlaybackService.swift in Sources */,
