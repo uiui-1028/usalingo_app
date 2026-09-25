@@ -2,9 +2,13 @@ import SwiftUI
 
 struct AppShellView: View {
     @EnvironmentObject private var appState: AppState
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var selectedTab = 1
     @State private var isTabBarHiddenByScroll = false
     @State private var previousVerticalDragTranslation: CGFloat?
+    @State private var playStyleFrames: [DeckPlayStyle: CGRect] = [:]
+    @State private var playStyleDragOffset: CGFloat = 0
+    @Namespace private var playStyleSelection
     @AppStorage(DeckPlayStyle.storageKey) private var playStyle: DeckPlayStyle = .card
 
     var body: some View {
@@ -89,21 +93,82 @@ struct AppShellView: View {
                     .foregroundStyle(.primary)
                     .frame(minWidth: 44, minHeight: 44)
                     .padding(.horizontal, isSelected ? WireMetrics.spacingM : 0)
-                    .glassBarSelection(isSelected, in: Capsule())
+                    .background {
+                        if isSelected {
+                            playStyleSelectionBackground
+                                .offset(x: playStyleDragOffset)
+                                .matchedGeometryEffect(id: "selection", in: playStyleSelection)
+                        }
+                    }
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 5, coordinateSpace: .named("playStyleBar"))
+                        .onChanged { value in
+                            guard isSelected else { return }
+                            playStyleDragOffset = value.translation.width
+                        }
+                        .onEnded { value in
+                            guard isSelected else { return }
+                            finishPlayStyleDrag(value)
+                        }
+                )
+                .background {
+                    GeometryReader { geometry in
+                        Color.clear.preference(
+                            key: PlayStyleFramesKey.self,
+                            value: [style: geometry.frame(in: .named("playStyleBar"))]
+                        )
+                    }
+                }
                 .accessibilityLabel(style.title)
                 .accessibilityAddTraits(isSelected ? .isSelected : [])
             }
         }
         .padding(WireMetrics.spacingXS)
         .glassBarSurface(in: Capsule())
-        .animation(.spring(response: 0.26, dampingFraction: 0.82), value: playStyle)
+        .coordinateSpace(name: "playStyleBar")
+        .onPreferenceChange(PlayStyleFramesKey.self) { playStyleFrames = $0 }
+        .animation(reduceMotion ? nil : .spring(response: 0.26, dampingFraction: 0.82), value: playStyle)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("デッキの遊び方")
     }
 
+    @ViewBuilder
+    private var playStyleSelectionBackground: some View {
+        #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+            Capsule().fill(.clear).glassEffect(.regular.interactive(), in: Capsule())
+        } else {
+            Capsule().fill(.primary.opacity(0.14))
+        }
+        #else
+        Capsule().fill(.primary.opacity(0.14))
+        #endif
+    }
+
+    private func finishPlayStyleDrag(_ value: DragGesture.Value) {
+        let barBounds = playStyleFrames.values.reduce(CGRect.null) { $0.union($1) }
+        let destination = value.location
+        let nextStyle: DeckPlayStyle? = barBounds.contains(destination)
+            ? playStyleFrames.min { abs($0.value.midX - destination.x) < abs($1.value.midX - destination.x) }?.key
+            : nil
+
+        withAnimation(reduceMotion ? nil : .spring(response: 0.26, dampingFraction: 0.82)) {
+            playStyleDragOffset = 0
+            if let nextStyle { playStyle = nextStyle }
+        }
+    }
+
+}
+
+private struct PlayStyleFramesKey: PreferenceKey {
+    static var defaultValue: [DeckPlayStyle: CGRect] = [:]
+
+    static func reduce(value: inout [DeckPlayStyle: CGRect], nextValue: () -> [DeckPlayStyle: CGRect]) {
+        value.merge(nextValue(), uniquingKeysWith: { _, latest in latest })
+    }
 }
 
 #if DEBUG
