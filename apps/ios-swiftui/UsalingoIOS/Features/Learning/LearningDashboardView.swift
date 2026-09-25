@@ -3,11 +3,12 @@ import UniformTypeIdentifiers
 
 /// デッキを開くときの遊び方。タブバー上の切り替えバーで選び、端末に覚えておく。
 enum DeckPlayStyle: String, CaseIterable, Identifiable {
+    // バーには宣言順に左から並ぶ。
     case card
     case choice
+    case match
     case list
     case audio
-    case match
 
     static let storageKey = "learning.deckPlayStyle"
 
