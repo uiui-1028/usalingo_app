@@ -396,7 +396,7 @@ private struct AudioCoverflowCarousel<CardContent: View>: View {
         // 操作バーの背後まで札を流し、中央3枚分の枠では切り取らない。
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .contentShape(Rectangle())
-        .gesture(dragGesture)
+        .simultaneousGesture(dragGesture)
         .accessibilityElement(children: .contain)
         .accessibilityAction(named: "次の単語へ") { snap(to: player.carouselIndex + 1) }
         .accessibilityAction(named: "前の単語へ") { snap(to: player.carouselIndex - 1) }
@@ -424,6 +424,7 @@ private struct AudioCoverflowCarousel<CardContent: View>: View {
         DragGesture(minimumDistance: 12)
             .onChanged { value in
                 guard player.playableCardCount > 1 else { return }
+                guard abs(value.translation.height) > abs(value.translation.width) else { return }
                 if !motion.isDragging {
                     motion.beginDrag(at: value.time.timeIntervalSinceReferenceDate)
                     showsNextLap = false
