@@ -243,7 +243,6 @@ struct WordListView: View {
                                 checkResult: check.answers[word.id],
                                 reservesCheckResultSpace: check.isStarted,
                                 isCheckTarget: check.current?.id == word.id,
-                                coversAnswer: check.isStarted && answerIsHidden(at: index),
                                 isLanguageSwapped: isRedSheetEnabled && isLanguageSwapped
                             )
                                 .cardTapTarget(radius: 0) {
@@ -471,6 +470,7 @@ private struct WordRedSheet: View {
 
     var body: some View {
         ZStack(alignment: .top) {
+            // 答えを隠すのはこの板だけ。行側で塗ると、答えを出す瞬間に赤が行と一緒に動いて薄れる。
             // 上端は直線にして、角丸部分から隠した行の文字が見えないようにする。
             Rectangle()
                 .fill(Color(red: 1, green: 0.18, blue: 0.23))
