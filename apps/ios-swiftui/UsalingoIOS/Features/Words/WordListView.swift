@@ -121,37 +121,40 @@ struct WordListView: View {
     /// スクロールした中身はシートの上端まで届き、そこで切り取られる。
     private func sheet(bottomInset: CGFloat) -> some View {
         GeometryReader { proxy in
-            wordScroll(bottomInset: bottomInset, viewportHeight: proxy.size.height)
-                .overlay {
-                    if isRedSheetEnabled && check.isStarted && !check.isComplete {
-                        RedSheetStudyTapLayer(
-                            isAnswerVisible: check.isAnswerVisible,
-                            isDisabled: check.current == nil || check.isUndoing,
-                            onReveal: revealCurrentAnswer,
-                            onJudge: judgeCurrentAnswer
-                        )
+            // 一覧のレイヤーと赤シートのレイヤーを分ける。赤シートは一覧と一緒にスクロールしない。
+            ZStack(alignment: .topTrailing) {
+                wordScroll(bottomInset: bottomInset, viewportHeight: proxy.size.height)
+                    .overlay {
+                        if isRedSheetEnabled && check.isStarted && !check.isComplete {
+                            RedSheetStudyTapLayer(
+                                isAnswerVisible: check.isAnswerVisible,
+                                isDisabled: check.current == nil || check.isUndoing,
+                                onReveal: revealCurrentAnswer,
+                                onJudge: judgeCurrentAnswer
+                            )
+                        }
                     }
+
+                if isRedSheetEnabled && viewModel.selectedDisplayMode == .list
+                    && !displayedWords.isEmpty && !viewModel.isLoading && !check.isComplete {
+                    RedSheetLayer(
+                        topRatio: $redSheetTopRatio,
+                        availableHeight: proxy.size.height,
+                        minimumTopRatio: Self.minimumRedSheetTopRatio,
+                        maximumTopRatio: Self.maximumRedSheetTopRatio
+                    )
+                    .frame(width: proxy.size.width / 2, height: proxy.size.height)
+                    .zIndex(1)
                 }
-                .overlay(alignment: .topTrailing) {
-                    if isRedSheetEnabled && viewModel.selectedDisplayMode == .list
-                        && !displayedWords.isEmpty && !viewModel.isLoading && !check.isComplete {
-                        WordRedSheet(
-                            topRatio: $redSheetTopRatio,
-                            availableHeight: proxy.size.height,
-                            minimumTopRatio: Self.minimumRedSheetTopRatio,
-                            maximumTopRatio: Self.maximumRedSheetTopRatio
-                        )
-                            .frame(width: proxy.size.width / 2, height: proxy.size.height)
-                    }
+            }
+            .coordinateSpace(name: "wordListViewport")
+            .onPreferenceChange(WordListRowFramesKey.self) { frames in
+                rowFrames = frames
+                if let id = displayedWords.last?.id, let height = frames[id]?.height {
+                    lastRowHeight = height
                 }
-                .coordinateSpace(name: "wordListViewport")
-                .onPreferenceChange(WordListRowFramesKey.self) { frames in
-                    rowFrames = frames
-                    if let id = displayedWords.last?.id, let height = frames[id]?.height {
-                        lastRowHeight = height
-                    }
-                }
-                .onChange(of: displayedWords.last?.id) { _, _ in lastRowHeight = 80 }
+            }
+            .onChange(of: displayedWords.last?.id) { _, _ in lastRowHeight = 80 }
         }
             .background(WireColor.surface)
             .clipShape(sheetShape)
@@ -433,16 +436,6 @@ enum WordListRowSnapping {
     }
 }
 
-enum RedSheetPosition {
-    static func top(availableHeight: CGFloat, ratio: CGFloat) -> CGFloat {
-        max(0, availableHeight) * ratio
-    }
-
-    static func clampedRatio(_ ratio: CGFloat, minimum: CGFloat, maximum: CGFloat) -> CGFloat {
-        min(maximum, max(minimum, ratio))
-    }
-}
-
 enum RedSheetTapAction: Equatable {
     case reveal
     case judge(isCorrect: Bool)
@@ -450,73 +443,6 @@ enum RedSheetTapAction: Equatable {
     static func resolve(isAnswerVisible: Bool, tapX: CGFloat, width: CGFloat) -> Self {
         guard isAnswerVisible else { return .reveal }
         return .judge(isCorrect: tapX >= width / 2)
-    }
-}
-
-/// 右半分を覆う不透明なシート。つまみは連続値で動き、空レコードも同じ量だけ動く。
-private struct WordRedSheet: View {
-    @Binding var topRatio: CGFloat
-    let availableHeight: CGFloat
-    let minimumTopRatio: CGFloat
-    let maximumTopRatio: CGFloat
-    @State private var dragStartTop: CGFloat?
-
-    private var restingTop: CGFloat {
-        RedSheetPosition.top(
-            availableHeight: availableHeight,
-            ratio: RedSheetPosition.clampedRatio(topRatio, minimum: minimumTopRatio, maximum: maximumTopRatio)
-        )
-    }
-
-    var body: some View {
-        ZStack(alignment: .top) {
-            // 答えを隠すのはこの板だけ。行側で塗ると、答えを出す瞬間に赤が行と一緒に動いて薄れる。
-            // 上端は直線にして、角丸部分から隠した行の文字が見えないようにする。
-            Rectangle()
-                .fill(Color(red: 1, green: 0.18, blue: 0.23))
-                .padding(.top, restingTop)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-
-            Capsule()
-                .fill(.white)
-                .frame(width: 40, height: 5)
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
-                .contentShape(Rectangle())
-                .gesture(
-                    DragGesture(minimumDistance: 0, coordinateSpace: .named("wordListViewport"))
-                        .onChanged { value in
-                            if dragStartTop == nil { dragStartTop = restingTop }
-                            guard let dragStartTop else { return }
-                            let top = dragStartTop + value.translation.height
-                            topRatio = RedSheetPosition.clampedRatio(
-                                top / max(1, availableHeight),
-                                minimum: minimumTopRatio,
-                                maximum: maximumTopRatio
-                            )
-                        }
-                        .onEnded { _ in
-                            dragStartTop = nil
-                        }
-                )
-                .onTapGesture { }
-                .accessibilityLabel("赤シートの高さ")
-                .accessibilityValue("画面下から\(Int(((1 - topRatio) * 100).rounded()))パーセント")
-                .accessibilityHint("上下にドラッグして滑らかに調整します")
-                .accessibilityAdjustableAction { direction in
-                    switch direction {
-                    case .increment:
-                        topRatio = RedSheetPosition.clampedRatio(topRatio - 0.01, minimum: minimumTopRatio, maximum: maximumTopRatio)
-                    case .decrement:
-                        topRatio = RedSheetPosition.clampedRatio(topRatio + 0.01, minimum: minimumTopRatio, maximum: maximumTopRatio)
-                    @unknown default: break
-                    }
-                }
-                .offset(y: restingTop)
-                .backSwipeProtectedRegion()
-        }
-        .clipped()
     }
 }
 
