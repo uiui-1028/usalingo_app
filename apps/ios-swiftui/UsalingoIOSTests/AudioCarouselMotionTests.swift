@@ -49,9 +49,9 @@ final class AudioCarouselMotionTests: XCTestCase {
         XCTAssertFalse(motion.isMoving)
     }
 
-    func testSnapUses420MillisecondsAndEaseOutQuart() {
+    func testGentleSnapUses420MillisecondsAndEaseOutQuart() {
         let motion = makeMotion(count: 8)
-        motion.snap(to: 2, animated: true) { _ in }
+        motion.snap(to: 2, animated: true, gentle: true) { _ in }
         motion.advanceFrame(seconds: 0.210)
         XCTAssertEqual(motion.position, -348 * 0.9375, accuracy: 0.001)
         XCTAssertTrue(motion.isMoving)
@@ -114,9 +114,10 @@ final class AudioCarouselMotionTests: XCTestCase {
         motion.beginDrag(at: 2)
         XCTAssertEqual(motion.position, displayed)
         motion.drag(translation: 20, at: 2.016)
-        XCTAssertEqual(motion.position, displayed + 20, accuracy: 0.001)
+        let dragged = motion.position
+        XCTAssertGreaterThanOrEqual(dragged, displayed, "指の向きへ動く（磁力で張り付くことはある）")
         motion.advanceFrame(seconds: 1)
-        XCTAssertEqual(motion.position, displayed + 20, accuracy: 0.001)
+        XCTAssertEqual(motion.position, dragged, accuracy: 0.001, "古いアニメーションは止まっている")
         motion.stop()
     }
 
@@ -152,7 +153,7 @@ final class AudioCarouselMotionTests: XCTestCase {
         XCTAssertFalse(motion.isMoving)
     }
 
-    func testFrictionIsTimeBasedAt60And120Hz() {
+    func testReleaseIsTimeBasedAt60And120Hz() {
         func position(hz: Double) -> CGFloat {
             let motion = makeMotion(count: 30, index: 10)
             motion.beginDrag(at: 1)
@@ -164,6 +165,80 @@ final class AudioCarouselMotionTests: XCTestCase {
             return result
         }
         XCTAssertEqual(position(hz: 60), position(hz: 120), accuracy: 8)
+    }
+
+    // MARK: - 磁力
+
+    /// 枠から間隔の4分の1までは張り付いて動かない。
+    func testDragSticksToTheSlotWithinAQuarter() {
+        let motion = makeMotion(count: 8, index: 2)
+        motion.beginDrag(at: 1)
+        motion.drag(translation: -0.2 * 174, at: 1.1)
+        XCTAssertEqual(motion.position, -2 * 174, accuracy: 0.001)
+        motion.drag(translation: 0.24 * 174, at: 1.2)
+        XCTAssertEqual(motion.position, -2 * 174, accuracy: 0.001)
+        motion.stop()
+    }
+
+    /// 4分の1を越えると外れ、指より速く次の枠へ向かい、4分の3で次の枠に張り付く。
+    func testDragBreaksFreeAndLocksOntoTheNextSlot() {
+        let motion = makeMotion(count: 8, index: 2)
+        motion.beginDrag(at: 1)
+        motion.drag(translation: -0.375 * 174, at: 1.1)
+        XCTAssertEqual(motion.position, -2.25 * 174, accuracy: 0.001)
+        motion.drag(translation: -0.5 * 174, at: 1.2)
+        XCTAssertEqual(motion.position, -2.5 * 174, accuracy: 0.001)
+        motion.drag(translation: -0.75 * 174, at: 1.3)
+        XCTAssertEqual(motion.position, -3 * 174, accuracy: 0.001)
+        motion.stop()
+    }
+
+    /// 指で動かすと、枠に吸い付くたびに1回ずつ振動する。同じ枠では繰り返さない。
+    func testDetentFiresOncePerSlotWhileDragging() {
+        let motion = makeMotion(count: 8)
+        var detents = 0
+        motion.onDetent = { detents += 1 }
+        motion.beginDrag(at: 1)
+        for step in 1...30 {
+            motion.drag(translation: -CGFloat(step) * 0.1 * 174, at: 1 + Double(step) * 0.1)
+        }
+        XCTAssertEqual(detents, 3, "0→1→2→3 の3枠")
+        motion.stop()
+    }
+
+    /// 勢いよくはじくと数枠進み、手で動かしたあとは 0.34 秒以内に止まる。
+    func testFlickTravelsSeveralSlotsAndStopsQuickly() {
+        let motion = makeMotion(count: 12)
+        var detents = 0
+        motion.onDetent = { detents += 1 }
+        motion.beginDrag(at: 1)
+        motion.drag(translation: -80, at: 1.016)
+        var selected: Int?
+        motion.endDrag(at: 1.016, animated: true) { selected = $0 }
+        for _ in 0..<Int(0.34 * 120) { motion.advanceFrame(seconds: 1.0 / 120) }
+        XCTAssertFalse(motion.isMoving)
+        XCTAssertEqual(selected, 2)
+        XCTAssertEqual(detents, 2, "通り過ぎた枠ごとに振動する")
+    }
+
+    /// 止まるときに行き先を越えない。
+    func testSnapNeverOvershoots() {
+        let motion = makeMotion(count: 8)
+        motion.snap(to: 3, animated: true) { _ in }
+        for _ in 0..<120 {
+            motion.advanceFrame(seconds: 1.0 / 120)
+            XCTAssertGreaterThanOrEqual(motion.position, -3 * 174 - 0.001)
+        }
+    }
+
+    /// 自動送りでは振動させない。
+    func testGentleSnapDoesNotFireDetents() {
+        let motion = makeMotion(count: 8)
+        var detents = 0
+        motion.onDetent = { detents += 1 }
+        motion.snap(to: 1, animated: true, gentle: true) { _ in }
+        finish(motion)
+        XCTAssertEqual(detents, 0)
     }
 
     func testLateStepCompletionWhilePausedDoesNotRequestAutomaticAdvance() async throws {
