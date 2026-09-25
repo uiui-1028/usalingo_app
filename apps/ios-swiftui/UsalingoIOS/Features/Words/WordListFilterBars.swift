@@ -110,6 +110,7 @@ struct WordListActionBar: View {
                         .foregroundStyle(.red)
                         .frame(width: 48, height: 48)
                         .glassBarSelection(isRedSheetEnabled, in: Capsule())
+                        .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
                 .accessibilityLabel("赤シート")
