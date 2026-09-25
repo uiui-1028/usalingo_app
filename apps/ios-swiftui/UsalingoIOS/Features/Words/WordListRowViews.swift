@@ -63,7 +63,6 @@ struct WordRow: View {
     var checkResult: Bool? = nil
     var reservesCheckResultSpace = false
     var isCheckTarget = false
-    var coversAnswer = false
     var isLanguageSwapped = false
 
     var body: some View {
@@ -95,12 +94,6 @@ struct WordRow: View {
                     Rectangle().fill(WireColor.ink.opacity(0.12)).frame(width: 1)
                 }
                 .accessibilityHidden(hidesAnswerFromAccessibility)
-                .overlay {
-                    if coversAnswer {
-                        Color(red: 1, green: 0.18, blue: 0.23)
-                            .accessibilityHidden(true)
-                    }
-                }
                 .overlay(alignment: .trailing) {
                     if let checkResult {
                         Image(systemName: checkResult ? "checkmark.circle.fill" : "xmark.circle.fill")
