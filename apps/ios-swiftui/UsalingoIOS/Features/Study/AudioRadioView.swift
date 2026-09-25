@@ -522,14 +522,16 @@ struct AudioCarouselProjection: GeometryEffect {
 /// フレームごとに座標そのものを更新する。SwiftUIの暗黙アニメーションで札を再移動しない。
 ///
 /// 手ざわりは Final Cut Pro のマグネティックタイムラインのように、枠へはっきり吸い付かせる。
-/// - ドラッグ中は、枠から間隔の4分の1までは張り付いて動かず、それを越えると次の枠へ外れる。
+/// - ドラッグ中は指に滑らかに付いてくる。枠の近くでは少しゆっくり、枠の境いでは少し速く動かし、
+///   止まったり跳んだりさせずに、やわらかく枠へ引き寄せる。
 /// - 指を離すと、勢いから行き先を決めて短い時間で行き過ぎずに止まる。滑ってから寄せる2段階はしない。
-/// - 指で動かしたときだけ、枠に吸い付くたびに軽く振動させる。自動送りはゆったり動かし、振動もしない。
+/// - 指で動かしたときだけ、枠の境いを越えるたびに軽く振動させる。自動送りはゆったり動かし、振動もしない。
 @MainActor
 final class AudioCarouselMotion: ObservableObject {
     private enum Magnet {
-        /// 枠に張り付いたまま動かない範囲。枠の間隔に対する割合。
-        static let hold: CGFloat = 0.25
+        /// 磁力の強さ。枠の近くでは指の (1 - strength) 倍、境いでは (1 + strength) 倍の速さで動く。
+        /// 1 未満なら向きが逆になることはなく、指とのずれは最大で枠の間隔の strength / 2π。
+        static let strength: CGFloat = 0.5
         /// 指を離したときの勢いを、どれだけ先まで見込むか（ミリ秒）。
         static let flickProjection: CGFloat = 150
         /// これより速く離したら、少なくとも1枠は進める（points / millisecond）。
@@ -585,7 +587,8 @@ final class AudioCarouselMotion: ObservableObject {
     func beginDrag(at time: TimeInterval) {
         stop()
         isDragging = true
-        fingerPosition = position
+        // 見えている位置から指の位置を逆算し、つかんだ瞬間に札が跳ばないようにする。
+        fingerPosition = unmagnetized(position)
         lastTranslation = 0
         lastDragTime = time
         velocity = 0
@@ -674,30 +677,32 @@ final class AudioCarouselMotion: ObservableObject {
         if t >= 1 { finish(at: target) }
     }
 
-    /// 枠のまわりでは張り付かせ、`Magnet.hold` を越えたぶんだけ次の枠へ向けて速めに動かす。
+    /// 枠の近くでは遅く、境いでは速くして、やわらかく枠へ引き寄せる。
+    /// 枠と境いの上では指と同じ位置になり、その間もなめらかにつながる。
     /// 端より先（ゴムで伸びている間）は磁力をかけない。
     private func magnetized(_ raw: CGFloat) -> CGFloat {
         guard stride > 0, raw <= 0, raw >= minimum else { return raw }
         let slot = -raw / stride
-        let nearest = slot.rounded()
-        let offset = slot - nearest
-        let free = max(0, abs(offset) - Magnet.hold) / (0.5 - Magnet.hold) * 0.5
-        return -(nearest + (offset < 0 ? -free : free)) * stride
+        return -(slot - Magnet.strength * sin(2 * .pi * slot) / (2 * .pi)) * stride
     }
 
-    /// 位置を動かし、枠へ乗ったかまたいだら1回だけ振動させる。
+    /// `magnetized` の逆。単調に増えるので、ニュートン法で数回たどれば十分に合う。
+    private func unmagnetized(_ shown: CGFloat) -> CGFloat {
+        guard stride > 0, shown <= 0, shown >= minimum else { return shown }
+        let target = -shown / stride
+        var slot = target
+        for _ in 0..<4 {
+            let error = slot - Magnet.strength * sin(2 * .pi * slot) / (2 * .pi) - target
+            slot -= error / (1 - Magnet.strength * cos(2 * .pi * slot))
+        }
+        return -slot * stride
+    }
+
+    /// 位置を動かし、枠の境いを越えて中央の枠が入れ替わったら1回だけ振動させる。
     private func move(to newPosition: CGFloat, detents: Bool) {
-        let old = -position / stride
         position = newPosition
         guard detents, stride > 0 else { return }
-        let new = -newPosition / stride
-        let epsilon: CGFloat = 0.0001
-        let lower = min(old, new) - epsilon
-        let upper = max(old, new) + epsilon
-        // 通り過ぎた枠のうち、進む先にいちばん近いもの。
-        let slot = new >= old ? upper.rounded(.down) : lower.rounded(.up)
-        guard slot >= lower, slot <= upper else { return }
-        let index = Int(slot)
+        let index = Int((-newPosition / stride).rounded())
         guard (0...lastIndex).contains(index), index != detentIndex else { return }
         detentIndex = index
         if let onDetent { onDetent() } else { HapticFeedbackService.detent() }
