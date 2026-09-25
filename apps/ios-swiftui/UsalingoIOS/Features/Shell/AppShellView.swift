@@ -137,11 +137,15 @@ struct AppShellView: View {
 
     @ViewBuilder
     private var playStyleSelectionBackground: some View {
+        #if compiler(>=6.2)
         if #available(iOS 26.0, *) {
             Capsule().fill(.clear).glassEffect(.regular.interactive(), in: Capsule())
         } else {
             Capsule().fill(.primary.opacity(0.14))
         }
+        #else
+        Capsule().fill(.primary.opacity(0.14))
+        #endif
     }
 
     private func finishPlayStyleDrag(_ value: DragGesture.Value) {
